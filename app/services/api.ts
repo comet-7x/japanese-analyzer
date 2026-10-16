@@ -16,6 +16,7 @@ import { getLocalRomaji } from '../utils/romaji';
 import { ApiRequestError, InvalidResponseError } from '../utils/requestErrors';
 import { protectAnalysisUrls } from '../utils/analysisUrls';
 import { buildAnalyzePrompt } from '../lib/analyzePrompt';
+import { AnalyzeStreamParser } from '../utils/analyzeStreamParser';
 
 export { PRESETS, sanitizeProfiles, normalizeEndpointUrl, createCustomProfileId, createCustomModelId, effectiveCaps } from '../lib/aiModels';
 export type { ModelConfig, ModelCaps, ModelEndpoint, ProviderProfile, ProviderCaps, ProviderPreset } from '../lib/aiModels';
@@ -82,6 +83,68 @@ export interface AnalyzeRequestOptions {
   onReasoning?: (text: string, done: boolean) => void;
   onContentStart?: () => void;
   signal?: AbortSignal;
+  onDiagnostics?: (event: AnalysisDiagnosticEvent) => void;
+}
+
+export interface AnalysisDiagnosticEvent {
+  stage: 'start' | 'headers' | 'content' | 'reasoning' | 'complete' | 'error' | 'cancel';
+  model: string;
+  chunkIndex: number;
+  chunkCount: number;
+  inputChars: number;
+  outputChars: number;
+  reasoningChars: number;
+  elapsedMs: number;
+  status?: number;
+}
+
+/** Development diagnostics contain counts/timings only, never text, endpoints or credentials. */
+function createAnalysisDiagnostics(
+  text: string,
+  model: string,
+  options: AnalyzeRequestOptions,
+  context: { chunkIndex: number; chunkCount: number },
+) {
+  const started = performance.now();
+  const inputChars = Array.from(text).length;
+  let outputChars = 0;
+  let reasoningChars = 0;
+  let lastProgress = -Infinity;
+  let ended = false;
+  let sawContent = false;
+  let sawReasoning = false;
+  const report = (stage: AnalysisDiagnosticEvent['stage'], status?: number) => {
+    if (ended) return;
+    const event: AnalysisDiagnosticEvent = {
+      stage, model, ...context, inputChars, outputChars, reasoningChars,
+      elapsedMs: Math.round(performance.now() - started),
+      ...(status === undefined ? {} : { status }),
+    };
+    if (options.onDiagnostics) options.onDiagnostics(event);
+    else if (process.env.NODE_ENV === 'development') console.debug('[analysis-diagnostic]', JSON.stringify(event));
+  };
+  report('start');
+  return {
+    headers(status: number) { report('headers', status); },
+    progress(stage: 'content' | 'reasoning', length: number) {
+      const first = stage === 'content' ? !sawContent : !sawReasoning;
+      if (stage === 'content') {
+        outputChars = length;
+        sawContent = true;
+      } else {
+        reasoningChars = length;
+        sawReasoning = true;
+      }
+      if (first || performance.now() - lastProgress >= 5000) {
+        report(stage);
+        lastProgress = performance.now();
+      }
+    },
+    finish(stage: 'complete' | 'error' | 'cancel') {
+      report(stage);
+      ended = true;
+    },
+  };
 }
 
 export interface ReasoningSummaryRequestOptions {
@@ -360,12 +423,14 @@ function reconstructTokenText(tokens: TokenData[]): string {
   return tokens.map((token) => token.word).join('');
 }
 
-function alignTokenWhitespaceToSource(source: string, tokens: TokenData[]): TokenData[] | null {
+function alignTokenWhitespaceToSource(source: string, tokens: TokenData[], allowPartial = false): TokenData[] | null {
   const sourceWithoutWhitespace = source.replace(/\s/gu, '');
   const tokensWithoutWhitespace = tokens
     .map((token) => token.word.replace(/\s/gu, ''))
     .join('');
-  if (sourceWithoutWhitespace !== tokensWithoutWhitespace) return null;
+  if (allowPartial
+    ? !sourceWithoutWhitespace.startsWith(tokensWithoutWhitespace)
+    : sourceWithoutWhitespace !== tokensWithoutWhitespace) return null;
 
   const alignedTokens: TokenData[] = [];
   let sourceIndex = 0;
@@ -415,7 +480,7 @@ function alignTokenWhitespaceToSource(source: string, tokens: TokenData[]): Toke
   }
 
   appendSourceWhitespace();
-  return sourceIndex === source.length ? alignedTokens : null;
+  return allowPartial || sourceIndex === source.length ? alignedTokens : null;
 }
 
 function reconcileChunkReconstruction(
@@ -1028,13 +1093,16 @@ async function streamAnalyzeSingleSentence(
   onError: (error: Error) => void,
   userApiKey?: string,
   endpoint: EndpointPayload = { baseUrl: '', model: '' },
-  options: AnalyzeRequestOptions = {}
+  options: AnalyzeRequestOptions = {},
+  context = { chunkIndex: 1, chunkCount: 1 },
 ): Promise<void> {
   if (!sentence) {
     onError(new Error('缺少句子'));
     return;
   }
 
+  const diagnostics = createAnalysisDiagnostics(sentence, endpoint.model, options, context);
+  const reportError = (error: Error) => { diagnostics.finish('error'); onError(error); };
   try {
     const protectedInput = protectAnalysisUrls(sentence);
     const apiUrl = getApiEndpoint('/analyze');
@@ -1052,10 +1120,11 @@ async function streamAnalyzeSingleSentence(
       })
     });
 
+    diagnostics.headers(response.status);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('API Error (Stream Analysis):', errorData);
-      onError(new ApiRequestError(`流式解析失败：${errorData.error?.message || response.statusText || '未知错误'}`, response.status));
+      reportError(new ApiRequestError(`流式解析失败：${errorData.error?.message || response.statusText || '未知错误'}`, response.status));
       return;
     }
     
@@ -1064,23 +1133,27 @@ async function streamAnalyzeSingleSentence(
       return reconcileChunkReconstruction({ text: sentence, start: 0, end: sentence.length, sentenceCount: 0, overLimit: false }, tokens, 0, 1);
     };
     await readOpenAIContentStream(response, (content, done) => {
+      diagnostics.progress('content', content.length);
+      if (done) diagnostics.finish('complete');
       onChunk(done
         ? JSON.stringify({ tokens: parseContent(content) })
         : protectedInput.restoreContent(content), done);
-    }, onError, {
+    }, reportError, {
       debounceMs: 40,
       signal: options.signal,
       parseWarning: 'Failed to parse streaming JSON chunk:',
       validateFinalContent: parseContent,
       invalidContentMessage: '句子解析结果没有完整生成，请重新解析。',
       completionLabel: '句子解析',
-      onReasoning: options.onReasoning,
+      onReasoning: (text, done) => { diagnostics.progress('reasoning', text.length); options.onReasoning?.(text, done); },
       onContentStart: options.onContentStart,
     });
   } catch (error) {
-    if (options.signal?.aborted || isAbortError(error)) return;
+    if (options.signal?.aborted || isAbortError(error)) { diagnostics.finish('cancel'); return; }
     console.error('Error in stream analyzing sentence:', error);
-    onError(error instanceof Error ? error : new Error('未知错误'));
+    reportError(error instanceof Error ? error : new Error('未知错误'));
+  } finally {
+    if (options.signal?.aborted) diagnostics.finish('cancel');
   }
 }
 
@@ -1088,6 +1161,7 @@ async function streamAnalyzeChunk(
   chunk: JapaneseTextChunk,
   chunkIndex: number,
   chunkCount: number,
+  onPartialTokens: (tokens: TokenData[]) => void,
   onReasoning: ((text: string, done: boolean) => void) | undefined,
   userApiKey: string | undefined,
   endpoint: EndpointPayload,
@@ -1095,11 +1169,23 @@ async function streamAnalyzeChunk(
 ): Promise<TokenData[]> {
   let finalTokens: TokenData[] | null = null;
   let streamError: Error | null = null;
+  const parser = new AnalyzeStreamParser();
+  let lastSnapshot: TokenData[] | undefined;
 
   await streamAnalyzeSingleSentence(
     chunk.text,
     (content, isDone) => {
-      if (isDone) finalTokens = parseAnalyzeResponseContent(content);
+      if (isDone) {
+        finalTokens = parseAnalyzeResponseContent(content);
+        return;
+      }
+      const tokens = parser.push(content);
+      if (tokens === lastSnapshot || !tokens.length) return;
+      lastSnapshot = tokens;
+      // Publish only complete token objects that still reconstruct a source prefix.
+      const alignedTokens = chunk.text.startsWith(reconstructTokenText(tokens))
+        ? tokens : alignTokenWhitespaceToSource(chunk.text, tokens, true);
+      if (alignedTokens) onPartialTokens(alignedTokens);
     },
     (error) => {
       streamError = error;
@@ -1109,7 +1195,8 @@ async function streamAnalyzeChunk(
     {
       ...options,
       onReasoning,
-    }
+    },
+    { chunkIndex: chunkIndex + 1, chunkCount },
   );
 
   if (streamError) throw streamError;
@@ -1151,10 +1238,12 @@ export async function streamAnalyzeSentence(
   const requestOptions = { ...options, signal: options.signal
     ? AbortSignal.any([options.signal, groupController.signal]) : groupController.signal };
   const tokensByChunk = Array<TokenData[] | null>(chunks.length).fill(null);
+  const partialTokensByChunk = Array<TokenData[]>(chunks.length).fill([]);
   const reasoningByChunk = Array<string>(chunks.length).fill('');
   const reasoningDoneByChunk = Array<boolean>(chunks.length).fill(false);
   let nextChunkIndex = 0;
-  let emittedChunkCount = 0;
+  let emittedContent = '';
+  let emittedDone = false;
   let emittedReasoningText = '';
   let emittedReasoningDone = false;
   let failed = false;
@@ -1179,21 +1268,23 @@ export async function streamAnalyzeSentence(
     options.onReasoning(text, done);
   };
 
-  const emitCompletedTokens = () => {
-    if (failed) return;
+  const emitTokens = () => {
+    if (failed || requestOptions.signal.aborted) return;
 
     let contiguousChunkCount = 0;
     while (tokensByChunk[contiguousChunkCount]) contiguousChunkCount += 1;
-    if (contiguousChunkCount === emittedChunkCount) return;
-
-    emittedChunkCount = contiguousChunkCount;
     const mergedTokens = tokensByChunk
       .slice(0, contiguousChunkCount)
       .flatMap((tokens) => tokens ?? []);
-    onChunk(
-      JSON.stringify({ tokens: mergedTokens }),
-      contiguousChunkCount === chunks.length
-    );
+    // Later chunks may finish first; expose only the next unfinished chunk's prefix.
+    if (contiguousChunkCount < chunks.length) mergedTokens.push(...partialTokensByChunk[contiguousChunkCount]);
+    if (!mergedTokens.length) return;
+    const content = JSON.stringify({ tokens: mergedTokens });
+    const done = contiguousChunkCount === chunks.length;
+    if (content === emittedContent && done === emittedDone) return;
+    emittedContent = content;
+    emittedDone = done;
+    onChunk(content, done);
   };
 
   const reportError = (error: unknown) => {
@@ -1214,6 +1305,11 @@ export async function streamAnalyzeSentence(
           chunks[chunkIndex],
           chunkIndex,
           chunks.length,
+          (tokens) => {
+            if (failed || requestOptions.signal.aborted) return;
+            partialTokensByChunk[chunkIndex] = tokens;
+            emitTokens();
+          },
           options.onReasoning
             ? (text, done) => {
                 if (failed || requestOptions.signal.aborted) return;
@@ -1226,10 +1322,10 @@ export async function streamAnalyzeSentence(
           endpoint,
           requestOptions
         );
-        if (failed) return;
+        if (failed || requestOptions.signal.aborted) return;
         tokensByChunk[chunkIndex] = tokens;
         reasoningDoneByChunk[chunkIndex] = true;
-        emitCompletedTokens();
+        emitTokens();
         emitReasoning();
       } catch (error) {
         reportError(error);

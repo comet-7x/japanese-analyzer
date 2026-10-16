@@ -30,6 +30,25 @@ async function run() {
   try {
     delete process.env.CODE;
     delete process.env.AUTH_COOKIE_SECURE;
+    // A supported model's disabled thinking state must reach the upstream API;
+    // analysis also needs enough output room for a chunk's expanded token objects.
+    for (const stream of [false, true]) {
+      globalThis.fetch = async (_url, init) => {
+        const payload = JSON.parse(String(init?.body));
+        assert.deepEqual(payload.thinking, { type: 'disabled' });
+        assert.ok(payload.max_tokens >= 8192);
+        assert.equal(payload.reasoning_effort, undefined);
+        return stream
+          ? new Response('data: [DONE]\n\n')
+          : Response.json(completion());
+      };
+      const response = await analyze(request(JSON.stringify({
+        ...endpointBody, prompt: 'test-analysis', stream,
+        caps: { thinking: true, reasoningEffort: 'high' }, thinkingEnabled: false,
+      }), undefined, { Authorization: 'Bearer test-key' }));
+      assert.equal(response.status, 200);
+      await response.text();
+    }
     const testService = { id: 'test', name: 'Test', baseUrl: ' https://api.test.example/v1 ', apiKey: ' test-key ', models: [] };
     const testController = new AbortController();
     globalThis.fetch = async (url, init) => {

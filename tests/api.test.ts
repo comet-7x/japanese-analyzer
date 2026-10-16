@@ -7,6 +7,7 @@ import './wordDetailContext.test';
 import './wordDetailDictionary.test';
 import { runLocalOutputTests } from './localOutput.test';
 import { runRequestMetricsTests } from './requestMetrics.test';
+import { runAnalysisStreamingTests } from './analysisStreaming.test';
 import {
   PRESETS,
   createCustomModelId,
@@ -1002,6 +1003,7 @@ Promise.all([
 ])
   .then(runLocalOutputTests)
   .then(runRequestMetricsTests)
+  .then(runAnalysisStreamingTests)
   .then(runOpenAIProxyErrorBodyTests)
   .then(() => {
     console.log('All tests passed');
