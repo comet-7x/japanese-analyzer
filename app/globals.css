@@ -2884,6 +2884,8 @@ body {
 
 /* Dictionary and learning tools share the existing paper/ink theme. */
 .learning-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.copy-text-control { display: inline-flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: 100%; }
+.copy-text-fallback { width: 280px; max-width: 100%; }
 .learning-fields { display: grid; gap: 14px; }
 .learning-input { display: block; width: 100%; padding: 10px 12px; margin-top: 6px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--ink); font: inherit; }
 .learning-input:focus-visible, .boundary-editor button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

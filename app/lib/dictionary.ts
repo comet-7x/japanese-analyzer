@@ -91,8 +91,8 @@ export function readIchiOptions(raw: string | null): IchiMoeOptions {
     const validR: IchiRomanizationMethod[] = ['htr', 'kana', 'text', 'hb', 'hm', 'ks'];
     return {
       r: validR.includes(data?.r) ? data.r : 'htr',
-      hira: Boolean(data?.hira),
-      noseg: Boolean(data?.noseg),
+      hira: data?.hira === true,
+      noseg: data?.noseg === true,
     };
   } catch { return { ...DEFAULT_ICHI_OPTIONS }; }
 }

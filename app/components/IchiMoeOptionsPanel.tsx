@@ -34,6 +34,7 @@ export default function IchiMoeOptionsPanel({ value, onChange, defaultOpen = fal
           <span>{t('不分词（仅假名）')}</span>
         </label>
       </div>
+      <p className="tool-note">{t('默认保留分词和词典释义；开启“不分词”后仅显示读音。')}</p>
     </div>
   </details>;
 }

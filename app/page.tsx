@@ -3,6 +3,7 @@
 import { analysisCache, sentenceCacheKey } from './utils/sentenceCache';
 import { useReadingPreferences } from './hooks/useReadingPreferences';
 import ShareControl from './components/ShareControl';
+import CopyTextButton from './components/CopyTextButton';
 import DictionaryLookup from './components/DictionaryLookup';
 import WordLearningTools from './components/WordLearningTools';
 import ResegmentEditor from './components/ResegmentEditor';
@@ -729,6 +730,7 @@ export default function Home() {
     />
     <div className="learning-detail">
       <div className="learning-actions">
+        <CopyTextButton text={detailWord} label="复制选中文本" />
         <button className="nd-soft-btn" disabled={!canEdit} onClick={() => { if (detailRange) { setEditRange({ range: detailRange, taskId: editing.state.taskId, revision: editing.state.revision }); handleCloseWordDetail(); } }}>{t('调整分词')}</button>
         {selectedRange && <><button className="nd-ghost-btn" disabled={isAnalyzing || !canGroup} title={!canGroup ? t('阅读组不能跨标点或空白') : undefined} onClick={() => { editing.group(selectedRange); handleCloseWordDetail(); }}>{t('设为阅读组')}</button><button className="nd-ghost-btn" disabled={isAnalyzing || !canGroup} title={!canGroup ? t('阅读组不能跨标点或空白') : undefined} onClick={() => { editing.ungroup(selectedRange); handleCloseWordDetail(); }}>{t('取消阅读组')}</button></>}
       </div>
@@ -870,6 +872,7 @@ export default function Home() {
                 {(shouldShowAnalyzer() || pendingText) && (
                   <AnalysisResult
                     key={currentSentence}
+                    originalText={currentSentence}
                     tokens={analyzedTokens}
                     readingGroups={viewMode === 'reading' && !isAnalyzing ? readingGroups : undefined}
                     pendingText={pendingText}

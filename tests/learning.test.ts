@@ -91,6 +91,10 @@ async function main() {
     assert.equal(readExternalServicesSettings('{"enabled":{"google":false}}').enabled.google, false);
     assert.equal(readExternalServicesSettings('{"enabled":{"google":false}}').enabled.baidu, true);
     assert.equal(readIchiOptions(null).r, 'htr');
+    assert.equal(readIchiOptions(null).noseg, false, 'Keep segmented definitions by default');
+    assert.equal(readIchiOptions('{"noseg":"false","hira":"false"}').noseg, false, 'String values cannot accidentally enable no segmentation');
+    assert.equal(readIchiOptions('{"noseg":true}').noseg, true, 'Explicit user preference is preserved');
+    assert.equal(new URL(externalDictionaryLinks('猫が窓の外を見ている。', '', { multiWord: true }).ichi).searchParams.has('noseg'), false, 'Off means omit noseg: even noseg=false enables it on ichi.moe');
     assert.equal(readIchiOptions('{"r":"kana","hira":true}').r, 'kana');
     assert.equal(readIchiOptions('{"r":"kana","hira":true}').hira, true);
     // Conversion preserves restrictions instead of attributing every sense to every spelling.

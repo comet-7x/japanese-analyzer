@@ -62,6 +62,7 @@ async function main() {
     await act(async () => { renderer = create(view()); });
     assert.ok(cards().every(card => !hasGoogle(card)), 'Persisted service settings load');
     assert.ok(cards().every(card => ichiUrl(card).includes('r=kana')), 'Persisted options load');
+    assert.ok(cards().every(card => !new URL(ichiUrl(card)).searchParams.has('noseg')), 'Default links retain segmented dictionary definitions');
 
     await act(async () => { serviceCheckbox('Google 翻译').props.onChange({ target: { checked: true } }); });
     assert.ok(cards().every(hasGoogle), 'Settings update already mounted cards in the same tab');
@@ -83,6 +84,8 @@ async function main() {
     await emitStorage(ICHI_OPTIONS_KEY, '{"r":"ks","noseg":true}');
     assert.equal(romanization(settings()).props.value, 'ks');
     assert.ok(cards().every(card => ichiUrl(card).includes('noseg=true')), 'Cross-tab options update all consumers');
+    await act(async () => { settings().findAllByType('label').find(label => textOf(label) === '不分词（仅假名）')!.findByType('input').props.onChange({ target: { checked: false } }); });
+    assert.ok(cards().every(card => !new URL(ichiUrl(card)).searchParams.has('noseg')), 'Unchecking no segmentation removes the parameter on every link');
     await emitStorage(EXTERNAL_SERVICES_KEY, '{"enabled":{"google":false}}');
     assert.equal(serviceCheckbox('Google 翻译').props.checked, false, 'Cross-tab services update settings too');
     await emitStorage(null, null);
