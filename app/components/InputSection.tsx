@@ -54,8 +54,8 @@ interface InputSectionProps {
   /** 阅读态：输入卡片收成一行文字按钮，把版面让给解析结果 */
   compact?: boolean;
   onExpand?: () => void;
-  /** 有解析结果时，按 Esc 可回到阅读态 */
-  onCollapse?: () => void;
+  /** 放弃未提交的修改并回到阅读态；按钮与 Esc 使用同一个操作。 */
+  onCancelEdit?: () => void;
   /** 阅读态胶囊右侧的附加控件（假名/罗马音开关） */
   compactExtras?: React.ReactNode;
   /** 「新句子」：清空当前解析回到首页；未提供时只展开输入框 */
@@ -123,7 +123,7 @@ export default function InputSection({
   analysisError = '',
   compact = false,
   onExpand,
-  onCollapse,
+  onCancelEdit,
   compactExtras,
   onNewSentence,
   showSuggestions = false,
@@ -265,6 +265,13 @@ export default function InputSection({
   const clearUsageMetadata = () => {
     usageMetadataRef.current = {};
     spokenTextRef.current = '';
+  };
+
+  const handleCancelEdit = () => {
+    cancelInputRequests();
+    clearUsageMetadata();
+    setShowTtsDropdown(false);
+    onCancelEdit?.();
   };
 
   const getCurrentUsageMetadata = (): AnalyzeUsageMetadata => {
@@ -779,6 +786,10 @@ export default function InputSection({
               onDrop={handleDrop}
               {...cardMotion}
             >
+              {onCancelEdit && <div className="input-edit-heading">
+                <span>{t('编辑原文')}</span>
+                <button type="button" className="nd-ghost-btn" onClick={handleCancelEdit}>{t('取消编辑')}</button>
+              </div>}
               <div className="relative">
                 {showFirstVisitExample && (
                   <div className="first-visit-example-kicker">
@@ -806,9 +817,9 @@ export default function InputSection({
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   onKeyDown={(e) => {
-                    if (e.key === 'Escape' && onCollapse) {
+                    if (e.key === 'Escape' && !e.nativeEvent.isComposing && onCancelEdit) {
                       e.preventDefault();
-                      onCollapse();
+                      handleCancelEdit();
                     }
                   }}
                   style={inputTextStyle}

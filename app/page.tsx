@@ -798,7 +798,11 @@ export default function Home() {
               showSuggestions={isHome}
               onNewSentence={handleStartOver}
               onExpand={() => { setEditRange(null); setIsEditingInput(true); }}
-              onCollapse={analyzedTokens.length > 0 ? () => setIsEditingInput(false) : undefined}
+              onCancelEdit={currentSentence && (analyzedTokens.length > 0 || isAnalyzing) ? () => {
+                setDraft(currentSentence);
+                setEditRange(null);
+                setIsEditingInput(false);
+              } : undefined}
               history={history}
               onAnalyze={handleAnalyze}
               onCancelAnalyze={handleCancelAnalysis}

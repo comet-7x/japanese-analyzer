@@ -291,6 +291,7 @@ export const messages = {
   "已复制": {"zh-TW": "已複製", "en": "Copied", "ko": "복사됨"},
   "复制": {"zh-TW": "複製", "en": "Copy", "ko": "복사"},
   "复制选中文本": {"zh-TW": "複製選取文字", "en": "Copy selection", "ko": "선택한 텍스트 복사"},
+  "取消编辑": {"zh-TW": "取消編輯", "en": "Cancel editing", "ko": "편집 취소"},
   "收起": {"zh-TW": "收合", "en": "Collapse", "ko": "접기"},
   "展开": {"zh-TW": "展開", "en": "Expand", "ko": "펼치기"},
   "中文译文正文": {"zh-TW": "繁體中文譯文內容", "en": "English translation text", "ko": "한국어 번역 본문"},

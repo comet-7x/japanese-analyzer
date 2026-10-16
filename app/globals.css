@@ -2590,6 +2590,7 @@ body {
   transform-origin: left top;
 }
 .input-card { transform-origin: center top; }
+.input-edit-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: var(--ink-3); font-size: 12px; }
 .input-section-sticky {
   position: sticky;
   top: 12px;
