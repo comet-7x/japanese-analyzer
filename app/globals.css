@@ -2560,7 +2560,13 @@ body {
   box-shadow: var(--glass-shadow), 0 0 0 1px var(--glass-border);
   transform-origin: left top;
 }
-.input-card { transform-origin: center top; }
+.input-card {
+  /* Motion's transform isolates the menus; raise the whole card above the
+     following native audio controls and analysis content. */
+  position: relative;
+  z-index: 1;
+  transform-origin: center top;
+}
 .input-section-sticky {
   position: sticky;
   top: 12px;
