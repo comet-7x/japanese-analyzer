@@ -88,14 +88,14 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
   const context = selectedItem ? vocabularyContext(sentence, selectedItem.occurrences[occurrenceIndex]) : null;
 
   return <section className="dictionary-lookup">
-    <form className="nd-card learning-actions" onSubmit={event => {
+    <form className="nd-card dictionary-lookup-form" onSubmit={event => {
       event.preventDefault();
       const word = draft.trim();
       if (!canQuery(word)) return;
       setLookupId(id => id + 1); setEmptyFor('');
       setSelection({ scope, kind: 'manual', word, multiWord: lookupKind === 'auto' ? isMultiWordLookup(word) : lookupKind === 'phrase' });
     }}>
-      <label className="flex-1">{t('查词')}<input className="learning-input" aria-label={t('查词输入')} placeholder={t('输入其他词语')} lang="ja" value={draft} onChange={event => onDraftChange(event.target.value)} maxLength={240} /></label>
+      <label>{t('查词')}<input className="learning-input" aria-label={t('查词输入')} placeholder={t('输入其他词语')} lang="ja" value={draft} onChange={event => onDraftChange(event.target.value)} maxLength={240} /></label>
       <label>{t('查询类型')}<select className="learning-input" aria-label={t('查询类型')} value={lookupKind} onChange={event => setLookupKind(event.target.value as LookupKind)}>
         <option value="auto">{t('自动判断')}</option>
         <option value="word">{t('单词')}</option>

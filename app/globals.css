@@ -2966,6 +2966,14 @@ body {
 .conjugation-example { margin: 0 0 12px; color: var(--ink-2); font-size: 12px; }
 .conjugation-tool .learning-actions { margin: 8px 0 12px; }
 .dictionary-lookup { min-width: 0; }
+.dictionary-lookup-form { display: grid; grid-template-columns: minmax(0, 1fr) max-content auto; align-items: end; gap: 10px; }
+.dictionary-lookup-form label { display: flex; min-width: 0; flex-direction: column; gap: 6px; }
+.dictionary-lookup-form .learning-input { height: 44px; margin-top: 0; box-sizing: border-box; }
+.dictionary-lookup-form > button { height: 44px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .dictionary-lookup-form { grid-template-columns: minmax(0, 1fr) auto; }
+  .dictionary-lookup-form > label:first-child { grid-column: 1 / -1; }
+}
 .sentence-dictionary-layout { display: grid; gap: 18px; margin-top: 18px; align-items: start; }
 .nd-card.sentence-vocabulary { min-width: 0; padding: 20px; border-radius: 14px; box-shadow: none; }
 .sentence-vocabulary h2 { margin: 0; font-size: 15px; font-weight: 500; }
