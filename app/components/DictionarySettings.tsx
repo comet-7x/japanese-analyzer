@@ -2,19 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { queryDictionary } from '../services/learning';
-import {
-  type DictionarySettings as Settings,
-  DEFAULT_EXTERNAL_SERVICES,
-  DEFAULT_ICHI_OPTIONS,
-  EXTERNAL_SERVICES_KEY,
-  ICHI_OPTIONS_KEY,
-  readExternalServicesSettings,
-  readIchiOptions,
-  type ExternalServiceId,
-  type ExternalServicesSettings,
-  type IchiMoeOptions,
-  type IchiRomanizationMethod,
-} from '../lib/dictionary';
+import { type DictionarySettings as Settings, type ExternalServiceId } from '../lib/dictionary';
+import { useExternalLookupSettings } from '../contexts/ExternalLookupContext';
+import IchiMoeOptionsPanel from './IchiMoeOptionsPanel';
 import type { DictionaryLocalizationInfo } from '../lib/dictionary';
 import { LatestRequest } from '../utils/latestRequest';
 
@@ -24,25 +14,9 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
   const [status, setStatus] = useState(''); const [loading, setLoading] = useState(false);
   const [metadata, setMetadata] = useState(''); const request = useRef(new LatestRequest());
   const [datasets, setDatasets] = useState<DictionaryLocalizationInfo[]>([]);
-  const [services, setServices] = useState<ExternalServicesSettings>(() => {
-    if (typeof window === 'undefined') return DEFAULT_EXTERNAL_SERVICES;
-    return readExternalServicesSettings(localStorage.getItem(EXTERNAL_SERVICES_KEY));
-  });
-  const [ichiOptions, setIchiOptions] = useState<IchiMoeOptions>(() => {
-    if (typeof window === 'undefined') return DEFAULT_ICHI_OPTIONS;
-    return readIchiOptions(localStorage.getItem(ICHI_OPTIONS_KEY));
-  });
-  const updateServices = (id: ExternalServiceId, enabled: boolean) => {
-    const next: ExternalServicesSettings = {
-      ...services,
-      enabled: { ...services.enabled, [id]: enabled },
-    };
-    setServices(next);
-    try { localStorage.setItem(EXTERNAL_SERVICES_KEY, JSON.stringify(next)); } catch { /* ignore */ }
-  };
-  const updateIchiOptions = (next: IchiMoeOptions) => {
-    setIchiOptions(next);
-    try { localStorage.setItem(ICHI_OPTIONS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+  const { services, ichiOptions, updateServices, updateIchiOptions } = useExternalLookupSettings();
+  const updateService = (id: ExternalServiceId, enabled: boolean) => {
+    updateServices({ ...services, enabled: { ...services.enabled, [id]: enabled } });
   };
   useEffect(() => { request.current.cancel(); setLoading(false); setStatus(''); }, [url, key]);
   useEffect(() => { const manager = request.current; const controller = new AbortController(); void queryDictionary({ query: '駅' }, value.providers[0], controller.signal).then(r => { if (!controller.signal.aborted) { setMetadata(`${r.source.name} · ${r.source.date} · ${r.source.version}`); setDatasets(r.datasets ?? []); } }).catch(() => { if (!controller.signal.aborted) setMetadata(t('词典数据不可用，请重新准备词典数据')); }); return () => { controller.abort(); manager.cancel(); }; }, [value.providers, t]);
@@ -75,7 +49,7 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
           <input
             type="checkbox"
             checked={Boolean(services.enabled.ichi)}
-            onChange={e => updateServices('ichi', e.target.checked)}
+            onChange={e => updateService('ichi', e.target.checked)}
           />
           <span>ichi.moe</span>
         </label>
@@ -83,7 +57,7 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
           <input
             type="checkbox"
             checked={Boolean(services.enabled.google)}
-            onChange={e => updateServices('google', e.target.checked)}
+            onChange={e => updateService('google', e.target.checked)}
           />
           <span>{t('Google 翻译')}</span>
         </label>
@@ -91,7 +65,7 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
           <input
             type="checkbox"
             checked={Boolean(services.enabled.baidu)}
-            onChange={e => updateServices('baidu', e.target.checked)}
+            onChange={e => updateService('baidu', e.target.checked)}
           />
           <span>{t('百度翻译')}</span>
         </label>
@@ -99,52 +73,14 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
           <input
             type="checkbox"
             checked={Boolean(services.enabled.wiktionary)}
-            onChange={e => updateServices('wiktionary', e.target.checked)}
+            onChange={e => updateService('wiktionary', e.target.checked)}
           />
           <span>Wiktionary</span>
         </label>
       </div>
 
       {services.enabled.ichi && (
-        <details className="ichi-options-disclosure" open style={{ borderTop: '1px dashed var(--line)', paddingTop: '8px', marginTop: '4px' }}>
-          <summary className="ichi-options-summary">{t('ichi.moe 选项')}</summary>
-          <div className="ichi-options-panel">
-            <label className="ichi-option-row">
-              <span className="ichi-option-label">{t('罗马字格式')}</span>
-              <select
-                className="learning-input ichi-select"
-                aria-label={t('罗马字格式')}
-                value={ichiOptions.r || 'htr'}
-                onChange={e => updateIchiOptions({ ...ichiOptions, r: e.target.value as IchiRomanizationMethod })}
-              >
-                <option value="htr">{t('赫本式（传统）')}</option>
-                <option value="kana">{t('假名标音')}</option>
-                <option value="text">{t('仅原文分词')}</option>
-                <option value="hb">{t('赫本式（基础）')}</option>
-                <option value="hm">{t('赫本式（修正）')}</option>
-                <option value="ks">{t('训令式')}</option>
-              </select>
-            </label>
-            <div className="ichi-option-checkboxes">
-              <label className="ichi-option-checkbox">
-                <input
-                  type="checkbox"
-                  checked={Boolean(ichiOptions.hira)}
-                  onChange={e => updateIchiOptions({ ...ichiOptions, hira: e.target.checked })}
-                />
-                <span>{t('片假名转平假名')}</span>
-              </label>
-              <label className="ichi-option-checkbox">
-                <input
-                  type="checkbox"
-                  checked={Boolean(ichiOptions.noseg)}
-                  onChange={e => updateIchiOptions({ ...ichiOptions, noseg: e.target.checked })}
-                />
-                <span>{t('不分词（仅假名）')}</span>
-              </label>
-            </div>
-          </div>
-        </details>
+        <IchiMoeOptionsPanel value={ichiOptions} onChange={updateIchiOptions} defaultOpen />
       )}
     </div></details>
     <a href="https://www.edrdg.org/edrdg/licence.html" target="_blank" rel="noreferrer">JMdict / EDRDG · CC BY-SA 4.0</a>

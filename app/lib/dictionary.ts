@@ -75,7 +75,7 @@ export function readExternalServicesSettings(raw: string | null): ExternalServic
       }
     }
     return { enabled };
-  } catch { return { ...DEFAULT_EXTERNAL_SERVICES }; }
+  } catch { return { enabled: { ...DEFAULT_EXTERNAL_SERVICES.enabled } }; }
 }
 export type IchiRomanizationMethod = 'htr' | 'kana' | 'text' | 'hb' | 'hm' | 'ks';
 export interface IchiMoeOptions {
@@ -119,6 +119,21 @@ export interface ExternalLookupOptions {
   multiWord?: boolean;
   ichiOptions?: IchiMoeOptions;
   locale?: Locale;
+}
+/** Prefer analyzed selection metadata; segmentation is only a heuristic for manual input. */
+export function isMultiWordLookup(text: string, selection?: { kind: 'word' | 'phrase'; tokenCount: number }): boolean {
+  if (selection) return selection.kind !== 'word' || selection.tokenCount !== 1;
+  const clean = text.trim();
+  if (!clean) return false;
+  if (/\s/.test(clean)) return true;
+  // Older browsers can still submit arbitrary text to the sentence parser.
+  if (typeof Intl.Segmenter !== 'function') return true;
+  const segments = new Intl.Segmenter('ja', { granularity: 'word' }).segment(clean);
+  let words = 0;
+  for (const segment of segments) {
+    if (segment.isWordLike && ++words > 1) return true;
+  }
+  return false;
 }
 export function externalDictionaryLinks(word: string, lemma = '', options: ExternalLookupOptions = {}) {
   const isMulti = Boolean(options.multiWord);

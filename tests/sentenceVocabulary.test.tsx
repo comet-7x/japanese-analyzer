@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer';
 import { collectSentenceVocabulary, vocabularyContext, vocabularyKey } from '../app/utils/sentenceVocabulary';
 import DictionaryLookup from '../app/components/DictionaryLookup';
+import { ExternalLookupProvider } from '../app/contexts/ExternalLookupContext';
 import { LanguageProvider } from '../app/contexts/LanguageContext';
 import { BUILTIN_DICTIONARY, type DictionaryProvider, type DictionaryResult } from '../app/lib/dictionary';
 import { queryDictionary } from '../app/services/learning';
@@ -47,7 +48,7 @@ async function main() {
   const pending: { path: string; body: Record<string, unknown>; signal: AbortSignal; resolve: (result: Response) => void }[] = [];
   let draftWrites = 0;
   const props = { draft: '', onDraftChange: () => { draftWrites++; }, provider: BUILTIN_DICTIONARY, model, sentence, tokens, active: true, analysisId: 1 };
-  const view = (changes: Partial<React.ComponentProps<typeof DictionaryLookup>> = {}) => <LanguageProvider><DictionaryLookup {...props} {...changes} /></LanguageProvider>;
+  const view = (changes: Partial<React.ComponentProps<typeof DictionaryLookup>> = {}) => <LanguageProvider><ExternalLookupProvider><DictionaryLookup {...props} {...changes} /></ExternalLookupProvider></LanguageProvider>;
   const wordButtons = () => renderer!.root.findAll(node => node.type === 'button' && node.props.className === 'vocabulary-word');
   const button = (text: string) => renderer!.root.findAllByType('button').find(node => textOf(node) === text)!;
   try {
@@ -94,6 +95,21 @@ async function main() {
     assert.equal(pending[5].body.dictionaryForm, '食べる', 'Previously known lemmas supplement dictionary lookup without AI');
     await act(async () => { pending[5].resolve(Response.json(response('食べる'))); await tick(); });
     assert.ok(pending.every(request => request.path === '/api/dictionary/lookup'), 'No vocabulary interaction automatically invokes a model');
+    // Manual Japanese phrases have no spaces; allow an explicit correction of automatic detection.
+    const ichiUrl = () => renderer!.root.findAllByType('a').find(link => link.props.href.includes('ichi.moe'))!.props.href as string;
+    const submit = async (draft: string, kind: 'auto' | 'word' | 'phrase' = 'auto') => {
+      await act(async () => { renderer!.update(view({ draft })); });
+      await act(async () => { renderer!.root.findByProps({ 'aria-label': '查询类型' }).props.onChange({ target: { value: kind } }); });
+      await act(async () => { renderer!.root.findByType('form').props.onSubmit({ preventDefault() {} }); });
+    };
+    await submit('駅の前');
+    assert.match(ichiUrl(), /\/cl\/qr\//, 'Japanese phrases use sentence parsing without spaces');
+    await submit('駅');
+    assert.match(ichiUrl(), /\/cl\/word\//, 'Single words keep the word endpoint');
+    await submit('食べた', 'word');
+    assert.match(ichiUrl(), /\/cl\/word\//, 'Manual override keeps inflected words together');
+    await submit('駅', 'phrase');
+    assert.match(ichiUrl(), /\/cl\/qr\//, 'Users can explicitly choose sentence parsing');
     await act(async () => { renderer!.unmount(); }); renderer = undefined;
 
     // Exercise the shared query cache independently of React state.

@@ -5,6 +5,7 @@ import { dictionaryMatch, BUILTIN_DICTIONARY, type DictionaryEntry } from '../ap
 import DictionaryPanel from '../app/components/DictionaryPanel';
 import WordLearningTools from '../app/components/WordLearningTools';
 import ConjugationPanel from '../app/components/ConjugationPanel';
+import { ExternalLookupProvider } from '../app/contexts/ExternalLookupContext';
 import { LanguageProvider } from '../app/contexts/LanguageContext';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -32,7 +33,7 @@ async function main() {
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { documentElement: { lang: 'zh-CN' }, querySelector: () => null, title: '' } });
   let renderer: ReactTestRenderer | undefined;
   const requests: { path: string; body: Record<string, unknown>; signal: AbortSignal; resolve: (value: Response) => void }[] = [];
-  const view = (node: React.ReactNode) => <LanguageProvider>{node}</LanguageProvider>;
+  const view = (node: React.ReactNode) => <LanguageProvider><ExternalLookupProvider>{node}</ExternalLookupProvider></LanguageProvider>;
   try {
     globalThis.fetch = async (path, init) => new Promise<Response>(resolve => requests.push({ path: String(path), body: JSON.parse(String(init?.body)), signal: init!.signal!, resolve }));
     const dictionary = <DictionaryPanel word="駅" reading="えき" provider={BUILTIN_DICTIONARY} model={model} />;

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import type { DictionaryProvider } from '../lib/dictionary';
+import { isMultiWordLookup, type DictionaryProvider } from '../lib/dictionary';
 import { getWordDetails, type TokenData } from '../services/api';
 import type { LearningModel } from '../services/learning';
 import { LatestRequest } from '../utils/latestRequest';
@@ -23,7 +23,8 @@ interface Props {
   analysisId?: number;
   dictionaryForms?: Record<string, string>;
 }
-type Selection = { scope: string; kind: 'sentence'; key: string } | { scope: string; kind: 'manual'; word: string };
+type LookupKind = 'auto' | 'word' | 'phrase';
+type Selection = { scope: string; kind: 'sentence'; key: string } | { scope: string; kind: 'manual'; word: string; multiWord: boolean };
 const NO_TOKENS: TokenData[] = [];
 const NO_FORMS: Record<string, string> = {};
 const canQuery = (word: string) => !!word.trim() && Array.from(word).length <= 120;
@@ -33,6 +34,7 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
   const vocabulary = useMemo(() => collectSentenceVocabulary(sentence, tokens, dictionaryForms), [sentence, tokens, dictionaryForms]);
   const scope = JSON.stringify([analysisId, sentence]);
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [lookupKind, setLookupKind] = useState<LookupKind>('auto');
   const [sort, setSort] = useState<'sentence' | 'pos'>('sentence');
   const [limit, setLimit] = useState(60);
   const [lookupId, setLookupId] = useState(0);
@@ -91,9 +93,14 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
       const word = draft.trim();
       if (!canQuery(word)) return;
       setLookupId(id => id + 1); setEmptyFor('');
-      setSelection({ scope, kind: 'manual', word });
+      setSelection({ scope, kind: 'manual', word, multiWord: lookupKind === 'auto' ? isMultiWordLookup(word) : lookupKind === 'phrase' });
     }}>
       <label className="flex-1">{t('查词')}<input className="learning-input" aria-label={t('查词输入')} placeholder={t('输入其他词语')} lang="ja" value={draft} onChange={event => onDraftChange(event.target.value)} maxLength={240} /></label>
+      <label>{t('查询类型')}<select className="learning-input" aria-label={t('查询类型')} value={lookupKind} onChange={event => setLookupKind(event.target.value as LookupKind)}>
+        <option value="auto">{t('自动判断')}</option>
+        <option value="word">{t('单词')}</option>
+        <option value="phrase">{t('短语或句子')}</option>
+      </select></label>
       <button className="nd-soft-btn" disabled={!canQuery(draft.trim())}>{t('查询')}</button>
     </form>
 
@@ -140,7 +147,7 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
             {lemma && lemma !== query && <span>{t('AI 推断原形')}：<span lang="ja">{lemma}</span></span>}
           </div>
           <DictionaryPanel key={identity} word={query} lemma={lemma} reading={reading} provider={provider} model={model} standalone onEmptyChange={onEmptyChange} />
-          <ExternalDictionaryLookup key={`external:${identity}`} word={query} lemma={lemma} multiWord={/\s/.test(query.trim())} />
+          <ExternalDictionaryLookup key={`external:${identity}`} word={query} lemma={lemma} multiWord={currentSelection?.kind === 'manual' ? currentSelection.multiWord : false} />
         </>}
         {error && <p role="alert">{errorText(error)}</p>}
       </section>
