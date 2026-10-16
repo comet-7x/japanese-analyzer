@@ -3,10 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
+  DEFAULT_EXTERNAL_SERVICES,
   DEFAULT_ICHI_OPTIONS,
   externalDictionaryLinks,
+  EXTERNAL_SERVICES_KEY,
   ICHI_OPTIONS_KEY,
+  readExternalServicesSettings,
   readIchiOptions,
+  type ExternalServicesSettings,
   type IchiMoeOptions,
   type IchiRomanizationMethod,
 } from '../lib/dictionary';
@@ -22,6 +26,10 @@ export default function ExternalDictionaryLookup({
   multiWord?: boolean;
 }) {
   const { t, locale } = useLanguage();
+  const [services, setServices] = useState<ExternalServicesSettings>(() => {
+    if (typeof window === 'undefined') return DEFAULT_EXTERNAL_SERVICES;
+    return readExternalServicesSettings(localStorage.getItem(EXTERNAL_SERVICES_KEY));
+  });
   const [ichiOptions, setIchiOptions] = useState<IchiMoeOptions>(() => {
     if (typeof window === 'undefined') return DEFAULT_ICHI_OPTIONS;
     return readIchiOptions(localStorage.getItem(ICHI_OPTIONS_KEY));
@@ -29,7 +37,9 @@ export default function ExternalDictionaryLookup({
 
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === ICHI_OPTIONS_KEY) {
+      if (e.key === EXTERNAL_SERVICES_KEY) {
+        setServices(readExternalServicesSettings(e.newValue));
+      } else if (e.key === ICHI_OPTIONS_KEY) {
         setIchiOptions(readIchiOptions(e.newValue));
       }
     };
@@ -46,7 +56,10 @@ export default function ExternalDictionaryLookup({
     }
   };
 
-  if (!word.trim()) return null;
+  const enabled = services.enabled;
+  const hasAnyEnabled = enabled.ichi || enabled.google || enabled.baidu || enabled.wiktionary;
+  if (!word.trim() || !hasAnyEnabled) return null;
+
   const links = externalDictionaryLinks(word, lemma, {
     multiWord,
     ichiOptions,
@@ -57,20 +70,28 @@ export default function ExternalDictionaryLookup({
     <details className="detail-disclosure external-dictionary">
       <summary>{t('外部查询')}</summary>
       <div className="external-dictionary-links">
-        <a href={links.ichi} target="_blank" rel="noreferrer">
-          ichi.moe<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
-        </a>
-        <a href={links.google} target="_blank" rel="noreferrer">
-          {t('Google 翻译')}<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
-        </a>
-        <a href={links.baidu} target="_blank" rel="noreferrer">
-          {t('百度翻译')}<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
-        </a>
-        <a href={links.wiktionary} target="_blank" rel="noreferrer">
-          Wiktionary<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
-        </a>
+        {enabled.ichi && (
+          <a href={links.ichi} target="_blank" rel="noreferrer">
+            ichi.moe<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
+          </a>
+        )}
+        {enabled.google && (
+          <a href={links.google} target="_blank" rel="noreferrer">
+            {t('Google 翻译')}<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
+          </a>
+        )}
+        {enabled.baidu && (
+          <a href={links.baidu} target="_blank" rel="noreferrer">
+            {t('百度翻译')}<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
+          </a>
+        )}
+        {enabled.wiktionary && (
+          <a href={links.wiktionary} target="_blank" rel="noreferrer">
+            Wiktionary<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
+          </a>
+        )}
       </div>
-      {multiWord && (
+      {multiWord && enabled.ichi && (
         <details className="ichi-options-disclosure">
           <summary className="ichi-options-summary">{t('ichi.moe 选项')}</summary>
           <div className="ichi-options-panel">

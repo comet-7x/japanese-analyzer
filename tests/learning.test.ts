@@ -14,7 +14,15 @@ import { POST as translate } from '../app/api/dictionary/translate/route';
 import { POST as detail } from '../app/api/word-detail/route';
 import { applyTokenEdit, buildReadingGroups, type EditState } from '../app/utils/analysisEditing';
 import { parseReadingPreferences, makeShareLink, parseSharedText } from '../app/utils/readingPreferences';
-import { externalDictionaryLinks, normalizeDictionaryKey, readDictionarySettings, type DictionaryEntry, type DictionaryResult } from '../app/lib/dictionary';
+import {
+  externalDictionaryLinks,
+  normalizeDictionaryKey,
+  readDictionarySettings,
+  readExternalServicesSettings,
+  readIchiOptions,
+  type DictionaryEntry,
+  type DictionaryResult,
+} from '../app/lib/dictionary';
 import { validateCandidates, validateConjugation, validateTranslations } from '../app/lib/learningTools';
 import { convertWord } from '../scripts/dictionary/format.mjs';
 
@@ -79,6 +87,12 @@ async function main() {
     const koLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'ko' });
     assert.match(koLookup.google, /tl=ko/);
     assert.match(koLookup.baidu, /lang=jp2kor/);
+    assert.equal(readExternalServicesSettings(null).enabled.google, true);
+    assert.equal(readExternalServicesSettings('{"enabled":{"google":false}}').enabled.google, false);
+    assert.equal(readExternalServicesSettings('{"enabled":{"google":false}}').enabled.baidu, true);
+    assert.equal(readIchiOptions(null).r, 'htr');
+    assert.equal(readIchiOptions('{"r":"kana","hira":true}').r, 'kana');
+    assert.equal(readIchiOptions('{"r":"kana","hira":true}').hira, true);
     // Conversion preserves restrictions instead of attributing every sense to every spelling.
     const converted = convertWord({ id: '3', kanji: [{ text: '前', common: true, tags: [] }], kana: [{ text: 'ぜん', common: false, appliesToKanji: ['前'], tags: [] }], sense: [{ partOfSpeech: ['n-pref'], gloss: [{ lang: 'eng', text: 'previous' }], appliesToKanji: ['前'], appliesToKana: ['ぜん'], field: [], dialect: [], misc: [], info: ['note'] }] });
     assert.deepEqual(converted.senses[0].appliesToReadings, ['ぜん']);

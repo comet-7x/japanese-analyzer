@@ -465,6 +465,8 @@ export const messages = {
   "未找到词条": {"zh-TW": "未找到詞條", "en": "No entries found", "ko": "검색 결과가 없습니다"},
   "重试": {"zh-TW": "重試", "en": "Retry", "ko": "다시 시도"},
   "外部查询": {"zh-TW": "外部查詢", "en": "External lookup", "ko": "외부 검색"},
+  "外部查询与翻译": {"zh-TW": "外部查詢與翻譯", "en": "External lookup & translation", "ko": "외부 검색 및 번역"},
+  "在词卡中显示的外部服务": {"zh-TW": "在詞卡中顯示的外部服務", "en": "External services shown in word cards", "ko": "단어 카드에 표시할 외부 서비스"},
   "Google 翻译": {"zh-TW": "Google 翻譯", "en": "Google Translate", "ko": "Google 번역"},
   "百度翻译": {"zh-TW": "百度翻譯", "en": "Baidu Translate", "ko": "바이두 번역"},
   "ichi.moe 选项": {"zh-TW": "ichi.moe 選項", "en": "ichi.moe options", "ko": "ichi.moe 옵션"},

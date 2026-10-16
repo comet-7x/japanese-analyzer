@@ -50,6 +50,33 @@ export function readDictionarySettings(raw: string | null): DictionarySettings {
     return { providers, activeId: providers.some(p => p.id === data.activeId) ? data.activeId : 'builtin' };
   } catch { return { providers: [BUILTIN_DICTIONARY], activeId: 'builtin' }; }
 }
+export type ExternalServiceId = 'ichi' | 'google' | 'baidu' | 'wiktionary';
+export interface ExternalServicesSettings {
+  enabled: Record<ExternalServiceId, boolean>;
+}
+export const DEFAULT_EXTERNAL_SERVICES: ExternalServicesSettings = {
+  enabled: {
+    ichi: true,
+    google: true,
+    baidu: true,
+    wiktionary: true,
+  },
+};
+export const EXTERNAL_SERVICES_KEY = 'japaneseAnalyzer:externalServices:v1';
+export function readExternalServicesSettings(raw: string | null): ExternalServicesSettings {
+  try {
+    const data = JSON.parse(raw || '{}');
+    const enabled = { ...DEFAULT_EXTERNAL_SERVICES.enabled };
+    if (data?.enabled && typeof data.enabled === 'object') {
+      for (const key of ['ichi', 'google', 'baidu', 'wiktionary'] as const) {
+        if (typeof data.enabled[key] === 'boolean') {
+          enabled[key] = data.enabled[key];
+        }
+      }
+    }
+    return { enabled };
+  } catch { return { ...DEFAULT_EXTERNAL_SERVICES }; }
+}
 export type IchiRomanizationMethod = 'htr' | 'kana' | 'text' | 'hb' | 'hm' | 'ks';
 export interface IchiMoeOptions {
   r?: IchiRomanizationMethod;
