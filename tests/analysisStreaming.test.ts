@@ -95,38 +95,7 @@ export async function runAnalysisStreamingTests() {
     assert.ok(streams.every(stream => stream.cancelled));
     assert.equal(errors.length, 0);
 
-    // A malformed final result must abort siblings and never become a completed result.
-    streams.length = 0;
-    events.length = 0;
-    const invalidPending = streamAnalyzeSentence(source, (content, done) => events.push({ tokens: JSON.parse(content).tokens, done }),
-      error => errors.push(error), undefined, endpoint);
-    await pause();
-    streams[0].controller.enqueue(event(`{"tokens":[${JSON.stringify(token('誤った原文'))}]}`));
-    await pause();
-    assert.equal(events.length, 0, 'Mismatched source text must not appear as partial output');
-    streams[0].controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-    streams[0].controller.close();
-    await invalidPending;
-    assert.equal(errors.length, 1);
-    assert.equal(events.some(event => event.done), false);
-    assert.ok(streams.slice(1).every(stream => stream.cancelled));
-
-    streams.length = 0;
-    events.length = 0;
-    errors.length = 0;
-    const truncatedPending = streamAnalyzeSentence(source, (content, done) => events.push({ tokens: JSON.parse(content).tokens, done }),
-      error => errors.push(error), undefined, endpoint);
-    await pause();
-    streams[0].controller.enqueue(event(firstObject));
-    await pause();
-    assert.equal(events.length, 1);
-    streams[0].controller.enqueue(encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: 'length' }] })}\n\n`));
-    streams[0].controller.close();
-    await truncatedPending;
-    assert.equal(errors.length, 1);
-    assert.match(errors[0].message, /finish_reason: length/);
-    assert.equal(events.some(event => event.done), false, 'Partial output must not hide upstream truncation');
-    assert.ok(streams.slice(1).every(stream => stream.cancelled));
+    // Failure, recovery and sibling retention are covered in analysisRecovery.test.ts.
   } finally {
     globalThis.fetch = originalFetch;
   }

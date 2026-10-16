@@ -2469,7 +2469,7 @@ body {
 }
 .word-unit-wrapper.is-pending:hover { background: none; }
 .word-unit-wrapper.is-pending .pos-underline { background: transparent; }
-.pending-rest { flex-basis: 100%; color: var(--ink-3); font-size: 0.6em; line-height: 1.8; }
+.pending-rest { white-space: pre-wrap; overflow-wrap: anywhere; flex-basis: 100%; color: var(--ink-3); font-size: 0.6em; line-height: 1.8; }
 .reading-surface .word-unit-wrapper:not(.is-pending) { animation: tokenIn 0.45s ease both; }
 .reading-surface .word-unit-wrapper:not(.is-pending) .pos-underline {
   transform-origin: left center;

@@ -1,5 +1,18 @@
 // Simplified Chinese source text is the stable message key.
 export const messages = {
+  "解析结果不是完整有效的 JSON。": {"zh-TW": "解析結果不是完整有效的 JSON。", "en": "The analysis is not complete, valid JSON.", "ko": "분석 결과가 완전하고 유효한 JSON이 아닙니다."},
+  "解析结果包含无效词项。": {"zh-TW": "解析結果包含無效詞項。", "en": "The analysis contains invalid tokens.", "ko": "분석 결과에 올바르지 않은 단어 항목이 있습니다."},
+  "解析结果未能完整还原原文。": {"zh-TW": "解析結果未能完整還原原文。", "en": "The analysis does not exactly preserve the original text.", "ko": "분석 결과가 원문을 정확히 보존하지 못했습니다."},
+  "解析结果被上游截断（finish_reason: length）。": {"zh-TW": "解析結果被上游截斷（finish_reason: length）。", "en": "The provider truncated the analysis (finish_reason: length).", "ko": "제공자가 분석 결과를 잘랐습니다 (finish_reason: length)."},
+  "解析连接中断或缺少正常结束信号。": {"zh-TW": "解析連線中斷或缺少正常結束訊號。", "en": "The analysis connection was interrupted or ended without a completion signal.", "ko": "분석 연결이 중단되었거나 정상 종료 신호가 없습니다."},
+  "解析请求超时，请重试。": {"zh-TW": "解析請求逾時，請重試。", "en": "The analysis request timed out. Please retry.", "ko": "분석 요청 시간이 초과되었습니다. 다시 시도해 주세요."},
+  "解析被上游内容安全策略中止。": {"zh-TW": "解析被上游內容安全策略中止。", "en": "The provider stopped the analysis due to its content policy.", "ko": "제공자의 콘텐츠 정책으로 분석이 중단되었습니다."},
+  "解析进度": {"zh-TW": "解析進度", "en": "Analysis progress", "ko": "분석 진행 상황"},
+  "已完成 {0}/{1} 段": {"zh-TW": "已完成 {0}/{1} 段", "en": "Completed {0}/{1} sections", "ko": "{0}/{1}개 구간 완료"},
+  "正在重试 {0} 段": {"zh-TW": "正在重試 {0} 段", "en": "Retrying {0} sections", "ko": "{0}개 구간 재시도 중"},
+  "{0} 段解析失败，已保留成功结果": {"zh-TW": "{0} 段解析失敗，已保留成功結果", "en": "{0} sections failed; completed results are retained", "ko": "{0}개 구간 실패, 완료된 결과는 보존됨"},
+  "重试失败部分": {"zh-TW": "重試失敗部分", "en": "Retry failed sections", "ko": "실패한 구간 재시도"},
+
   "标准写法": {"zh-TW": "標準寫法", "en": "Standard form", "ko": "표준 표기"},
   "常用写法": {"zh-TW": "常用寫法", "en": "Common form", "ko": "자주 쓰는 표기"},
   "少见写法": {"zh-TW": "少見寫法", "en": "Rare form", "ko": "드문 표기"},

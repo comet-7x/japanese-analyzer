@@ -1,4 +1,4 @@
-import { createTranslator, getClientLocale } from '../i18n';
+import { getClientLocale } from '../i18n';
 import type { SpeechProtocol } from '../lib/speechServices';
 // API与分析相关的服务函数
 import {
@@ -13,7 +13,11 @@ import {
 import { splitJapaneseText, type JapaneseTextChunk } from '../utils/japaneseChunking';
 import { normalizeEscapedLineBreaks } from '../utils/markdown';
 import { getLocalRomaji } from '../utils/romaji';
-import { ApiRequestError, InvalidResponseError } from '../utils/requestErrors';
+import { ApiRequestError, InvalidResponseError, AnalysisValidationError, type AnalysisErrorCode } from '../utils/requestErrors';
+import { AnalysisSession, type AnalysisProgress, type AnalysisChunkProgress } from '../utils/analysisSession';
+import type { JapaneseChunkingOptions } from '../utils/japaneseChunking';
+export { AnalysisSession };
+export type { AnalysisProgress } from '../utils/analysisSession';
 import { protectAnalysisUrls } from '../utils/analysisUrls';
 import { buildAnalyzePrompt } from '../lib/analyzePrompt';
 import { AnalyzeStreamParser } from '../utils/analyzeStreamParser';
@@ -84,6 +88,12 @@ export interface AnalyzeRequestOptions {
   onContentStart?: () => void;
   signal?: AbortSignal;
   onDiagnostics?: (event: AnalysisDiagnosticEvent) => void;
+  onProgress?: (progress: AnalysisProgress) => void;
+  /** Experiments/tests can disable recovery without changing the default. */
+  automaticRecovery?: boolean;
+  chunking?: JapaneseChunkingOptions;
+  compactJson?: boolean;
+  requestTimeoutMs?: number;
 }
 
 export interface AnalysisDiagnosticEvent {
@@ -96,6 +106,15 @@ export interface AnalysisDiagnosticEvent {
   reasoningChars: number;
   elapsedMs: number;
   status?: number;
+  start?: number;
+  end?: number;
+  attempt?: number;
+  recovery?: boolean;
+  errorCode?: AnalysisErrorCode | 'http' | 'network';
+  finishReason?: string;
+  mismatchOffset?: number;
+  expectedChars?: number;
+  actualChars?: number;
 }
 
 /** Development diagnostics contain counts/timings only, never text, endpoints or credentials. */
@@ -103,7 +122,7 @@ function createAnalysisDiagnostics(
   text: string,
   model: string,
   options: AnalyzeRequestOptions,
-  context: { chunkIndex: number; chunkCount: number },
+  context: { chunkIndex: number; chunkCount: number; start: number; end: number; attempt: number; recovery: boolean },
 ) {
   const started = performance.now();
   const inputChars = Array.from(text).length;
@@ -113,10 +132,12 @@ function createAnalysisDiagnostics(
   let ended = false;
   let sawContent = false;
   let sawReasoning = false;
+  let failure: Partial<AnalysisDiagnosticEvent> = {};
+  let finishReason: string | undefined;
   const report = (stage: AnalysisDiagnosticEvent['stage'], status?: number) => {
     if (ended) return;
     const event: AnalysisDiagnosticEvent = {
-      stage, model, ...context, inputChars, outputChars, reasoningChars,
+      stage, model, ...context, inputChars, outputChars, reasoningChars, finishReason, ...failure,
       elapsedMs: Math.round(performance.now() - started),
       ...(status === undefined ? {} : { status }),
     };
@@ -126,6 +147,13 @@ function createAnalysisDiagnostics(
   report('start');
   return {
     headers(status: number) { report('headers', status); },
+    terminal(reason: string) { finishReason = reason; },
+    error(error: unknown) {
+      failure = error instanceof AnalysisValidationError
+        ? { errorCode: error.code, ...error.details }
+        : { errorCode: error instanceof ApiRequestError ? 'http' : 'network' };
+      this.finish('error');
+    },
     progress(stage: 'content' | 'reasoning', length: number) {
       const first = stage === 'content' ? !sawContent : !sawReasoning;
       if (stage === 'content') {
@@ -158,7 +186,6 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === 'AbortError';
 }
 
-const ANALYSIS_CHUNK_CONCURRENCY = 3;
 
 // 默认API地址 - 使用本地API路由
 export const DEFAULT_API_URL = "/api";
@@ -356,35 +383,21 @@ function extractJsonText(content: string): string {
 }
 
 function normalizeTokenDataArray(parsed: unknown): TokenData[] {
-  const rawTokens = Array.isArray(parsed)
-    ? parsed
-    : isRecord(parsed) && Array.isArray(parsed.tokens)
-      ? parsed.tokens
-      : null;
-
-  if (!rawTokens) {
-    throw new Error('解析结果缺少 tokens 数组');
+  const rawTokens = Array.isArray(parsed) ? parsed : isRecord(parsed) ? parsed.tokens : null;
+  if (!Array.isArray(rawTokens) || !rawTokens.length || rawTokens.some(item =>
+    !isRecord(item) || typeof item.word !== 'string' || !item.word || typeof item.pos !== 'string' || !item.pos.trim()
+    || (item.furigana !== undefined && typeof item.furigana !== 'string'))) {
+    throw new AnalysisValidationError('invalid_tokens');
   }
-
-  const tokens = rawTokens
-    .filter((item): item is Record<string, unknown> => isRecord(item))
-    .filter((item) => typeof item.word === 'string' && typeof item.pos === 'string')
-    .map((item) => ({
-      word: item.word as string,
-      pos: item.pos as string,
-      furigana: typeof item.furigana === 'string' ? item.furigana : '',
-      romaji: getLocalRomaji(item.word as string, typeof item.furigana === 'string' ? item.furigana : '', item.pos as string),
-    }));
-
-  if (tokens.length === 0) {
-    throw new Error('解析结果没有有效词项');
-  }
-
-  return tokens;
+  return rawTokens.map(item => ({ word: item.word, pos: item.pos, furigana: item.furigana ?? '',
+    romaji: getLocalRomaji(item.word, item.furigana ?? '', item.pos) }));
 }
 
 export function parseAnalyzeResponseContent(content: string): TokenData[] {
-  return normalizeTokenDataArray(JSON.parse(extractJsonText(content)));
+  let parsed: unknown;
+  try { parsed = JSON.parse(extractJsonText(content)); }
+  catch { throw new AnalysisValidationError('invalid_json'); }
+  return normalizeTokenDataArray(parsed);
 }
 
 export async function summarizeReasoningProgress(
@@ -486,28 +499,18 @@ function alignTokenWhitespaceToSource(source: string, tokens: TokenData[], allow
 function reconcileChunkReconstruction(
   chunk: JapaneseTextChunk,
   tokens: TokenData[],
-  chunkIndex: number,
-  chunkCount: number
 ): TokenData[] {
   if (reconstructTokenText(tokens) === chunk.text) return tokens;
 
   const whitespaceAlignedTokens = alignTokenWhitespaceToSource(chunk.text, tokens);
   if (whitespaceAlignedTokens) return whitespaceAlignedTokens;
 
-  throw new Error(
-    `第 ${chunkIndex + 1}/${chunkCount} 段解析结果未能完整还原原文，请重试。`
-  );
-}
-
-function formatChunkReasoning(
-  reasoningByChunk: string[],
-  includeThroughIndex: number
-): string {
-  return reasoningByChunk
-    .slice(0, includeThroughIndex + 1)
-    .map((text, index) => text ? `${createTranslator(getClientLocale())("第 {0}/{1} 段", index + 1, reasoningByChunk.length)}\n${text}` : '')
-    .filter(Boolean)
-    .join('\n\n');
+  const reconstructed = reconstructTokenText(tokens);
+  let mismatchOffset = 0;
+  while (mismatchOffset < chunk.text.length && chunk.text[mismatchOffset] === reconstructed[mismatchOffset]) mismatchOffset++;
+  throw new AnalysisValidationError('source_mismatch', {
+    mismatchOffset: chunk.start + mismatchOffset, expectedChars: chunk.text.length, actualChars: reconstructed.length,
+  });
 }
 
 const requiredWordDetailFields = ['chineseTranslation', 'dictionaryForm', 'explanation'] as const;
@@ -737,8 +740,8 @@ function getStreamEventFromData(
       : null;
 
     return { content, reasoningContent, finishReason };
-  } catch (error) {
-    console.warn(parseWarning, error, data);
+  } catch {
+    if (parseWarning) console.warn(parseWarning);
     return { content: '', reasoningContent: '', finishReason: null };
   }
 }
@@ -757,11 +760,13 @@ export async function readOpenAIContentStream(
     onReasoning?: (text: string, done: boolean) => void;
     onContentStart?: () => void;
     reasoningDebounceMs?: number;
+    analysisErrors?: boolean;
+    onFinishReason?: (reason: string) => void;
   } = {}
 ): Promise<void> {
   const reader = response.body?.getReader();
   if (!reader) {
-    onError(new InvalidResponseError('无法创建流式读取器'));
+    onError(options.analysisErrors ? new AnalysisValidationError('interrupted') : new InvalidResponseError('无法创建流式读取器'));
     return;
   }
 
@@ -862,7 +867,8 @@ export async function readOpenAIContentStream(
     if (options.validateFinalContent) {
       try {
         options.validateFinalContent(rawContent);
-      } catch {
+      } catch (error) {
+        if (error instanceof AnalysisValidationError) return fail(error);
         return fail(new InvalidResponseError(
           options.invalidContentMessage || `${completionLabel}没有完整生成，请重新生成。`
         ));
@@ -890,7 +896,9 @@ export async function readOpenAIContentStream(
       errorMessage,
     } = getStreamEventFromData(data, parseWarning);
     if (errorMessage) {
-      return fail(new Error(errorMessage));
+      return fail(options.analysisErrors
+        ? errorMessage === '上游流式响应空闲超时，请重试。' ? new AnalysisValidationError('timeout') : new ApiRequestError(errorMessage, 502)
+        : new Error(errorMessage));
     }
 
     if (content) {
@@ -909,8 +917,11 @@ export async function readOpenAIContentStream(
 
     if (finishReason) {
       hasTerminalSignal = true;
+      options.onFinishReason?.(finishReason);
       if (finishReason.toLowerCase() !== 'stop') {
-        terminalError = new InvalidResponseError(getFinishReasonErrorMessage(finishReason, completionLabel));
+        terminalError = options.analysisErrors
+          ? new AnalysisValidationError(finishReason === 'length' ? 'truncated' : finishReason === 'content_filter' ? 'content_filter' : 'interrupted', { finishReason })
+          : new InvalidResponseError(getFinishReasonErrorMessage(finishReason, completionLabel));
         return fail(terminalError);
       }
     }
@@ -957,7 +968,8 @@ export async function readOpenAIContentStream(
     }
 
     if (!hasTerminalSignal && options.validateFinalContent) {
-      fail(new InvalidResponseError(`${completionLabel}连接已结束，但没有收到完整结束信号，请重新生成。`));
+      fail(options.analysisErrors ? new AnalysisValidationError('interrupted')
+        : new InvalidResponseError(`${completionLabel}连接已结束，但没有收到完整结束信号，请重新生成。`));
       return;
     }
 
@@ -973,373 +985,170 @@ export async function readOpenAIContentStream(
   }
 }
 
-// 分析单个语义块
-async function analyzeSingleSentence(
-  sentence: string,
-  userApiKey?: string,
-  endpoint: EndpointPayload = { baseUrl: '', model: '' },
-  options: AnalyzeRequestOptions = {}
+// One bounded request. Both output modes share the same terminal/source validation.
+async function requestAnalysisChunk(
+  chunk: JapaneseTextChunk, context: AnalysisChunkProgress, signal: AbortSignal,
+  onPartial: (tokens: TokenData[]) => void, stream: boolean, userApiKey: string | undefined,
+  endpoint: EndpointPayload, options: AnalyzeRequestOptions, chunkCount: number,
 ): Promise<TokenData[]> {
-  if (!sentence) {
-    throw new Error('缺少句子');
-  }
-
-  try {
-    const protectedInput = protectAnalysisUrls(sentence);
-    const apiUrl = getApiEndpoint('/analyze');
-    const headers = getHeaders(userApiKey);
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers,
-      signal: options.signal,
-      body: JSON.stringify({
-        prompt: buildAnalyzePrompt(protectedInput.text, protectedInput.instruction),
-        ...getRequestProviderPayload(endpoint),
-        thinkingEnabled: options.thinkingEnabled === true,
-      })
+  const controller = new AbortController();
+  const requestSignal = AbortSignal.any([signal, controller.signal]);
+  const diagnostics = createAnalysisDiagnostics(chunk.text, endpoint.model, options, {
+    chunkIndex: context.rootIndex + 1, chunkCount, start: chunk.start, end: chunk.end,
+    attempt: context.attempt, recovery: context.recovery,
+  });
+  const protectedInput = protectAnalysisUrls(chunk.text);
+  let finalTokens: TokenData[] | undefined;
+  const validate = (content: string) => reconcileChunkReconstruction(chunk, parseAnalyzeResponseContent(protectedInput.restoreContent(content)));
+  const parser = new AnalyzeStreamParser();
+  let previousSnapshot: TokenData[] | undefined;
+  let removeAbort = () => {};
+  const timeout = setTimeout(() => controller.abort(new AnalysisValidationError('timeout')), Math.min(options.requestTimeoutMs ?? 120_000, 120_000));
+  const aborted = new Promise<never>((_resolve, reject) => {
+    const abort = () => reject(controller.signal.aborted && !signal.aborted
+      ? controller.signal.reason : new DOMException('Analysis cancelled', 'AbortError'));
+    requestSignal.addEventListener('abort', abort, { once: true });
+    removeAbort = () => requestSignal.removeEventListener('abort', abort);
+    if (requestSignal.aborted) abort();
+  });
+  const request = async () => {
+    if (requestSignal.aborted) throw requestSignal.reason;
+    const compact = options.compactJson ? '\n使用紧凑 JSON，不要缩进；word 字符串内部的原文空白必须保留。\n' : '';
+    const response = await fetch(getApiEndpoint('/analyze'), {
+      method: 'POST', headers: getHeaders(userApiKey), signal: requestSignal,
+      body: JSON.stringify({ prompt: buildAnalyzePrompt(protectedInput.text, protectedInput.instruction + compact),
+        ...getRequestProviderPayload(endpoint), thinkingEnabled: options.thinkingEnabled === true, stream }),
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('API Error (Analysis):', errorData);
-      throw new ApiRequestError(`解析失败：${errorData.error?.message || response.statusText || '未知错误'}`, response.status);
-    }
-    
-    const result = await response.json();
-
-    if (result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content) {
-      const reasoningContent = result.choices[0].message.reasoning_content;
-      if (typeof reasoningContent === 'string' && reasoningContent) {
-        options.onReasoning?.(reasoningContent, true);
-      }
-      const responseContent = result.choices[0].message.content;
-      try {
-        const tokens = parseAnalyzeResponseContent(protectedInput.restoreContent(responseContent));
-        return reconcileChunkReconstruction({ text: sentence, start: 0, end: sentence.length, sentenceCount: 0, overLimit: false }, tokens, 0, 1);
-      } catch (e) {
-        console.error("Failed to parse JSON from analysis response:", e, responseContent);
-        throw new InvalidResponseError('解析结果JSON格式错误');
-      }
-    } else {
-      console.error('Unexpected API response structure (Analysis):', result);
-      throw new InvalidResponseError('解析结果格式错误，请重试');
-    }
-  } catch (error) {
-    if (options.signal?.aborted || isAbortError(error)) throw error;
-    console.error('Error analyzing sentence:', error);
-    throw error;
-  }
-}
-
-// 分析日语文本；长文本按完整句子切块后顺序合并
-export async function analyzeSentence(
-  sentence: string,
-  userApiKey?: string,
-  endpoint: EndpointPayload = { baseUrl: '', model: '' },
-  options: AnalyzeRequestOptions = {}
-): Promise<TokenData[]> {
-  if (!sentence) {
-    throw new Error('缺少句子');
-  }
-
-  const chunks = splitJapaneseText(sentence);
-  if (chunks.length <= 1) {
-    return analyzeSingleSentence(sentence, userApiKey, endpoint, options);
-  }
-
-  const mergedTokens: TokenData[] = [];
-  const reasoningByChunk = Array<string>(chunks.length).fill('');
-
-  for (let index = 0; index < chunks.length; index += 1) {
-    const chunk = chunks[index];
-    const chunkTokens = await analyzeSingleSentence(
-      chunk.text,
-      userApiKey,
-      endpoint,
-      {
-        ...options,
-        onReasoning: options.onReasoning
-          ? (text) => {
-              reasoningByChunk[index] = text;
-              options.onReasoning?.(
-                formatChunkReasoning(reasoningByChunk, index),
-                false
-              );
-            }
-          : undefined,
-      }
-    );
-    const reconciledTokens = reconcileChunkReconstruction(
-      chunk,
-      chunkTokens,
-      index,
-      chunks.length
-    );
-    mergedTokens.push(...reconciledTokens);
-  }
-
-  if (options.onReasoning && reasoningByChunk.some(Boolean)) {
-    options.onReasoning(formatChunkReasoning(reasoningByChunk, chunks.length - 1), true);
-  }
-
-  return mergedTokens;
-}
-
-// 流式分析单个语义块
-async function streamAnalyzeSingleSentence(
-  sentence: string,
-  onChunk: (chunk: string, isDone: boolean) => void,
-  onError: (error: Error) => void,
-  userApiKey?: string,
-  endpoint: EndpointPayload = { baseUrl: '', model: '' },
-  options: AnalyzeRequestOptions = {},
-  context = { chunkIndex: 1, chunkCount: 1 },
-): Promise<void> {
-  if (!sentence) {
-    onError(new Error('缺少句子'));
-    return;
-  }
-
-  const diagnostics = createAnalysisDiagnostics(sentence, endpoint.model, options, context);
-  const reportError = (error: Error) => { diagnostics.finish('error'); onError(error); };
-  try {
-    const protectedInput = protectAnalysisUrls(sentence);
-    const apiUrl = getApiEndpoint('/analyze');
-    const headers = getHeaders(userApiKey);
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers,
-      signal: options.signal,
-      body: JSON.stringify({
-        prompt: buildAnalyzePrompt(protectedInput.text, protectedInput.instruction),
-        ...getRequestProviderPayload(endpoint),
-        thinkingEnabled: options.thinkingEnabled === true,
-        stream: true
-      })
-    });
-
+    if (requestSignal.aborted) { void response.body?.cancel().catch(() => {}); throw requestSignal.reason; }
     diagnostics.headers(response.status);
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('API Error (Stream Analysis):', errorData);
-      reportError(new ApiRequestError(`流式解析失败：${errorData.error?.message || response.statusText || '未知错误'}`, response.status));
+      // Do not log the upstream body: it may echo credentials or user text.
+      const body = await response.json().catch(() => null);
+      throw new ApiRequestError(`解析失败：${body?.error?.message || response.statusText || '未知错误'}`, response.status);
+    }
+    if (!stream) {
+      let result: unknown;
+      try { result = await response.json(); } catch { throw new AnalysisValidationError('invalid_json'); }
+      if (!isRecord(result) || !Array.isArray(result.choices) || !isRecord(result.choices[0])) throw new AnalysisValidationError('invalid_tokens');
+      const choice = result.choices[0];
+      const message = isRecord(choice.message) ? choice.message : null;
+      if (typeof message?.content === 'string') diagnostics.progress('content', message.content.length);
+      if (typeof message?.reasoning_content === 'string') diagnostics.progress('reasoning', message.reasoning_content.length);
+      const reason = choice.finish_reason;
+      if (typeof reason === 'string') {
+        diagnostics.terminal(reason);
+        if (reason !== 'stop') throw new AnalysisValidationError(reason === 'length' ? 'truncated' : reason === 'content_filter' ? 'content_filter' : 'interrupted', { finishReason: reason });
+      }
+      if (!isRecord(choice.message) || typeof choice.message.content !== 'string') throw new AnalysisValidationError('invalid_tokens');
+      if (requestSignal.aborted) throw requestSignal.reason;
+      const content = choice.message.content;
+      const reasoning = choice.message.reasoning_content;
+      if (typeof reasoning === 'string' && reasoning) {
+        options.onReasoning?.(reasoning, true);
+      }
+      options.onContentStart?.();
+      finalTokens = validate(content);
       return;
     }
-    
-    const parseContent = (content: string) => {
-      const tokens = parseAnalyzeResponseContent(protectedInput.restoreContent(content));
-      return reconcileChunkReconstruction({ text: sentence, start: 0, end: sentence.length, sentenceCount: 0, overLimit: false }, tokens, 0, 1);
-    };
+    let streamError: Error | undefined;
     await readOpenAIContentStream(response, (content, done) => {
+      if (requestSignal.aborted) return;
       diagnostics.progress('content', content.length);
-      if (done) diagnostics.finish('complete');
-      onChunk(done
-        ? JSON.stringify({ tokens: parseContent(content) })
-        : protectedInput.restoreContent(content), done);
-    }, reportError, {
-      debounceMs: 40,
-      signal: options.signal,
-      parseWarning: 'Failed to parse streaming JSON chunk:',
-      validateFinalContent: parseContent,
-      invalidContentMessage: '句子解析结果没有完整生成，请重新解析。',
-      completionLabel: '句子解析',
-      onReasoning: (text, done) => { diagnostics.progress('reasoning', text.length); options.onReasoning?.(text, done); },
-      onContentStart: options.onContentStart,
+      if (done) { finalTokens = validate(content); return; }
+      const tokens = parser.push(protectedInput.restoreContent(content));
+      if (!tokens.length || tokens === previousSnapshot) return;
+      previousSnapshot = tokens;
+      const aligned = chunk.text.startsWith(reconstructTokenText(tokens)) ? tokens : alignTokenWhitespaceToSource(chunk.text, tokens, true);
+      if (aligned) onPartial(aligned);
+    }, error => { streamError = error; }, {
+      signal: requestSignal, debounceMs: 40, analysisErrors: true, parseWarning: '',
+      validateFinalContent: validate, onFinishReason: reason => diagnostics.terminal(reason),
+      onReasoning: (text, done) => {
+        if (requestSignal.aborted) return;
+        diagnostics.progress('reasoning', text.length);
+        options.onReasoning?.(text, done);
+      }, onContentStart: options.onContentStart,
     });
+    if (streamError) throw streamError;
+    if (!finalTokens) throw new AnalysisValidationError('interrupted');
+  };
+  try {
+    await Promise.race([request(), aborted]);
+    if (requestSignal.aborted) throw requestSignal.reason;
+    diagnostics.finish('complete');
+    return finalTokens!;
   } catch (error) {
-    if (options.signal?.aborted || isAbortError(error)) { diagnostics.finish('cancel'); return; }
-    console.error('Error in stream analyzing sentence:', error);
-    reportError(error instanceof Error ? error : new Error('未知错误'));
+    if (signal.aborted) { diagnostics.finish('cancel'); throw new DOMException('Analysis cancelled', 'AbortError'); }
+    const classified = controller.signal.aborted ? controller.signal.reason
+      : error instanceof ApiRequestError || error instanceof AnalysisValidationError ? error : new AnalysisValidationError('interrupted');
+    diagnostics.error(classified);
+    throw classified;
   } finally {
-    if (options.signal?.aborted) diagnostics.finish('cancel');
+    clearTimeout(timeout);
+    removeAbort();
   }
 }
 
-async function streamAnalyzeChunk(
-  chunk: JapaneseTextChunk,
-  chunkIndex: number,
-  chunkCount: number,
-  onPartialTokens: (tokens: TokenData[]) => void,
-  onReasoning: ((text: string, done: boolean) => void) | undefined,
-  userApiKey: string | undefined,
-  endpoint: EndpointPayload,
-  options: AnalyzeRequestOptions
-): Promise<TokenData[]> {
-  let finalTokens: TokenData[] | null = null;
-  let streamError: Error | null = null;
-  const parser = new AnalyzeStreamParser();
-  let lastSnapshot: TokenData[] | undefined;
-
-  await streamAnalyzeSingleSentence(
-    chunk.text,
-    (content, isDone) => {
-      if (isDone) {
-        finalTokens = parseAnalyzeResponseContent(content);
-        return;
-      }
-      const tokens = parser.push(content);
-      if (tokens === lastSnapshot || !tokens.length) return;
-      lastSnapshot = tokens;
-      // Publish only complete token objects that still reconstruct a source prefix.
-      const alignedTokens = chunk.text.startsWith(reconstructTokenText(tokens))
-        ? tokens : alignTokenWhitespaceToSource(chunk.text, tokens, true);
-      if (alignedTokens) onPartialTokens(alignedTokens);
-    },
-    (error) => {
-      streamError = error;
-    },
-    userApiKey,
-    endpoint,
-    {
+export function createAnalysisSession(
+  sentence: string, userApiKey?: string, endpoint: EndpointPayload = { baseUrl: '', model: '' },
+  options: AnalyzeRequestOptions & { stream?: boolean } = {},
+): AnalysisSession {
+  if (!sentence) throw new Error('缺少句子');
+  const chunks = splitJapaneseText(sentence, options.chunking);
+  const reasoning = new Map<string, string>();
+  const reasoningText = () => [...reasoning].sort(([a], [b]) => Number(a.split(':')[0]) - Number(b.split(':')[0]))
+    .map(([, value]) => value).join('\n\n');
+  let reasoningComplete = false;
+  return new AnalysisSession(sentence, (chunk, context, signal, onPartial) => {
+    // Replace a failed attempt's reasoning rather than appending overlapping copies.
+    for (const id of reasoning.keys()) {
+      const [start, end] = id.split(':').map(Number);
+      if (start < chunk.end && end > chunk.start) reasoning.delete(id);
+    }
+    return requestAnalysisChunk(chunk, context, signal, onPartial, options.stream !== false, userApiKey, endpoint, {
       ...options,
-      onReasoning,
-    },
-    { chunkIndex: chunkIndex + 1, chunkCount },
-  );
-
-  if (streamError) throw streamError;
-  if (!finalTokens) {
-    throw new InvalidResponseError(`第 ${chunkIndex + 1}/${chunkCount} 段没有返回完整解析结果，请重试。`);
-  }
-
-  return reconcileChunkReconstruction(chunk, finalTokens, chunkIndex, chunkCount);
+      onReasoning: options.onReasoning ? text => {
+        reasoning.set(context.id, text);
+        options.onReasoning?.(reasoningText(), false);
+      } : undefined,
+    }, chunks.length);
+  }, { ...options, onProgress: progress => {
+    if (progress.status === 'complete' && !reasoningComplete && reasoning.size) {
+      reasoningComplete = true;
+      options.onReasoning?.(reasoningText(), true);
+    }
+    options.onProgress?.(progress);
+  } });
 }
 
-// 流式分析日语文本；长文本保持完整句界，最多并行处理三个语义块
+// Compatibility APIs delegate to the same recoverable three-request scheduler.
+export async function analyzeSentence(
+  sentence: string, userApiKey?: string, endpoint: EndpointPayload = { baseUrl: '', model: '' }, options: AnalyzeRequestOptions = {},
+): Promise<TokenData[]> {
+  const session = createAnalysisSession(sentence, userApiKey, endpoint, { ...options, stream: false });
+  const result = await session.run();
+  if (result.status === 'cancelled') throw new DOMException('Analysis cancelled', 'AbortError');
+  if (result.status !== 'complete') throw result.chunks.find(chunk => chunk.error)?.error ?? new AnalysisValidationError('invalid_tokens');
+  return result.confirmedTokens;
+}
+
 export async function streamAnalyzeSentence(
-  sentence: string,
-  onChunk: (chunk: string, isDone: boolean) => void,
-  onError: (error: Error) => void,
-  userApiKey?: string,
-  endpoint: EndpointPayload = { baseUrl: '', model: '' },
-  options: AnalyzeRequestOptions = {}
+  sentence: string, onChunk: (chunk: string, isDone: boolean) => void, onError: (error: Error) => void,
+  userApiKey?: string, endpoint: EndpointPayload = { baseUrl: '', model: '' }, options: AnalyzeRequestOptions = {},
 ): Promise<void> {
-  if (!sentence) {
-    onError(new Error('缺少句子'));
-    return;
-  }
-
-  const chunks = splitJapaneseText(sentence);
-  if (chunks.length <= 1) {
-    await streamAnalyzeSingleSentence(
-      sentence,
-      onChunk,
-      onError,
-      userApiKey,
-      endpoint,
-      options
-    );
-    return;
-  }
-
-  const groupController = new AbortController();
-  const requestOptions = { ...options, signal: options.signal
-    ? AbortSignal.any([options.signal, groupController.signal]) : groupController.signal };
-  const tokensByChunk = Array<TokenData[] | null>(chunks.length).fill(null);
-  const partialTokensByChunk = Array<TokenData[]>(chunks.length).fill([]);
-  const reasoningByChunk = Array<string>(chunks.length).fill('');
-  const reasoningDoneByChunk = Array<boolean>(chunks.length).fill(false);
-  let nextChunkIndex = 0;
-  let emittedContent = '';
-  let emittedDone = false;
-  let emittedReasoningText = '';
-  let emittedReasoningDone = false;
-  let failed = false;
-
-  const emitReasoning = () => {
-    if (failed || !options.onReasoning) return;
-
-    let includeThroughIndex = 0;
-    while (
-      includeThroughIndex < chunks.length - 1
-      && reasoningDoneByChunk[includeThroughIndex]
-    ) {
-      includeThroughIndex += 1;
-    }
-
-    const text = formatChunkReasoning(reasoningByChunk, includeThroughIndex);
-    const done = tokensByChunk.every(Boolean);
-    if (!text || (text === emittedReasoningText && done === emittedReasoningDone)) return;
-
-    emittedReasoningText = text;
-    emittedReasoningDone = done;
-    options.onReasoning(text, done);
-  };
-
-  const emitTokens = () => {
-    if (failed || requestOptions.signal.aborted) return;
-
-    let contiguousChunkCount = 0;
-    while (tokensByChunk[contiguousChunkCount]) contiguousChunkCount += 1;
-    const mergedTokens = tokensByChunk
-      .slice(0, contiguousChunkCount)
-      .flatMap((tokens) => tokens ?? []);
-    // Later chunks may finish first; expose only the next unfinished chunk's prefix.
-    if (contiguousChunkCount < chunks.length) mergedTokens.push(...partialTokensByChunk[contiguousChunkCount]);
-    if (!mergedTokens.length) return;
-    const content = JSON.stringify({ tokens: mergedTokens });
-    const done = contiguousChunkCount === chunks.length;
-    if (content === emittedContent && done === emittedDone) return;
-    emittedContent = content;
-    emittedDone = done;
-    onChunk(content, done);
-  };
-
-  const reportError = (error: unknown) => {
-    if (failed || options.signal?.aborted) return;
-    failed = true;
-    groupController.abort();
-    onError(error instanceof Error ? error : new Error('未知错误'));
-  };
-
-  const worker = async () => {
-    while (!failed && !requestOptions.signal.aborted) {
-      const chunkIndex = nextChunkIndex;
-      if (chunkIndex >= chunks.length) return;
-      nextChunkIndex += 1;
-
-      try {
-        const tokens = await streamAnalyzeChunk(
-          chunks[chunkIndex],
-          chunkIndex,
-          chunks.length,
-          (tokens) => {
-            if (failed || requestOptions.signal.aborted) return;
-            partialTokensByChunk[chunkIndex] = tokens;
-            emitTokens();
-          },
-          options.onReasoning
-            ? (text, done) => {
-                if (failed || requestOptions.signal.aborted) return;
-                reasoningByChunk[chunkIndex] = text;
-                reasoningDoneByChunk[chunkIndex] = done;
-                emitReasoning();
-              }
-             : undefined,
-          userApiKey,
-          endpoint,
-          requestOptions
-        );
-        if (failed || requestOptions.signal.aborted) return;
-        tokensByChunk[chunkIndex] = tokens;
-        reasoningDoneByChunk[chunkIndex] = true;
-        emitTokens();
-        emitReasoning();
-      } catch (error) {
-        reportError(error);
-        return;
-      }
-    }
-  };
-
-  await Promise.all(
-    Array.from(
-      { length: Math.min(ANALYSIS_CHUNK_CONCURRENCY, chunks.length) },
-      () => worker()
-    )
-  );
+  if (!sentence) { onError(new Error('缺少句子')); return; }
+  let previous = '';
+  const session = createAnalysisSession(sentence, userApiKey, endpoint, { ...options, stream: true,
+    onProgress: progress => {
+      options.onProgress?.(progress);
+      if (progress.status === 'cancelled') return;
+      const content = JSON.stringify({ tokens: progress.tokens });
+      const done = progress.status === 'complete';
+      if (done || (content !== previous && (progress.tokens.length > 0 || previous !== ''))) { previous = content; onChunk(content, done); }
+    },
+  });
+  const result = await session.run();
+  if (result.status === 'failed') onError(result.chunks.find(chunk => chunk.error)?.error ?? new AnalysisValidationError('invalid_tokens'));
 }
 
 // 流式翻译文本

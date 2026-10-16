@@ -23,6 +23,7 @@ interface AnalysisResultProps {
   showDisplayOptions?: boolean;
   /** 解析中：原句里还没解析到的部分，接在已解析的词后面以灰字流光显示 */
   pendingText?: string;
+  pendingActive?: boolean;
   /** 当前圈选的多词短语 */
   selectedRange?: PhraseRange | null;
   /** 圈选了多个词（拖动 / Shift 点击 / 长按后再点）；未提供则不支持圈选 */
@@ -207,6 +208,7 @@ export default function AnalysisResult({
   selectedIndex,
   showDisplayOptions = true,
   pendingText = '',
+  pendingActive = true,
   selectedRange = null,
   onRangeSelect,
   pickAnchor = null,
@@ -320,9 +322,9 @@ export default function AnalysisResult({
               </span>
             );
           })}
-          {pendingText && <PendingText text={pendingText} offset={analyzedLength} />}
+          {pendingText && (pendingActive ? <PendingText text={pendingText} offset={analyzedLength} /> : <span className="pending-rest">{pendingText}</span>)}
         </div>
-        {pendingText && <span className="sr-only" role="status">{t("思考中")}</span>}
+        {pendingText && pendingActive && <span className="sr-only" role="status">{t("思考中")}</span>}
         {pickAnchor !== null && <PickHint onCancel={selection.cancelPick} />}
       </AutoAnimateHeight>
 

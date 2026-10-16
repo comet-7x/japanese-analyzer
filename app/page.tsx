@@ -27,20 +27,18 @@ import ReasoningStream from './components/ReasoningStream';
 import WordDetailPanel from './components/WordDetailPanel';
 import { useWordDetail } from './hooks/useWordDetail';
 import { useAnalysisHistory } from './hooks/useAnalysisHistory';
-import { AnalyzeStreamParser } from './utils/analyzeStreamParser';
+import AnalysisProgressView from './components/AnalysisProgressView';
+import type { AnalysisSession, AnalysisProgress } from './utils/analysisSession';
 import { selectWordDetailContext } from './utils/wordDetailContext';
 import { getPhraseReading, getPhraseText, mergePhraseTokens, normalizePhraseRange, isPunctuationToken, type PhraseRange } from './utils/phraseRange';
 import { createRequestMetrics, trackAnalyzeUsage, trackWordDetailUsage, type AnalyzeUsageMetadata } from './utils/analytics';
 import { localizeError } from './i18n';
-import { InvalidResponseError } from './utils/requestErrors';
 import {
-  analyzeSentence,
+  createAnalysisSession,
   TokenData,
   loadAISettingsFromStorage,
   saveAISettingsToStorage,
-  parseAnalyzeResponseContent,
   summarizeReasoningProgress,
-  streamAnalyzeSentence,
   type EndpointPayload,
   type ProviderProfile,
   effectiveCaps,
@@ -63,11 +61,26 @@ export default function Home() {
   const [dictionarySettings, setDictionarySettings] = useState<DictionarySettings>(() => readDictionarySettings(null));
   const dictionaryProvider = dictionarySettings.providers.find(p => p.id === dictionarySettings.activeId) ?? dictionarySettings.providers[0];
   const [editRange, setEditRange] = useState<{ range: PhraseRange; taskId: number; revision: number } | null>(null);
-  const handleDraftChange = useCallback((value: string) => { setDraft(value); setEditRange(null); }, []);
+  const handleDraftChange = useCallback((value: string) => {
+    setDraft(value); setEditRange(null);
+    if (value !== currentSentence) {
+      analysisAbortControllerRef.current?.abort('edit');
+      const cancelled = analysisSessionRef.current?.session.getSnapshot();
+      if (cancelled) setAnalyzedTokens(cancelled.confirmedTokens);
+      analysisAbortControllerRef.current = null;
+      analysisSessionRef.current = null;
+      setAnalysisProgress(null);
+      setIsAnalyzing(false);
+    }
+  }, [currentSentence, setAnalyzedTokens]);
   const readingGroups = useMemo(() => buildReadingGroups(analyzedTokens, editing.state.groups), [analyzedTokens, editing.state.groups]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState('');
+  const [analysisProgress, setAnalysisProgress] = useState<AnalysisProgress | null>(null);
+  const analysisSessionRef = useRef<{ session: AnalysisSession; retry: () => Promise<void> } | null>(null);
   const [analysisFromCache, setAnalysisFromCache] = useState(false);
+  // Matching all source characters is insufficient until JSON and termination validate.
+  const [analysisValidated, setAnalysisValidated] = useState(false);
   const [analysisSource, setAnalysisSource] = useState({ key: '', model: '' });
   const [editNotice, setEditNotice] = useState('');
   const activeAnalysisKeyRef = useRef('');
@@ -161,7 +174,11 @@ export default function Home() {
 
   useEffect(() => {
     analysisAbortControllerRef.current?.abort('language-change');
+    const cancelled = analysisSessionRef.current?.session.getSnapshot();
+    if (cancelled && cancelled.status !== 'complete') setAnalyzedTokens(cancelled.confirmedTokens);
     analysisAbortControllerRef.current = null;
+    analysisSessionRef.current = null;
+    setAnalysisProgress(null);
     reasoningSummaryControllerRef.current?.cancel();
     setIsAnalyzing(false);
     setAnalysisError('');
@@ -174,7 +191,7 @@ export default function Home() {
     setHasDeepseekReasoning(false);
     setDeepseekReasoningDone(true);
     setDeepseekReasoningSummaryHistory([]);
-  }, [analysisConfigKey, reasoningTextStore]);
+  }, [analysisConfigKey, reasoningTextStore, setAnalyzedTokens]);
 
   useEffect(() => {
     if (!currentSentence || !activeModel) return;
@@ -184,6 +201,7 @@ export default function Home() {
     if (!cached) return;
     activeAnalysisKeyRef.current = key;
     startAnalysisTask(cached);
+    setAnalysisValidated(true);
     setAnalysisSource({ key, model: endpoint.model });
     setAnalysisFromCache(true);
     setEditNotice('');
@@ -289,6 +307,13 @@ export default function Home() {
 
   // 切换模型 / 保存设置后都要清掉的解析与思考状态
   const resetAnalysisState = () => {
+    analysisAbortControllerRef.current?.abort('settings-change');
+    const cancelled = analysisSessionRef.current?.session.getSnapshot();
+    if (cancelled && cancelled.status !== 'complete') setAnalyzedTokens(cancelled.confirmedTokens);
+    analysisAbortControllerRef.current = null;
+    analysisSessionRef.current = null;
+    setAnalysisProgress(null);
+    setIsAnalyzing(false);
     reasoningTextStore.reset();
     hasDeepseekReasoningRef.current = false;
     setHasDeepseekReasoning(false);
@@ -451,7 +476,7 @@ export default function Home() {
   }, [handleCloseWordDetail, isDesktop, selectedIndex]);
 
   // AI 判断圈选的其实是一个被拆开的词时，合并回单个词项（只影响当前结果）
-  const canMergePhrase = selectedRange !== null && wordDetail?.kind === 'phrase' && wordDetail.category === '単語';
+  const canMergePhrase = analysisValidated && analyzedTokens.map(token => token.word).join('') === currentSentence && !isAnalyzing && selectedRange !== null && wordDetail?.kind === 'phrase' && wordDetail.category === '単語';
   const handleMergePhrase = useCallback(() => {
     if (!selectedRange || !wordDetail) return;
     const replacements = mergePhraseTokens(analyzedTokens.slice(selectedRange.start, selectedRange.end + 1), { start: 0, end: selectedRange.end - selectedRange.start }, {
@@ -484,10 +509,11 @@ export default function Home() {
       setDraft(text);
       setCurrentSentence(text);
       setTranslationTrigger(value => value + 1);
-      if (activeAnalysisKeyRef.current !== cacheKey || !analyzedTokens.length) startAnalysisTask(cached);
+      if (activeAnalysisKeyRef.current !== cacheKey || !analysisValidated || analyzedTokens.map(token => token.word).join('') !== text) startAnalysisTask(cached);
       activeAnalysisKeyRef.current = cacheKey;
       setAnalysisSource({ key: cacheKey, model: endpoint.model });
       setAnalysisFromCache(true);
+      setAnalysisValidated(true);
       setEditNotice('');
       history.record(text);
       return;
@@ -495,12 +521,14 @@ export default function Home() {
     activeAnalysisKeyRef.current = cacheKey;
     setAnalysisSource({ key: cacheKey, model: endpoint.model });
     setAnalysisFromCache(false);
+    setAnalysisValidated(false);
     setEditNotice('');
     analysisAbortControllerRef.current?.abort('superseded');
     const analysisAbortController = new AbortController();
     analysisAbortControllerRef.current = analysisAbortController;
     setAnalysisSignal(analysisAbortController.signal);
-    const streamParser = new AnalyzeStreamParser();
+    analysisSessionRef.current = null;
+    setAnalysisProgress(null);
     const isCurrentAnalysis = () => (
       analysisAbortControllerRef.current === analysisAbortController
       && !analysisAbortController.signal.aborted
@@ -508,7 +536,7 @@ export default function Home() {
 
     const providerName = activeService?.id ?? '';
     trackAnalyzeUsage(providerName, usage, endpoint.model);
-    const metrics = createRequestMetrics('analyze', providerName, endpoint.model, useStream, analysisAbortController.signal);
+    let metrics = createRequestMetrics('analyze', providerName, endpoint.model, useStream, analysisAbortController.signal);
     setIsAnalyzing(true);
     setIsEditingInput(false);
     setAnalysisError('');
@@ -577,80 +605,47 @@ export default function Home() {
       },
     };
 
-    try {
-      if (useStream) {
-        // 使用流式API进行分析
-        await streamAnalyzeSentence(
-          text,
-          (chunk, isDone) => {
-            if (!isCurrentAnalysis()) return;
-            if (!isDone) {
-              const tokens = streamParser.push(chunk);
-              if (tokens.length) {
-                metrics.firstResult();
-                setAnalyzedTokens(tokens);
-              }
-            }
-            if (isDone) {
-              finishReasoningStatus(t("已深度思考"));
-              setIsAnalyzing(false);
-              analysisAbortControllerRef.current = null;
-              try {
-                const tokens = parseAnalyzeResponseContent(chunk);
-                metrics.firstResult();
-                setAnalyzedTokens(tokens);
-                if (tokens.map(token => token.word).join('') === text) analysisCache.set(cacheKey, tokens);
-                metrics.succeed();
-                history.record(text);
-              } catch (error) {
-                metrics.fail(new InvalidResponseError('Invalid analysis result'));
-                console.error('Final stream analysis parse error:', error);
-                setAnalysisError(t("解析结果JSON格式错误"));
-              }
-            }
-          },
-          (error) => {
-            if (!isCurrentAnalysis()) return;
-            metrics.fail(error);
-            finishReasoningStatus(t("深度思考已中止"));
-            console.error('Stream analysis error:', error);
-            setAnalysisError(error.message || t("流式解析错误"));
-            setAnalyzedTokens([]);
-            setIsAnalyzing(false);
-            analysisAbortControllerRef.current = null;
-          },
-          userApiKey,
-          endpoint,
-          reasoningOptions
-        );
-      } else {
-        // 使用传统API进行分析
-        const tokens = await analyzeSentence(
-          text,
-          userApiKey,
-          endpoint,
-          reasoningOptions
-        );
+    let previousTokens = '[]';
+    const session = createAnalysisSession(text, userApiKey, endpoint, {
+      ...reasoningOptions, stream: useStream,
+      onProgress: progress => {
         if (!isCurrentAnalysis()) return;
+        setAnalysisProgress(progress);
+        const serialized = JSON.stringify(progress.tokens);
+        if (serialized !== previousTokens) {
+          previousTokens = serialized;
+          if (progress.tokens.length) metrics.firstResult();
+          setAnalyzedTokens(progress.tokens);
+          handleCloseWordDetail();
+        }
+      },
+    });
+    const finish = (result: AnalysisProgress) => {
+      if (!isCurrentAnalysis()) return;
+      setIsAnalyzing(false);
+      finishReasoningStatus(t(result.status === 'complete' ? '已深度思考' : '深度思考已中止'));
+      if (result.status === 'complete') {
+        setAnalysisValidated(true);
         metrics.firstResult();
-        setAnalyzedTokens(tokens);
-        if (tokens.map(token => token.word).join('') === text) analysisCache.set(cacheKey, tokens);
+        analysisCache.set(cacheKey, result.confirmedTokens);
         metrics.succeed();
         history.record(text);
-        finishReasoningStatus(t("已深度思考"));
-        setIsAnalyzing(false);
         analysisAbortControllerRef.current = null;
+      } else if (result.status === 'failed') {
+        const error = result.chunks.find(chunk => chunk.error)?.error ?? new Error(t('未知错误'));
+        metrics.fail(error);
+        setAnalysisError(error.message);
       }
-    } catch (error) {
+    };
+    analysisSessionRef.current = { session, retry: async () => {
       if (!isCurrentAnalysis()) return;
-      metrics.fail(error);
-      finishReasoningStatus(t("深度思考已中止"));
-      console.error('Analysis error:', error);
-      setAnalysisError(error instanceof Error ? error.message : t("未知错误"));
-      setAnalyzedTokens([]);
-      setIsAnalyzing(false);
-      analysisAbortControllerRef.current = null;
-    }
+      setIsAnalyzing(true);
+      setAnalysisError('');
+      handleCloseWordDetail();
+      metrics = createRequestMetrics('analyze', providerName, endpoint.model, useStream, analysisAbortController.signal);
+      finish(await session.retryFailed());
+    } };
+    finish(await session.run());
   };
 
   const handleCancelAnalysis = () => {
@@ -659,6 +654,9 @@ export default function Home() {
 
     analysisAbortControllerRef.current = null;
     controller.abort('user');
+    const cancelled = analysisSessionRef.current?.session.getSnapshot();
+    if (cancelled) { setAnalysisProgress(cancelled); setAnalyzedTokens(cancelled.confirmedTokens); }
+    analysisSessionRef.current = null;
     handleCloseWordDetail();
     reasoningSummaryControllerRef.current?.cancel();
     reasoningSummaryControllerRef.current = null;
@@ -668,10 +666,12 @@ export default function Home() {
     setDeepseekReasoningDone(true);
   };
 
-  const isReading = !isEditingInput && (isAnalyzing || analyzedTokens.length > 0);
+  const analysisIncomplete = !!currentSentence && (!analysisValidated || analyzedTokens.map(token => token.word).join('') !== currentSentence);
+  const editingLocked = isAnalyzing || analysisIncomplete;
+  const isReading = !isEditingInput && (isAnalyzing || analyzedTokens.length > 0 || analysisProgress !== null);
   // 解析中：原句里还没解析到的部分，以灰字流光占住结果位置
   const pendingText = (() => {
-    if (!isAnalyzing) return '';
+    if (!isAnalyzing && !analysisIncomplete) return '';
     const analyzed = analyzedTokens.map((token) => token.word).join('');
     return currentSentence.startsWith(analyzed) ? currentSentence.slice(analyzed.length) : '';
   })();
@@ -680,6 +680,9 @@ export default function Home() {
 
   // 「新句子」：清空当前解析，回到首页
   const handleStartOver = () => {
+    setAnalysisValidated(false);
+    analysisSessionRef.current = null;
+    setAnalysisProgress(null);
     analysisAbortControllerRef.current?.abort();
     analysisAbortControllerRef.current = null;
     setIsAnalyzing(false);
@@ -710,7 +713,7 @@ export default function Home() {
   const detailWord = detailRange ? getPhraseText(analyzedTokens, detailRange) : '';
   const detailContext = detailRange ? selectWordDetailContext(currentSentence, analyzedTokens, detailRange.start) : '';
   const detailReading = detailRange ? getPhraseReading(analyzedTokens, detailRange) : '';
-  const canEdit = !!detailRange && !isAnalyzing && [...detailWord].length <= 120;
+  const canEdit = !!detailRange && !editingLocked && [...detailWord].length <= 120;
   const canGroup = !!detailRange && analyzedTokens.slice(detailRange.start, detailRange.end + 1).every(token => !isPunctuationToken(token) && !/\s/.test(token.word));
   const analysisUsesPreviousSettings = analysisSource.key !== sentenceCacheKey(currentSentence, endpoint, locale, userApiKey, thinkingEnabled);
   const wordDetailPanel = (
@@ -731,7 +734,7 @@ export default function Home() {
     <div className="learning-detail">
       <div className="learning-actions">
         <button className="nd-soft-btn" disabled={!canEdit} onClick={() => { if (detailRange) { setEditRange({ range: detailRange, taskId: editing.state.taskId, revision: editing.state.revision }); handleCloseWordDetail(); } }}>{t('调整分词')}</button>
-        {selectedRange && <><button className="nd-ghost-btn" disabled={isAnalyzing || !canGroup} title={!canGroup ? t('阅读组不能跨标点或空白') : undefined} onClick={() => { editing.group(selectedRange); handleCloseWordDetail(); }}>{t('设为阅读组')}</button><button className="nd-ghost-btn" disabled={isAnalyzing || !canGroup} title={!canGroup ? t('阅读组不能跨标点或空白') : undefined} onClick={() => { editing.ungroup(selectedRange); handleCloseWordDetail(); }}>{t('取消阅读组')}</button></>}
+        {selectedRange && <><button className="nd-ghost-btn" disabled={editingLocked || !canGroup} title={!canGroup ? t('阅读组不能跨标点或空白') : undefined} onClick={() => { editing.group(selectedRange); handleCloseWordDetail(); }}>{t('设为阅读组')}</button><button className="nd-ghost-btn" disabled={editingLocked || !canGroup} title={!canGroup ? t('阅读组不能跨标点或空白') : undefined} onClick={() => { editing.ungroup(selectedRange); handleCloseWordDetail(); }}>{t('取消阅读组')}</button></>}
       </div>
       <WordLearningTools word={detailWord} lemma={wordDetail?.dictionaryForm} reading={detailReading} context={detailContext} tokens={detailRange ? analyzedTokens.slice(detailRange.start, detailRange.end + 1) : []} selectionKind={selectedRange || wordDetail?.kind === 'phrase' ? 'phrase' : 'word'} provider={dictionaryProvider} model={learningModel} />
     </div>
@@ -798,7 +801,7 @@ export default function Home() {
               showSuggestions={isHome}
               onNewSentence={handleStartOver}
               onExpand={() => { setEditRange(null); setIsEditingInput(true); }}
-              onCancelEdit={currentSentence && (analyzedTokens.length > 0 || isAnalyzing) ? () => {
+              onCancelEdit={currentSentence && (analyzedTokens.length > 0 || isAnalyzing || analysisProgress !== null) ? () => {
                 setDraft(currentSentence);
                 setEditRange(null);
                 setIsEditingInput(false);
@@ -841,6 +844,8 @@ export default function Home() {
                 />
               )}
 
+            {analysisProgress && <AnalysisProgressView progress={analysisProgress} onRetry={() => void analysisSessionRef.current?.retry()} />}
+
             {analysisError && (
               <div className="nd-card">
                 <div
@@ -868,8 +873,8 @@ export default function Home() {
                   <button className="display-chip" aria-pressed={viewMode === 'lexical'} onClick={() => setViewMode('lexical')}>{t('词法视图')}</button>
                   <button className="display-chip" aria-pressed={viewMode === 'reading'} onClick={() => setViewMode('reading')}>{t('阅读视图')}</button>
                   <button className="nd-ghost-btn" disabled={isAnalyzing} onClick={() => void handleAnalyze(currentSentence, undefined, true)}>{t('重新解析')}</button>
-                  <button className="nd-ghost-btn" disabled={isAnalyzing || !editing.state.history.length} title={!editing.state.history.length ? t('尚无可撤销的调整') : t('撤销最近一次分词或阅读分组调整')} onClick={() => { editing.undo(); handleCloseWordDetail(); setEditNotice('已撤销最近一次调整'); }}>{t('撤销')}</button>
-                  <button className="nd-ghost-btn" disabled={isAnalyzing || !editing.canRestore} title={!editing.canRestore ? t('当前已经是初始分词') : t('恢复本次解析的初始分词并清除手动阅读分组')} onClick={() => { editing.restore(); handleCloseWordDetail(); setEditNotice('已恢复初始分词'); }}>{t('恢复初始分词')}</button>
+                  <button className="nd-ghost-btn" disabled={editingLocked || !editing.state.history.length} title={!editing.state.history.length ? t('尚无可撤销的调整') : t('撤销最近一次分词或阅读分组调整')} onClick={() => { editing.undo(); handleCloseWordDetail(); setEditNotice('已撤销最近一次调整'); }}>{t('撤销')}</button>
+                  <button className="nd-ghost-btn" disabled={editingLocked || !editing.canRestore} title={!editing.canRestore ? t('当前已经是初始分词') : t('恢复本次解析的初始分词并清除手动阅读分组')} onClick={() => { editing.restore(); handleCloseWordDetail(); setEditNotice('已恢复初始分词'); }}>{t('恢复初始分词')}</button>
                 </div>}
                 {shouldShowAnalyzer() && <p className="tool-note" role="status">{t('分词：{0} 项', analyzedTokens.length)}{editNotice ? ` · ${t(editNotice)}` : ''}{analysisFromCache ? ` · ${t('已使用缓存')}` : ''}</p>}
                 {shouldShowAnalyzer() && analysisUsesPreviousSettings && <p className="tool-note">{t('当前分词来自先前设置（{0}），点击重新解析可更新。', analysisSource.model)}</p>}
@@ -879,6 +884,7 @@ export default function Home() {
                     tokens={analyzedTokens}
                     readingGroups={viewMode === 'reading' && !isAnalyzing ? readingGroups : undefined}
                     pendingText={pendingText}
+                    pendingActive={isAnalyzing}
                     showFurigana={showFurigana}
                     onShowFuriganaChange={setShowFurigana}
                     showRomaji={showRomaji}
