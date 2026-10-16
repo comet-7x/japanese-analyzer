@@ -59,6 +59,13 @@ async function main() {
     assert.equal(renderer!.root.findAllByType(ConjugationPanel).length, 0, 'Noun phrases do not offer conjugation');
     assert.ok(renderer!.root.findAllByType('summary').some(node => textOf(node) === '外部查询'));
     assert.ok(renderer!.root.findAllByType('a')[0].props.href.endsWith(encodeURIComponent('駅の前')));
+    assert.match(renderer!.root.findAllByType('a')[0].props.href, /^https:\/\/ichi\.moe\/cl\/qr\/\?q=/);
+    assert.ok(renderer!.root.findAllByType('a').some(node => node.props.href.includes('translate.google.com')));
+    assert.ok(renderer!.root.findAllByType('a').some(node => node.props.href.includes('fanyi.baidu.com')));
+    assert.ok(renderer!.root.findAllByType('summary').some(node => textOf(node) === 'ichi.moe 选项'));
+    const ichiSelect = renderer!.root.findByType('select');
+    await act(async () => { ichiSelect.props.onChange({ target: { value: 'kana' } }); });
+    assert.match(renderer!.root.findAllByType('a')[0].props.href, /&r=kana/);
     await act(async () => { renderer!.update(view(<WordLearningTools {...props} word="駅" tokens={[{ word: '駅', pos: '名詞' }]} selectionKind="word" />)); });
     assert.equal(renderer!.root.findAllByType(DictionaryPanel).length, 1);
     const disclosures = renderer!.root.findAllByType('details');

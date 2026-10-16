@@ -66,6 +66,19 @@ async function main() {
     assert.equal(readDictionarySettings('{').activeId, 'builtin');
     assert.equal(readDictionarySettings(JSON.stringify({ activeId: 'secret', providers: [{ id: 'bad', adapter: 'script' }] })).providers.length, 1);
     assert.ok(externalDictionaryLinks('表面', '食べる').ichi.endsWith(encodeURIComponent('食べる')));
+    assert.match(externalDictionaryLinks('表面', '食べる').ichi, /^https:\/\/ichi\.moe\/cl\/word\/\?q=/);
+    assert.match(externalDictionaryLinks('表面', '食べる').google, /^https:\/\/translate\.google\.com\/\?sl=ja&tl=zh-CN&text=%E8%A1%A8%E9%9D%A2&op=translate$/);
+    assert.match(externalDictionaryLinks('表面', '食べる').baidu, /^https:\/\/fanyi\.baidu\.com\/mtpe-individual\/multimodal\?query=%E8%A1%A8%E9%9D%A2&lang=jp2zh$/);
+    const multiLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'zh-TW', ichiOptions: { r: 'kana', hira: true, noseg: true } });
+    assert.match(multiLookup.ichi, /^https:\/\/ichi\.moe\/cl\/qr\/\?q=%E9%A7%85%E3%81%AE%E5%89%8D&r=kana&hira=true&noseg=true$/);
+    assert.match(multiLookup.google, /tl=zh-TW/);
+    assert.match(multiLookup.baidu, /lang=jp2cht/);
+    const enLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'en' });
+    assert.match(enLookup.google, /tl=en/);
+    assert.match(enLookup.baidu, /lang=jp2en/);
+    const koLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'ko' });
+    assert.match(koLookup.google, /tl=ko/);
+    assert.match(koLookup.baidu, /lang=jp2kor/);
     // Conversion preserves restrictions instead of attributing every sense to every spelling.
     const converted = convertWord({ id: '3', kanji: [{ text: '前', common: true, tags: [] }], kana: [{ text: 'ぜん', common: false, appliesToKanji: ['前'], tags: [] }], sense: [{ partOfSpeech: ['n-pref'], gloss: [{ lang: 'eng', text: 'previous' }], appliesToKanji: ['前'], appliesToKana: ['ぜん'], field: [], dialect: [], misc: [], info: ['note'] }] });
     assert.deepEqual(converted.senses[0].appliesToReadings, ['ぜん']);

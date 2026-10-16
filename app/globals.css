@@ -2952,6 +2952,16 @@ body {
 .external-dictionary-links { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-bottom: 16px; }
 .external-dictionary-links a { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
 .external-dictionary-links a:hover { color: var(--primary); }
+.ichi-options-disclosure { margin-top: 4px; margin-bottom: 12px; border-top: 1px dashed var(--edge-1); padding-top: 8px; }
+.ichi-options-summary { font-size: 0.8125rem; color: var(--ink-3); cursor: pointer; user-select: none; }
+.ichi-options-summary:hover { color: var(--ink-1); }
+.ichi-options-panel { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; }
+.ichi-option-row { display: flex; align-items: center; gap: 12px; font-size: 0.8125rem; color: var(--ink-2); }
+.ichi-option-label { min-width: 72px; }
+.ichi-select { font-size: 0.8125rem; padding: 4px 8px; height: 32px; }
+.ichi-option-checkboxes { display: flex; flex-wrap: wrap; gap: 16px; padding-top: 2px; }
+.ichi-option-checkbox { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--ink-2); cursor: pointer; }
+.ichi-option-checkbox input[type="checkbox"] { cursor: pointer; }
 .disclosure-hint { color: var(--ink-3); font-size: 11px; font-weight: 400; }
 .conjugation-example { margin: 0 0 12px; color: var(--ink-2); font-size: 12px; }
 .conjugation-tool .learning-actions { margin: 8px 0 12px; }

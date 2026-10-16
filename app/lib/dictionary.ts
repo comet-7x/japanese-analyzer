@@ -50,7 +50,60 @@ export function readDictionarySettings(raw: string | null): DictionarySettings {
     return { providers, activeId: providers.some(p => p.id === data.activeId) ? data.activeId : 'builtin' };
   } catch { return { providers: [BUILTIN_DICTIONARY], activeId: 'builtin' }; }
 }
-export function externalDictionaryLinks(word: string, lemma?: string) {
-  const key = lemma?.trim() || word;
-  return { ichi: `https://ichi.moe/cl/word/?q=${encodeURIComponent(key)}`, wiktionary: `https://en.wiktionary.org/wiki/${encodeURIComponent(key)}` };
+export type IchiRomanizationMethod = 'htr' | 'kana' | 'text' | 'hb' | 'hm' | 'ks';
+export interface IchiMoeOptions {
+  r?: IchiRomanizationMethod;
+  hira?: boolean;
+  noseg?: boolean;
+}
+export const DEFAULT_ICHI_OPTIONS: IchiMoeOptions = { r: 'htr', hira: false, noseg: false };
+export const ICHI_OPTIONS_KEY = 'japaneseAnalyzer:ichimoe:v1';
+export function readIchiOptions(raw: string | null): IchiMoeOptions {
+  try {
+    const data = JSON.parse(raw || '{}');
+    const validR: IchiRomanizationMethod[] = ['htr', 'kana', 'text', 'hb', 'hm', 'ks'];
+    return {
+      r: validR.includes(data?.r) ? data.r : 'htr',
+      hira: Boolean(data?.hira),
+      noseg: Boolean(data?.noseg),
+    };
+  } catch { return { ...DEFAULT_ICHI_OPTIONS }; }
+}
+export function buildIchiMoeUrl(text: string, isMultiWord: boolean, options?: IchiMoeOptions, lemma?: string): string {
+  const cleanWord = text.trim();
+  if (!isMultiWord) {
+    const key = lemma?.trim() || cleanWord;
+    return `https://ichi.moe/cl/word/?q=${encodeURIComponent(key)}`;
+  }
+  const params = new URLSearchParams();
+  params.set('q', cleanWord);
+  if (options?.r && options.r !== 'htr') {
+    params.set('r', options.r);
+  }
+  if (options?.hira) {
+    params.set('hira', 'true');
+  }
+  if (options?.noseg) {
+    params.set('noseg', 'true');
+  }
+  return `https://ichi.moe/cl/qr/?${params.toString()}`;
+}
+export interface ExternalLookupOptions {
+  multiWord?: boolean;
+  ichiOptions?: IchiMoeOptions;
+  locale?: Locale;
+}
+export function externalDictionaryLinks(word: string, lemma = '', options: ExternalLookupOptions = {}) {
+  const isMulti = Boolean(options.multiWord);
+  const cleanWord = word.trim();
+  const key = (!isMulti && lemma?.trim()) ? lemma.trim() : cleanWord;
+  const locale = options.locale || 'zh-CN';
+  const targetGoogle = locale === 'zh-TW' ? 'zh-TW' : locale === 'en' ? 'en' : locale === 'ko' ? 'ko' : 'zh-CN';
+  const targetBaidu = locale === 'zh-TW' ? 'cht' : locale === 'en' ? 'en' : locale === 'ko' ? 'kor' : 'zh';
+  return {
+    ichi: buildIchiMoeUrl(cleanWord, isMulti, options.ichiOptions, lemma),
+    google: `https://translate.google.com/?sl=ja&tl=${targetGoogle}&text=${encodeURIComponent(cleanWord)}&op=translate`,
+    baidu: `https://fanyi.baidu.com/mtpe-individual/multimodal?query=${encodeURIComponent(cleanWord)}&lang=jp2${targetBaidu}`,
+    wiktionary: `https://en.wiktionary.org/wiki/${encodeURIComponent(key)}`,
+  };
 }

@@ -140,7 +140,7 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
             {lemma && lemma !== query && <span>{t('AI 推断原形')}：<span lang="ja">{lemma}</span></span>}
           </div>
           <DictionaryPanel key={identity} word={query} lemma={lemma} reading={reading} provider={provider} model={model} standalone onEmptyChange={onEmptyChange} />
-          <ExternalDictionaryLookup key={`external:${identity}`} word={query} lemma={lemma} />
+          <ExternalDictionaryLookup key={`external:${identity}`} word={query} lemma={lemma} multiWord={/\s/.test(query.trim())} />
         </>}
         {error && <p role="alert">{errorText(error)}</p>}
       </section>

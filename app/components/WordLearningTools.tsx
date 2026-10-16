@@ -17,7 +17,7 @@ export default function WordLearningTools({ word, lemma = '', reading = '', cont
   if (!word) return null;
   return <div className="word-reference-tools">
     {singleWord && <DictionaryPanel word={word} lemma={lemma} reading={reading} provider={provider} model={model} />}
-    <ExternalDictionaryLookup word={word} lemma={singleWord ? lemma : ''} />
+    <ExternalDictionaryLookup word={word} lemma={singleWord ? lemma : ''} multiWord={!singleWord} />
     {hasConjugation && <ConjugationPanel surface={word} lemma={lemma} context={context} model={model} />}
   </div>;
 }
