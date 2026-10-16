@@ -860,7 +860,7 @@ export default function InputSection({
                   </button>
 
                   {/* TTS按钮组 */}
-                  <div className="relative" ref={dropdownRef}>
+                  <div ref={dropdownRef}>
                     <div className="input-voice-controls flex">
                       <button
                         id="speakButton"
@@ -895,7 +895,7 @@ export default function InputSection({
                     {showTtsDropdown && (
                       <div
                         id="inputVoiceSettings"
-                        className="input-voice-menu absolute top-full z-20 mt-2 rounded-2xl p-4"
+                        className="input-voice-menu rounded-2xl p-4"
                         style={{
                           background: 'var(--bg-2)',
                           border: '1px solid var(--line)',
@@ -1006,33 +1006,33 @@ export default function InputSection({
                   </div>
                 </div>
 
-                <div className="flex-1" />
+                <div className="input-submit-controls">
+                  {/* 清空按钮 */}
+                  {inputText.trim() !== '' && (
+                    <button
+                      className="input-tool-button input-clear-button"
+                      onClick={() => {
+                        handleInputTextChange('');
+                        setTtsAudioUrl(null);
+                        setShowFirstVisitExample(false);
+                        clearUsageMetadata();
+                      }}
+                      title={t("清空内容")}
+                      aria-label={t("清空内容")}
+                    >
+                      {Icon.xSm}
+                    </button>
+                  )}
 
-                {/* 清空按钮 */}
-                {inputText.trim() !== '' && (
-                  <button
-                    className="input-tool-button input-clear-button mr-2"
-                    onClick={() => {
-                      handleInputTextChange('');
-                      setTtsAudioUrl(null);
-                      setShowFirstVisitExample(false);
-                      clearUsageMetadata();
-                    }}
-                    title={t("清空内容")}
-                    aria-label={t("清空内容")}
-                  >
-                    {Icon.xSm}
-                  </button>
-                )}
-
-                {/* 解析按钮 */}
-                <StateMorphButton
-                  id="analyzeButton"
-                  onClick={isLoading ? handleCancelAnalyze : handleAnalyze}
-                  disabled={!isLoading && !inputText.trim()}
-                  state={submitState}
-                  className={showFirstVisitExample ? 'first-visit-submit-cue' : undefined}
-                />
+                  {/* 解析按钮 */}
+                  <StateMorphButton
+                    id="analyzeButton"
+                    onClick={isLoading ? handleCancelAnalyze : handleAnalyze}
+                    disabled={!isLoading && !inputText.trim()}
+                    state={submitState}
+                    className={showFirstVisitExample ? 'first-visit-submit-cue' : undefined}
+                  />
+                </div>
               </div>
 
               {/* 隐藏的文件输入 */}

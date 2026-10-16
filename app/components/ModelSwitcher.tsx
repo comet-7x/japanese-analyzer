@@ -68,7 +68,7 @@ export default function ModelSwitcher({ services, activeServiceId, activeModelId
       : t('未配置模型');
 
   return (
-    <div className="relative" ref={rootRef}>
+    <div ref={rootRef}>
       <button
         type="button"
         className="input-tool-button model-switcher-trigger"
