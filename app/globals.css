@@ -2576,6 +2576,7 @@ body {
 /* 阅读态胶囊：输入卡片收起后的形态，和顶栏玻璃按钮组同一套质感 */
 /* 不加 backdrop-filter：底下是纯色画布，模糊看不出来，却会拖慢进出场动画 */
 .input-compact-bar {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -2684,7 +2685,7 @@ body {
   .input-compact-bar .nd-ghost-btn, .display-chip { padding-inline: 10px; }
 }
 @media (max-width: 480px) {
-  .input-compact-bar .compact-label { display: none; }
+  .input-compact-bar .compact-label, .input-compact-bar .copy-text-label { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .detail-rail, .translation-actions { transition: none; }
@@ -2886,6 +2887,8 @@ body {
 .learning-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .copy-text-control { display: inline-flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: 100%; }
 .copy-text-fallback { width: 280px; max-width: 100%; }
+.word-detail-headword .copy-text-fallback { position: absolute; top: 100%; left: 20px; right: 20px; z-index: 5; width: auto; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); box-shadow: var(--glass-shadow); }
+.input-compact-bar .copy-text-fallback { position: absolute; top: calc(100% + 8px); left: 0; z-index: 5; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); box-shadow: var(--glass-shadow); }
 .learning-fields { display: grid; gap: 14px; }
 .learning-input { display: block; width: 100%; padding: 10px 12px; margin-top: 6px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--ink); font: inherit; }
 .learning-input:focus-visible, .boundary-editor button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

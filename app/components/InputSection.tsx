@@ -17,6 +17,7 @@ import {
   type AnalyzeUsageMetadata
 } from '../utils/analytics';
 import { Icon } from './Icons';
+import CopyTextButton from './CopyTextButton';
 import ModelSwitcher from './ModelSwitcher';
 import AnchoredPopover from './AnchoredPopover';
 import { ProviderLogo } from './ProviderLogo';
@@ -31,6 +32,7 @@ import type { useAnalysisHistory } from '../hooks/useAnalysisHistory';
 
 interface InputSectionProps {
   draft: string;
+  originalText?: string;
   onDraftChange: (text: string) => void;
   history: ReturnType<typeof useAnalysisHistory>;
   onAnalyze: (text: string, usage?: AnalyzeUsageMetadata) => void;
@@ -101,6 +103,7 @@ const FIRST_VISIT_EXAMPLE_ENABLED = false;
 
 export default function InputSection({
   draft: inputText,
+  originalText,
   onDraftChange: setInputText,
   history,
   onAnalyze,
@@ -708,6 +711,7 @@ export default function InputSection({
       <button type="button" className="nd-ghost-btn" onClick={onExpand} aria-label={t("编辑原文")}>
         {Icon.pencil}<span className="compact-label">{t("编辑原文")}</span>
       </button>
+      <CopyTextButton text={originalText ?? inputText} label="复制原文" />
       <button
         type="button"
         className="nd-ghost-btn"

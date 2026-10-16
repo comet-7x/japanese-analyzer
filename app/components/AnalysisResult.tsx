@@ -9,12 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { groupPendingChars, groupReadingTokens } from '../utils/readingLayout';
 import { getPhraseReading, getPhraseText, isPunctuationToken, type PhraseRange } from '../utils/phraseRange';
 import { usePhraseSelection } from '../hooks/usePhraseSelection';
-import CopyTextButton from './CopyTextButton';
 
 interface AnalysisResultProps {
   tokens: TokenData[];
-  /** Preserve the exact original text, including whitespace and pending analysis. */
-  originalText?: string;
   readingGroups?: PhraseRange[];
   showFurigana: boolean;
   onShowFuriganaChange: (show: boolean) => void;
@@ -201,7 +198,6 @@ function PendingText({ text, offset }: { text: string; offset: number }) {
 
 export default function AnalysisResult({
   tokens,
-  originalText,
   readingGroups,
   showFurigana,
   onShowFuriganaChange,
@@ -234,8 +230,6 @@ export default function AnalysisResult({
   const legendGroups = [...POS_LEGEND_GROUPS, 'o' as const].filter((group) => presentPosGroups.has(group));
   // 拖动中显示预览选区，否则显示已选中的短语
   const highlightRange = selection.preview ?? selectedRange;
-  const copyRange = selectedRange ?? (selectedIndex === null ? null : { start: selectedIndex, end: selectedIndex });
-  const selectedText = copyRange ? getPhraseText(tokens, copyRange) : '';
   const units = readingGroups?.map(range => ({ index: range.start, range, token: range.start === range.end ? tokens[range.start] : { ...tokens[range.start], word: getPhraseText(tokens, range), furigana: getPhraseReading(tokens, range), romaji: tokens.slice(range.start, range.end + 1).map(t => t.romaji || '').join('') } }));
   const displayGroups = units ? groupReadingTokens(units.map(u => u.token)).map(g => g.map(u => units[u.index])) : groupReadingTokens(tokens).map(g => g.map(u => ({ ...u, range: { start: u.index, end: u.index } })));
 
@@ -243,18 +237,14 @@ export default function AnalysisResult({
     <section className="analysis-card relative">
       <h2 className="sr-only">{t("解析结果")}</h2>
 
-      <div className="analysis-heading mb-4 flex flex-wrap items-center justify-between gap-y-2">
-        <div className="learning-actions">
-          <CopyTextButton text={originalText ?? tokens.map(token => token.word).join('') + pendingText} label="复制原文" />
-          {selectedText && <CopyTextButton text={selectedText} label="复制选中文本" />}
-        </div>
-        {showDisplayOptions && <DisplayOptions
+      {showDisplayOptions && <div className="analysis-heading mb-4 flex flex-wrap items-center justify-end gap-y-2">
+        <DisplayOptions
           showFurigana={showFurigana}
           onShowFuriganaChange={onShowFuriganaChange}
           showRomaji={showRomaji}
           onShowRomajiChange={onShowRomajiChange}
-        />}
-      </div>
+        />
+      </div>}
 
       {/* 高度动画容器会裁掉溢出内容，外框多留一圈空间，选中高亮和焦点框不被切 */}
       <AutoAnimateHeight duration={300} className="analysis-output-frame" contentClassName="analysis-output-frame-content">

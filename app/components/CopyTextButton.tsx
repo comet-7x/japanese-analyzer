@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Icon } from './Icons';
 
-export default function CopyTextButton({ text, label = '复制' }: { text: string; label?: string }) {
+export default function CopyTextButton({ text, label = '复制', iconOnly = false }: { text: string; label?: string; iconOnly?: boolean }) {
   const { t } = useLanguage();
   const [status, setStatus] = useState<'idle' | 'copied' | 'manual'>('idle');
   const lifecycle = useRef<{ request: number; timer?: ReturnType<typeof setTimeout> }>({ request: 0 });
@@ -30,9 +30,9 @@ export default function CopyTextButton({ text, label = '复制' }: { text: strin
   };
 
   return <div className="copy-text-control">
-    <button type="button" className="nd-ghost-btn" aria-label={t(label)} disabled={!text.trim()} onClick={() => void copy()}>
+    <button type="button" className={iconOnly ? 'dictionary-icon-btn' : 'nd-ghost-btn'} title={status === 'copied' ? t('已复制') : t(label)} aria-label={t(label)} disabled={!text.trim()} onClick={() => void copy()}>
       {status === 'copied' ? Icon.check : Icon.copy}
-      <span role="status">{status === 'copied' ? t('已复制') : t(label)}</span>
+      <span role="status" className={iconOnly ? 'sr-only' : 'copy-text-label'}>{status === 'copied' ? t('已复制') : t(label)}</span>
     </button>
     {status === 'manual' && <div className="copy-text-fallback">
       <p className="tool-note" role="status">{t('请手动复制')}</p>
