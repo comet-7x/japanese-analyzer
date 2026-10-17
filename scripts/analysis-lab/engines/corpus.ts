@@ -1,4 +1,4 @@
-import { qualityCases } from '../../../tests/fixtures/analysisQuality';
+import { qualityCases } from '../qualityCases';
 
 type GoldCase = { id: string; text: string; expected: readonly (readonly [string, string, string])[]; group: string; readingAlternatives?: Record<number, readonly string[]>; };
 // Freeze expectations before the engine comparison. These are regression examples,

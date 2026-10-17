@@ -8,7 +8,7 @@ import { normalizeEndpointUrl, type ProviderCaps } from '../../app/lib/aiModels'
 import { getResponseLanguageInstruction } from '../../app/lib/languagePrompts';
 import { splitJapaneseText } from '../../app/utils/japaneseChunking';
 import { toHiragana } from '../../app/utils/romaji';
-import { qualityCases } from '../../tests/fixtures/analysisQuality';
+import { qualityCases } from './qualityCases';
 import { loadLocalTokenizer, localDraft, correctionInstruction, correctionSchema, applyCorrections, type LocalDraft } from './local';
 
 interface ExperimentConfig { endpoint: EndpointPayload; apiKey: string; }
