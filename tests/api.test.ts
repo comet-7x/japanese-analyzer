@@ -155,7 +155,7 @@ assert.ok(createCustomProfileId().startsWith('custom-'));
 assert.ok(createCustomModelId().startsWith('model-'));
 
 // sanitizeProfiles 只接受 service + models 结构：缺 baseUrl / 缺有效模型的服务被丢弃，
-// jsonSchema 留在服务商，thinking / reasoningEffort 归模型，reasoningEffort trim 后为空则删
+// 旧 jsonSchema 迁移到模型级 structuredOutput，reasoningEffort trim 后为空则删
 const sanitizedSingle = sanitizeProfiles([
   { id: 'a', baseUrl: 'https://x.example', models: [{ model: 'm-1' }] },
   { id: 'skip' },
@@ -167,15 +167,15 @@ assert.deepStrictEqual(sanitizedSingle, [
 assert.ok(sanitizedSingle[0].models[0].id.startsWith('model-'));
 assert.strictEqual(sanitizedSingle[0].models[0].name, 'm-1');
 assert.strictEqual(sanitizedSingle[0].models[0].model, 'm-1');
-assert.deepStrictEqual(sanitizedSingle[0].models[0].caps, {});
+assert.deepStrictEqual(sanitizedSingle[0].models[0].caps, { structuredOutput: 'json_object' });
 assert.deepStrictEqual(
   sanitizeProfiles([
     { id: 'b', baseUrl: 'https://x.example', jsonSchema: false, models: [{ id: 'b1', name: 'B', model: 'm', caps: { thinking: true, reasoningEffort: ' xhigh ' } }] },
     { id: 'c', baseUrl: 'https://x.example', models: [{ id: 'c1', model: 'm', caps: { thinking: true, reasoningEffort: '   ' } }] },
   ]),
   [
-    { id: 'b', name: 'b', baseUrl: 'https://x.example', apiKey: '', jsonSchema: false, models: [{ id: 'b1', name: 'B', model: 'm', caps: { thinking: true, reasoningEffort: 'xhigh' } }] },
-    { id: 'c', name: 'c', baseUrl: 'https://x.example', apiKey: '', models: [{ id: 'c1', name: 'm', model: 'm', caps: { thinking: true } }] },
+    { id: 'b', name: 'b', baseUrl: 'https://x.example', apiKey: '', models: [{ id: 'b1', name: 'B', model: 'm', caps: { structuredOutput: 'json_object', thinking: true, reasoningEffort: 'xhigh' } }] },
+    { id: 'c', name: 'c', baseUrl: 'https://x.example', apiKey: '', models: [{ id: 'c1', name: 'm', model: 'm', caps: { structuredOutput: 'json_object', thinking: true } }] },
   ]
 );
 
@@ -392,7 +392,7 @@ assert.deepStrictEqual(
   }
 );
 
-const deepseekCaps: ProviderCaps = { jsonSchema: false, thinking: true };
+const deepseekCaps: ProviderCaps = { structuredOutput: 'json_object', thinking: true };
 assert.deepStrictEqual(buildCompletionPayload(deepseekCaps, { model: 'deepseek-chat' }), {
   model: 'deepseek-chat',
   thinking: { type: 'disabled' },
@@ -439,7 +439,7 @@ assert.deepStrictEqual(buildCompletionPayload(
   thinking: { type: 'disabled' },
 });
 
-const openaiCaps: ProviderCaps = {};
+const openaiCaps: ProviderCaps = { structuredOutput: 'json_schema' };
 assert.deepStrictEqual(buildCompletionPayload(openaiCaps, { model: 'gpt-4o-mini' }), {
   model: 'gpt-4o-mini',
 });
@@ -668,12 +668,12 @@ const createProviderConfigRequest = (auth?: string) => (
 
 const resolved = resolveProviderConfig(
   createProviderConfigRequest('Bearer test-key'),
-  { baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', caps: { jsonSchema: false, thinking: true } }
+  { baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', caps: { structuredOutput: 'json_object', thinking: true } }
 );
 assert.strictEqual(resolved.apiKey, 'test-key');
 assert.strictEqual(resolved.baseUrl, 'https://api.deepseek.com/chat/completions');
 assert.strictEqual(resolved.model, 'deepseek-chat');
-assert.deepStrictEqual(resolved.caps, { jsonSchema: false, thinking: true });
+assert.deepStrictEqual(resolved.caps, { structuredOutput: 'json_object', thinking: true });
 
 assert.throws(
   () => resolveProviderConfig(createProviderConfigRequest('Bearer k'), { baseUrl: 'http://127.0.0.1', model: 'm' }),
@@ -718,7 +718,7 @@ try {
   assert.strictEqual(serverConfig?.name, 'deepseek');
   assert.strictEqual(serverConfig?.apiKey, 'deepseek-key');
   assert.strictEqual(serverConfig?.model, 'deepseek-chat');
-  assert.strictEqual(serverConfig?.caps.jsonSchema, false);
+  assert.strictEqual(serverConfig?.caps.structuredOutput, 'json_object');
 
   process.env.DAILY_SENTENCE_API_URL = 'https://daily.example/v1';
   process.env.DAILY_SENTENCE_API_KEY = 'daily-key';
@@ -774,10 +774,10 @@ assert.strictEqual(migratedSettings.services[0].id, 'deepseek');
 assert.strictEqual(migratedSettings.services[0].name, 'DeepSeek');
 assert.strictEqual(migratedSettings.services[0].baseUrl, 'https://api.deepseek.com');
 assert.strictEqual(migratedSettings.services[0].apiKey, 'deepseek-key');
-assert.strictEqual(migratedSettings.services[0].jsonSchema, false);
+assert.strictEqual(migratedSettings.services[0].jsonSchema, undefined);
 assert.strictEqual(migratedSettings.services[0].models.length, 1);
 assert.strictEqual(migratedSettings.services[0].models[0].model, 'deepseek-chat');
-assert.deepStrictEqual(migratedSettings.services[0].models[0].caps, { thinking: true });
+assert.deepStrictEqual(migratedSettings.services[0].models[0].caps, { structuredOutput: 'json_object', thinking: true });
 assert.strictEqual(migratedSettings.activeServiceId, 'deepseek');
 assert.strictEqual(migratedSettings.activeModelId, migratedSettings.services[0].models[0].id);
 assert.strictEqual(migratedSettings.geminiApiKey, 'gemini-key');
@@ -813,10 +813,10 @@ const flatFormatStorage = new MemoryStorage({
 const flatFormatSettings = loadAISettingsFromStorage(flatFormatStorage);
 assert.strictEqual(flatFormatSettings.services.length, 1);
 assert.strictEqual(flatFormatSettings.services[0].id, 'my');
-assert.strictEqual(flatFormatSettings.services[0].jsonSchema, false);
+assert.strictEqual(flatFormatSettings.services[0].jsonSchema, undefined);
 assert.strictEqual(flatFormatSettings.services[0].models.length, 1);
 assert.strictEqual(flatFormatSettings.services[0].models[0].model, 'm');
-assert.deepStrictEqual(flatFormatSettings.services[0].models[0].caps, { thinking: true, reasoningEffort: 'xhigh' });
+assert.deepStrictEqual(flatFormatSettings.services[0].models[0].caps, { structuredOutput: 'json_object', thinking: true, reasoningEffort: 'xhigh' });
 assert.strictEqual(flatFormatSettings.activeServiceId, 'my');
 assert.strictEqual(flatFormatSettings.activeModelId, flatFormatSettings.services[0].models[0].id);
 assert.strictEqual(flatFormatSettings.thinkingEnabled, true);
@@ -833,6 +833,8 @@ const newFormatStorage = new MemoryStorage({
 const newFormatSettings = loadAISettingsFromStorage(newFormatStorage);
 assert.strictEqual(newFormatSettings.services.length, 1);
 assert.strictEqual(newFormatSettings.services[0].models.length, 2);
+assert.equal(newFormatSettings.services[0].models[0].caps?.structuredOutput, 'json_schema');
+assert.equal(newFormatSettings.services[0].models[1].caps?.structuredOutput, 'json_schema');
 assert.strictEqual(newFormatSettings.activeServiceId, 'my');
 assert.strictEqual(newFormatSettings.activeModelId, 'm2');
 assert.strictEqual(newFormatSettings.thinkingEnabled, true);

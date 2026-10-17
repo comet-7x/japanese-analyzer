@@ -57,13 +57,34 @@ async function run() {
       assert.equal(payload.model, 'chosen-model');
       assert.equal(payload.baseUrl, 'https://api.test.example/v1');
       assert.equal(payload.useStream, false);
-      assert.equal(payload.caps, undefined, 'Connection testing does not require structured output support');
+      if (payload.connectionProbe === undefined) assert.equal(payload.caps, undefined);
+      else assert.deepEqual(payload.caps, { structuredOutput: payload.connectionProbe });
       assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer test-key');
       assert.equal(new Headers(init?.headers).get('X-App-Locale'), 'en');
       assert.ok(init?.signal);
-      return Response.json(completion());
+      return payload.connectionProbe === 'json_schema'
+        ? Response.json({ choices: [{ message: { content: '{"verdict":"schema_enforced"}' }, finish_reason: 'stop' }] })
+        : Response.json(completion());
     };
-    await testProviderConnection(testService, ' chosen-model ', 'en', testController.signal);
+    assert.deepEqual(await testProviderConnection(testService, ' chosen-model ', 'en', testController.signal), { structuredOutput: 'json_schema' });
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      if (!payload.connectionProbe) return Response.json(completion());
+      if (payload.connectionProbe === 'json_schema') return Response.json({ choices: [{ message: { content: '{"verdict":"schema_ignored","extra":true}' } }] });
+      return Response.json({ choices: [{ message: { content: '{"verdict":"json_ok"}' } }] });
+    };
+    assert.deepEqual(await testProviderConnection(testService, 'chosen-model', 'en', testController.signal), { structuredOutput: 'json_object' });
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      return payload.connectionProbe ? Response.json({ error: { message: 'unsupported' } }, { status: 400 }) : Response.json(completion());
+    };
+    assert.deepEqual(await testProviderConnection(testService, 'chosen-model', 'en', testController.signal), { structuredOutput: 'unsupported' });
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      if (!payload.connectionProbe) return Response.json(completion());
+      throw new DOMException('probe timed out', 'TimeoutError');
+    };
+    await assert.rejects(testProviderConnection(testService, 'chosen-model', 'en', testController.signal), { name: 'TimeoutError' });
     for (const result of [Response.json({}), new Response('<html>gateway</html>'), Response.json({ choices: [{ message: { content: '' } }] })]) {
       globalThis.fetch = async () => result;
       await assert.rejects(testProviderConnection(testService, 'chosen-model', 'en', testController.signal), /未返回有效/);

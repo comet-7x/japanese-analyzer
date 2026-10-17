@@ -20,6 +20,8 @@ import SpeechServices from './SpeechServices';
 import DictionarySettings from './DictionarySettings';
 import type { DictionarySettings as DictionarySettingsValue } from '../lib/dictionary';
 import { sanitizeSpeechSettings, type SpeechSettings } from '../lib/speechServices';
+import TranslationServicesSettings from './TranslationServicesSettings';
+import type { TranslationServiceSettings } from '../lib/translationServices';
 
 interface SettingsPayload {
   dictionarySettings: DictionarySettingsValue;
@@ -30,6 +32,7 @@ interface SettingsPayload {
   speechSettings: SpeechSettings;
   thinkingEnabled: boolean;
   useStream: boolean;
+  translationSettings: TranslationServiceSettings;
 }
 
 interface SettingsModalProps {
@@ -41,6 +44,7 @@ interface SettingsModalProps {
   speechSettings: SpeechSettings;
   thinkingEnabled: boolean;
   useStream: boolean;
+  translationSettings: TranslationServiceSettings;
   onSaveSettings: (settings: SettingsPayload) => void;
   isModalOpen: boolean;
   onModalClose: () => void;
@@ -52,8 +56,7 @@ function emptyService(): ProviderProfile {
     name: '',
     baseUrl: '',
     apiKey: '',
-    jsonSchema: true,
-    models: [{ id: createCustomModelId(), name: '', model: '' }],
+    models: [{ id: createCustomModelId(), name: '', model: '', caps: { structuredOutput: 'json_object' } }],
   };
 }
 
@@ -65,7 +68,6 @@ function fromPreset(presetId: string): ProviderProfile | null {
     name: preset.name,
     baseUrl: preset.baseUrl,
     apiKey: '',
-    jsonSchema: preset.jsonSchema !== false,
     models: preset.models.map((m) => ({ ...m, id: createCustomModelId(), caps: m.caps ? { ...m.caps } : undefined })),
   };
 }
@@ -79,6 +81,7 @@ export default function SettingsModal({
   speechSettings: initialSpeechSettings,
   thinkingEnabled: initialThinkingEnabled,
   useStream,
+  translationSettings: initialTranslationSettings,
   onSaveSettings,
   isModalOpen,
   onModalClose
@@ -93,6 +96,7 @@ export default function SettingsModal({
   const [speechSettings, setSpeechSettings] = useState(initialSpeechSettings);
   const [thinkingEnabled, setThinkingEnabled] = useState(initialThinkingEnabled);
   const [streamEnabled, setStreamEnabled] = useState(useStream);
+  const [translationSettings, setTranslationSettings] = useState(initialTranslationSettings);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [defaultMenuOpen, setDefaultMenuOpen] = useState(false);
@@ -127,6 +131,7 @@ export default function SettingsModal({
     setSpeechSettings(initialSpeechSettings);
     setThinkingEnabled(initialThinkingEnabled);
     setStreamEnabled(useStream);
+    setTranslationSettings(initialTranslationSettings);
     setStatus('');
     setError('');
     setDefaultMenuOpen(false);
@@ -231,6 +236,7 @@ export default function SettingsModal({
       speechSettings: sanitizeSpeechSettings(speechSettings)!,
       thinkingEnabled,
       useStream: streamEnabled,
+      translationSettings,
     });
 
     setStatus(t('设置已保存'));
@@ -584,6 +590,8 @@ export default function SettingsModal({
         </div>
 
         {isModalOpen && <DictionarySettings value={dictionarySettings} onChange={setDictionarySettings} />}
+
+        {isModalOpen && <TranslationServicesSettings value={translationSettings} onChange={setTranslationSettings} />}
 
         {isModalOpen && <SpeechServices settings={speechSettings} onChange={setSpeechSettings} />}
 

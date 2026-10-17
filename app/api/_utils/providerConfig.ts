@@ -5,10 +5,11 @@ import {
   type ProviderCaps,
 } from '../../lib/aiModels';
 import { BaseUrlError, validateBaseUrl } from './validateBaseUrl';
+import { SCHOOL_POS } from '../../lib/learningTools';
 
 export type { ProviderCaps, ModelEndpoint } from '../../lib/aiModels';
 
-export type StructuredOutputKind = 'analysisTokens' | 'wordDetail' | 'phraseDetail' | 'dailySentence' | 'resegment' | 'conjugation' | 'dictionaryTranslation';
+export type StructuredOutputKind = 'analysisTokens' | 'wordDetail' | 'phraseDetail' | 'selectionTranslation' | 'selectionAnalysisWord' | 'selectionAnalysisPhrase' | 'dailySentence' | 'resegment' | 'conjugation' | 'dictionaryTranslation' | 'translationReview' | 'localCorrection' | 'connectionProbe';
 
 /** 解析后的上游调用配置：端点 + 密钥 + 能力位 */
 export interface ResolvedProviderConfig extends ModelEndpoint {
@@ -49,14 +50,14 @@ export function resolveServerProviderConfig(): ServerProviderConfig | null {
   const dsKey = process.env.DAILY_SENTENCE_API_KEY?.trim();
   const dsModel = process.env.DAILY_SENTENCE_API_MODEL?.trim();
   if (dsKey && dsModel && dsUrl) {
-    candidates.push({ name: 'daily-sentence', apiUrl: normalizeEndpointUrl(dsUrl), apiKey: dsKey, model: dsModel, caps: { jsonSchema: false } });
+    candidates.push({ name: 'daily-sentence', apiUrl: normalizeEndpointUrl(dsUrl), apiKey: dsKey, model: dsModel, caps: { structuredOutput: 'json_object' } });
   }
 
   // 复用既有 DeepSeek 端点（结构化输出用 json_object 降级，兼容性最好）
   const deepseekKey = process.env.DEEPSEEK_API_KEY?.trim();
   if (deepseekKey) {
     const deepseekUrl = process.env.DEEPSEEK_API_URL?.trim() || 'https://api.deepseek.com';
-    candidates.push({ name: 'deepseek', apiUrl: normalizeEndpointUrl(deepseekUrl), apiKey: deepseekKey, model: process.env.DEEPSEEK_MODEL_NAME?.trim() || 'deepseek-chat', caps: { jsonSchema: false } });
+    candidates.push({ name: 'deepseek', apiUrl: normalizeEndpointUrl(deepseekUrl), apiKey: deepseekKey, model: process.env.DEEPSEEK_MODEL_NAME?.trim() || 'deepseek-chat', caps: { structuredOutput: 'json_object' } });
   }
 
   // 复用既有 Gemini 端点
@@ -73,7 +74,8 @@ function normalizeCaps(value: unknown): ProviderCaps {
   if (!value || typeof value !== 'object') return {};
   const item = value as Record<string, unknown>;
   const caps: ProviderCaps = {};
-  if (typeof item.jsonSchema === 'boolean') caps.jsonSchema = item.jsonSchema;
+  if (item.structuredOutput === 'json_schema' || item.structuredOutput === 'json_object') caps.structuredOutput = item.structuredOutput;
+  else if (typeof item.jsonSchema === 'boolean') caps.structuredOutput = item.jsonSchema ? 'json_schema' : 'json_object';
   if (typeof item.thinking === 'boolean') caps.thinking = item.thinking;
   return caps;
 }
@@ -202,9 +204,24 @@ const toolSchemas = {
 };
 
 const structuredOutputSchemas = {
+  connectionProbe: { name: 'structured_output_probe', schema: objectSchema({ verdict: { type: 'string', enum: ['schema_enforced'] } }) },
+  localCorrection: { name: 'japanese_local_corrections', schema: objectSchema({ edits: arraySchema(objectSchema({
+    sourceIds: { ...arraySchema({ type: 'integer' }), minItems: 1, description: 'Non-empty ascending consecutive 0-based IDs from targetTokens. Use [5] for one token and [5,6] to merge adjacent tokens.' },
+    pos: { type: 'string', enum: [...SCHOOL_POS, '固有名詞', '普通名詞', '数詞', '助数詞', '補助動詞', '句点', '読点', '補助記号'] },
+    furigana: { type: 'string', description: 'Reading in kana. Must be empty for punctuation or line breaks.' },
+  })) }) },
   resegment: { name: 'japanese_resegmentation', schema: toolSchemas.resegment },
   conjugation: { name: 'japanese_conjugation', schema: toolSchemas.conjugation },
   dictionaryTranslation: { name: 'dictionary_sense_translation', schema: toolSchemas.dictionaryTranslation },
+  translationReview: { name: 'translation_review', schema: objectSchema({ translation: textSchema, summary: textSchema }) },
+  selectionTranslation: { name: 'selection_translation', schema: objectSchema({ translation: textSchema }) },
+  selectionAnalysisWord: { name: 'selection_word_analysis', schema: objectSchema({
+    dictionaryForm: textSchema, explanation: textSchema, example: textSchema, exampleTranslation: textSchema, pos: textSchema, furigana: textSchema,
+  }) },
+  selectionAnalysisPhrase: { name: 'selection_phrase_analysis', schema: objectSchema({
+    dictionaryForm: textSchema, explanation: textSchema, category: { type: 'string', enum: ['単語', '文法形式', '慣用表現', '連語'] },
+    breakdown: textSchema, example: textSchema, exampleTranslation: textSchema, pos: textSchema, furigana: textSchema,
+  }) },
   analysisTokens: {
     name: 'japanese_sentence_analysis',
     schema: analysisTokensSchema,
@@ -223,12 +240,14 @@ const structuredOutputSchemas = {
   },
 } as const;
 
-/** 按能力位选择结构化输出方式：默认 json_schema strict，降级时只用 json_object */
+export const LOCAL_CORRECTION_SCHEMA_FINGERPRINT = 'local-correction-source-ids-v2';
+
+/** 按模型能力选择结构化输出方式；未声明时使用兼容性更好的 json_object。 */
 export function getStructuredResponseFormat(
   caps: ProviderCaps,
   kind: StructuredOutputKind
 ): Record<string, unknown> {
-  if (caps.jsonSchema === false) {
+  if (caps.structuredOutput !== 'json_schema') {
     return { type: 'json_object' };
   }
 

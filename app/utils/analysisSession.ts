@@ -1,6 +1,6 @@
 import type { TokenData } from '../services/api';
 import { collectSemanticUnits, splitJapaneseText, type JapaneseChunkingOptions, type JapaneseTextChunk } from './japaneseChunking';
-import { canRecoverAnalysis, type AnalysisErrorCode, AnalysisValidationError } from './requestErrors';
+import { ApiRequestError, canRecoverAnalysis, AnalysisValidationError } from './requestErrors';
 
 export type AnalysisChunkStatus = 'queued' | 'running' | 'retrying' | 'complete' | 'failed' | 'cancelled';
 /** Source ranges use UTF-16 offsets, matching String.slice and the editing model. */
@@ -13,7 +13,7 @@ export interface AnalysisChunkProgress {
   attempt: number;
   recovery: boolean;
   error?: Error;
-  errorCode?: AnalysisErrorCode;
+  errorCode?: string;
 }
 export interface AnalysisProgress {
   status: 'idle' | 'running' | 'complete' | 'failed' | 'cancelled';
@@ -56,9 +56,17 @@ export class AnalysisSession {
 
   constructor(text: string, private request: AnalysisChunkRequest, private options: {
     signal?: AbortSignal; onProgress?: (progress: AnalysisProgress) => void;
-    chunking?: JapaneseChunkingOptions; automaticRecovery?: boolean;
+    chunking?: JapaneseChunkingOptions; automaticRecovery?: boolean; sourceChunks?: JapaneseTextChunk[];
+    splitRecovery?: (chunk: JapaneseTextChunk) => JapaneseTextChunk[];
   } = {}) {
-    this.chunks = splitJapaneseText(text, options.chunking).map((chunk, rootIndex) => this.work(chunk, rootIndex, false));
+    const chunks = options.sourceChunks ?? splitJapaneseText(text, options.chunking);
+    let offset = 0;
+    for (const chunk of chunks) {
+      if (chunk.start !== offset || !Number.isSafeInteger(chunk.end) || chunk.end <= chunk.start || chunk.end > text.length || text.slice(chunk.start, chunk.end) !== chunk.text) throw new Error('Invalid analysis chunk ranges');
+      offset = chunk.end;
+    }
+    if (offset !== text.length) throw new Error('Incomplete analysis chunk ranges');
+    this.chunks = chunks.map((chunk, rootIndex) => this.work(chunk, rootIndex, false));
     const abort = () => this.cancel();
     options.signal?.addEventListener('abort', abort, { once: true });
     this.removeAbort = () => options.signal?.removeEventListener('abort', abort);
@@ -142,9 +150,9 @@ export class AnalysisSession {
               this.initialSuccess = false;
               work.partial = [];
               work.error = error instanceof Error ? error : new Error('解析失败');
-              work.errorCode = error instanceof AnalysisValidationError ? error.code : undefined;
+              work.errorCode = error instanceof AnalysisValidationError || error instanceof ApiRequestError ? error.code : undefined;
               if (automatic && this.options.automaticRecovery !== false && !work.recovery && canRecoverAnalysis(error)) {
-                const replacements = splitRecoveryChunk(work.chunk).map(chunk => this.work(chunk, work.rootIndex, true));
+                const replacements = (this.options.splitRecovery ?? splitRecoveryChunk)(work.chunk).map(chunk => this.work(chunk, work.rootIndex, true));
                 // Retrying the same span still needs a distinct, incremented attempt number.
                 if (replacements.length === 1) replacements[0].attempt = work.attempt;
                 this.chunks.splice(this.chunks.indexOf(work), 1, ...replacements);

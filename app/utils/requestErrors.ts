@@ -1,6 +1,6 @@
 // 保留 HTTP 状态用于本地分类；错误正文仅供界面提示，统计不读取它。
 export class ApiRequestError extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(message: string, readonly status: number, readonly code?: string, readonly details?: Record<string, unknown>) {
     super(message);
     this.name = 'ApiRequestError';
   }
@@ -36,6 +36,13 @@ export class AnalysisValidationError extends InvalidResponseError {
 }
 
 export function canRecoverAnalysis(error: unknown): boolean {
-  return error instanceof AnalysisValidationError
-    && ['invalid_json', 'invalid_tokens', 'source_mismatch', 'truncated', 'interrupted'].includes(error.code);
+  if (error instanceof AnalysisValidationError) {
+    return ['invalid_json', 'invalid_tokens', 'source_mismatch', 'truncated', 'interrupted', 'timeout'].includes(error.code);
+  }
+  if (error instanceof ApiRequestError) {
+    if (error.code === 'content_filter') return false;
+    return error.status === 502 || error.status === 504;
+  }
+  if (error instanceof TypeError) return true;
+  return false;
 }

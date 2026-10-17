@@ -16,6 +16,13 @@ export async function runAnalysisRecoveryTests() {
   const source = '猫が窓の外を見ている。\n今日は晴れです。';
   try {
     for (const stream of [false, true]) {
+      const nfdSource = 'まるて\u3099す。\r\n😀';
+      globalThis.fetch = async () => response(JSON.stringify({ tokens: [token('まるです。\r\n😀')] }), stream);
+      const canonical = await createAnalysisSession(nfdSource, undefined, endpoint, { stream }).run();
+      assert.equal(canonical.status, 'complete');
+      assert.equal(canonical.confirmedTokens.map(item => item.word).join(''), nfdSource, 'Direct model analysis restores exact original code units');
+    }
+    for (const stream of [false, true]) {
       for (const failure of ['invalid_json', 'invalid_tokens', 'source_mismatch', 'truncated', ...(stream ? ['interrupted'] : [])]) {
         let requests = 0;
         const diagnostics: AnalysisDiagnosticEvent[] = [];
@@ -67,7 +74,7 @@ export async function runAnalysisRecoveryTests() {
     await assert.rejects(analyzeSentence(source, undefined, endpoint), error => error instanceof AnalysisValidationError && error.code === 'content_filter');
     assert.equal(requests, 1);
 
-    // Real timeout cancels fetch, has a distinct category, and does not retry.
+    // Real timeout cancels fetch, has a distinct category, and receives one bounded recovery round.
     let timeoutSignal: AbortSignal | null | undefined;
     requests = 0;
     globalThis.fetch = async (_url, init) => {
@@ -78,7 +85,7 @@ export async function runAnalysisRecoveryTests() {
     const timeoutResult = await timedOut.run();
     assert.equal(timeoutResult.chunks[0].errorCode, 'timeout');
     assert.equal(timeoutSignal?.aborted, true);
-    assert.equal(requests, 1);
+    assert.ok(requests > 1 && requests <= 3);
 
     for (const text of ['猫。\n犬。', '「猫。犬。」\n鳥。', '😀猫。\n次。', 'a'.repeat(500)]) {
       const chunk = splitJapaneseText(text)[0];

@@ -33,6 +33,14 @@ Third-party components
 Dependencies, fonts, and other third-party materials retain their respective
 licenses and notices. The project-wide license does not replace those terms.
 
+Browser morphological analysis: Sudachi.rs 0.7.0 and SudachiDict Core 20261015,
+Works Applications and contributors, Apache-2.0 with separate component notices.
+The app adds a WebAssembly adapter, browser-only portability changes, source
+alignment and school-grammar conversion. Original tokenizer algorithms and
+built-in plugins are retained. See LICENSES/Sudachi-Apache-2.0.txt,
+LICENSES/SudachiDict-LEGAL and LICENSES/Sudachi-WASM-THIRD-PARTY.txt.
+Browser dictionary decompression uses fflate (MIT), see LICENSES/fflate-LICENSE.txt.
+
 Dictionary data: JMdict, copyright James William Breen and EDRDG, CC BY-SA 4.0.
 JSON conversion: jmdict-simplified, Dmitry Shpika and contributors.
 This application converts the English JSON into hashed lookup and entry shards, preserving entry and sense restrictions.

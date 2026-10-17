@@ -21,6 +21,7 @@ export type { AnalysisProgress } from '../utils/analysisSession';
 import { protectAnalysisUrls } from '../utils/analysisUrls';
 import { buildAnalyzePrompt } from '../lib/analyzePrompt';
 import { AnalyzeStreamParser } from '../utils/analyzeStreamParser';
+import { restoreCanonicalWords } from '../utils/canonicalSurface';
 
 export { PRESETS, sanitizeProfiles, normalizeEndpointUrl, createCustomProfileId, createCustomModelId, effectiveCaps } from '../lib/aiModels';
 export type { ModelConfig, ModelCaps, ModelEndpoint, ProviderProfile, ProviderCaps, ProviderPreset } from '../lib/aiModels';
@@ -211,7 +212,7 @@ export function getRequestProviderPayload(endpoint: EndpointPayload) {
 
 /**
  * 把上一版「一个 profile = 一个模型」的平铺结构迁移成 service + models 结构。
- * 每条 profile 变成一个单模型 service：jsonSchema 上移，thinking / reasoningEffort 挂到模型上。
+ * 每条 profile 变成一个单模型 service；旧 jsonSchema 能力迁移到模型级 structuredOutput。
  */
 function migrateFlatProfiles(raw: unknown): ProviderProfile[] {
   if (!Array.isArray(raw)) return [];
@@ -223,7 +224,9 @@ function migrateFlatProfiles(raw: unknown): ProviderProfile[] {
     const model = typeof item.model === 'string' ? item.model.trim() : '';
     if (!baseUrl || !model) continue;
     const rawCaps = item.caps && typeof item.caps === 'object' ? (item.caps as Record<string, unknown>) : {};
-    const caps: ModelCaps = {};
+    const caps: ModelCaps = {
+      structuredOutput: rawCaps.jsonSchema === true ? 'json_schema' : 'json_object',
+    };
     if (typeof rawCaps.thinking === 'boolean') caps.thinking = rawCaps.thinking;
     if (typeof rawCaps.reasoningEffort === 'string' && rawCaps.reasoningEffort.trim()) {
       caps.reasoningEffort = rawCaps.reasoningEffort.trim();
@@ -235,7 +238,6 @@ function migrateFlatProfiles(raw: unknown): ProviderProfile[] {
       name,
       baseUrl,
       apiKey: typeof item.apiKey === 'string' ? item.apiKey : '',
-      ...(typeof rawCaps.jsonSchema === 'boolean' ? { jsonSchema: rawCaps.jsonSchema } : {}),
       models: [{ id: createCustomModelId(), name: model, model, caps }],
     });
   }
@@ -259,14 +261,14 @@ function migrateLegacyProfile(storage: StorageLike): { services: ProviderProfile
   if (provider === 'deepseek' && deepseekKey) {
     const modelName = model || 'deepseek-chat';
     service = {
-      id: 'deepseek', name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', apiKey: deepseekKey, jsonSchema: false,
-      models: [{ id: createCustomModelId(), name: modelName, model: modelName, caps: { thinking: true } }],
+      id: 'deepseek', name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', apiKey: deepseekKey,
+      models: [{ id: createCustomModelId(), name: modelName, model: modelName, caps: { structuredOutput: 'json_object', thinking: true } }],
     };
   } else if (provider === 'gemini' && geminiApiKey) {
     const modelName = model || 'gemini-flash-latest';
     service = {
       id: 'gemini', name: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', apiKey: geminiApiKey,
-      models: [{ id: createCustomModelId(), name: modelName, model: modelName }],
+      models: [{ id: createCustomModelId(), name: modelName, model: modelName, caps: { structuredOutput: 'json_object' } }],
     };
   }
 
@@ -339,9 +341,10 @@ export function loadAISettingsFromStorage(storage: StorageLike): StoredAISetting
 
 /** 把 service + models 结构写回存储，并清理旧键 */
 export function saveAISettingsToStorage(storage: StorageLike, settings: StoredAISettings): void {
+  const services = sanitizeProfiles(settings.services);
   // 先写新键，再清理旧键（geminiApiKey 既作新键也作旧键，最后统一写回）
   storage.setItem('providerSettings', JSON.stringify({
-    services: settings.services,
+    services,
     activeServiceId: settings.activeServiceId,
     activeModelId: settings.activeModelId,
   }));
@@ -438,12 +441,13 @@ function reconstructTokenText(tokens: TokenData[]): string {
 
 function alignTokenWhitespaceToSource(source: string, tokens: TokenData[], allowPartial = false): TokenData[] | null {
   const sourceWithoutWhitespace = source.replace(/\s/gu, '');
-  const tokensWithoutWhitespace = tokens
-    .map((token) => token.word.replace(/\s/gu, ''))
-    .join('');
+  const compactWords = tokens.map((token) => token.word.replace(/\s/gu, ''));
+  const tokensWithoutWhitespace = compactWords.join('');
   if (allowPartial
     ? !sourceWithoutWhitespace.startsWith(tokensWithoutWhitespace)
-    : sourceWithoutWhitespace !== tokensWithoutWhitespace) return null;
+    : sourceWithoutWhitespace.normalize('NFC') !== tokensWithoutWhitespace.normalize('NFC')) return null;
+  const restoredCompactWords = allowPartial ? compactWords : restoreCanonicalWords(sourceWithoutWhitespace, compactWords);
+  if (!restoredCompactWords) return null;
 
   const alignedTokens: TokenData[] = [];
   let sourceIndex = 0;
@@ -461,8 +465,8 @@ function alignTokenWhitespaceToSource(source: string, tokens: TokenData[], allow
     }
   };
 
-  for (const token of tokens) {
-    const normalizedWord = token.word.replace(/\s/gu, '');
+  for (const [tokenIndex, token] of tokens.entries()) {
+    const normalizedWord = restoredCompactWords[tokenIndex];
     if (!normalizedWord) continue;
 
     let segment = '';
@@ -501,6 +505,9 @@ function reconcileChunkReconstruction(
   tokens: TokenData[],
 ): TokenData[] {
   if (reconstructTokenText(tokens) === chunk.text) return tokens;
+
+  const canonicalWords = restoreCanonicalWords(chunk.text, tokens.map(token => token.word));
+  if (canonicalWords) return tokens.map((token, index) => ({ ...token, word: canonicalWords[index] }));
 
   const whitespaceAlignedTokens = alignTokenWhitespaceToSource(chunk.text, tokens);
   if (whitespaceAlignedTokens) return whitespaceAlignedTokens;

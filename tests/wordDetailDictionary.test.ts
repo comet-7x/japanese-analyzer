@@ -45,7 +45,7 @@ assert.throws(() => parseWordDetailResponseContent(JSON.stringify({ ...entry, ex
 assert.throws(() => parseWordDetailResponseContent(JSON.stringify({ ...entry, explanation: undefined })), /缺少 explanation/);
 
 // 默认严格响应格式必须允许并要求这些字段，否则会静默丢失例句。
-const format = getStructuredResponseFormat({}, 'wordDetail') as {
+const format = getStructuredResponseFormat({ structuredOutput: 'json_schema' }, 'wordDetail') as {
   json_schema: { schema: { required: string[]; properties: Record<string, unknown> } };
 };
 const orderedFields = [

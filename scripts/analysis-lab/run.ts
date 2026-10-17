@@ -53,8 +53,8 @@ export function experimentConfig(env: Record<string, string | undefined>): Exper
   try {
     caps = JSON.parse(env.ANALYSIS_LAB_CAPS!);
     if (!caps || typeof caps !== 'object' || Array.isArray(caps)
-      || typeof caps.thinking !== 'boolean' || typeof caps.jsonSchema !== 'boolean') throw new Error();
-  } catch { throw new Error('ANALYSIS_LAB_CAPS must explicitly declare boolean thinking and jsonSchema'); }
+      || typeof caps.thinking !== 'boolean' || !['json_schema', 'json_object'].includes(String(caps.structuredOutput))) throw new Error();
+  } catch { throw new Error('ANALYSIS_LAB_CAPS must explicitly declare boolean thinking and structuredOutput'); }
   const baseUrl = env.ANALYSIS_LAB_BASE_URL!.trim();
   const url = new URL(baseUrl);
   if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw new Error('Invalid experiment endpoint');
@@ -130,7 +130,7 @@ export async function runExperiments(args: { mode: string; text: string; runs: n
         }, { enableThinking: false });
         const response = await originalFetch(normalizeEndpointUrl(config!.endpoint.baseUrl), {
           method: 'POST', signal: timeout, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config!.apiKey}` },
-          body: JSON.stringify({ ...base, response_format: config!.endpoint.caps?.jsonSchema === false ? { type: 'json_object' }
+          body: JSON.stringify({ ...base, response_format: config!.endpoint.caps?.structuredOutput !== 'json_schema' ? { type: 'json_object' }
             : { type: 'json_schema', json_schema: { name: 'analysis_corrections', strict: true, schema: correctionSchema } } }),
         });
         if (!response.ok) { void response.body?.cancel(); throw new Error('http'); }

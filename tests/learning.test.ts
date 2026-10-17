@@ -136,7 +136,7 @@ async function main() {
     assert.equal((await lookup(request({ query: 1 }))).status, 400);
     assert.equal((await lookup(request({ query: '駅', offset: -1 }))).status, 400);
     assert.equal((await lookup(request({ query: '駅', provider: null }))).status, 400);
-    const endpoint = { baseUrl: 'https://ai.example/v1', model: 'chosen' };
+    const endpoint = { baseUrl: 'https://ai.example/v1', model: 'chosen', caps: { structuredOutput: 'json_schema' } };
     const headers = { Authorization: 'Bearer model-key' };
     globalThis.fetch = async (_url, init) => {
       const payload = JSON.parse(String(init?.body)); assert.equal(payload.stream, false); assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer model-key');
@@ -153,8 +153,13 @@ async function main() {
     assert.equal((await conjugation(request({ ...endpoint, surface: '食べ', context: '食べた' }, headers))).status, 200);
     globalThis.fetch = async () => completion({}, 'length');
     assert.equal((await conjugation(request({ ...endpoint, surface: '食べ', context: '食べた' }, headers))).status, 502);
-    globalThis.fetch = async (_url, init) => { const content = JSON.parse(String(init?.body)).messages[0].content; assert.match(content, /standalone lookup/); return completion({ dictionaryForm: '食べる' }); };
-    assert.equal((await detail(request({ ...endpoint, word: '食べられなかった', kind: 'lookup' }, headers))).status, 200);
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      assert.match(payload.messages[0].content, /selected Japanese word/);
+      assert.equal(JSON.parse(payload.messages[1].content).selection, '食べられなかった');
+      return completion({ dictionaryForm: '食べる', explanation: '受身・可能の形。', example: '魚を食べられた。', exampleTranslation: '吃到了鱼。', pos: '', furigana: '' });
+    };
+    assert.equal((await detail(request({ ...endpoint, task: 'analyze', word: '食べられなかった', pos: '動詞', furigana: 'たべられなかった', sentence: '魚を食べられなかった。', kind: 'word' }, headers))).status, 200);
 
     const provider = { id: 'remote', name: 'Remote', adapter: 'http-v1' as const, lookupUrl: 'https://dict.example/lookup', apiKey: 'dictionary-key' };
     globalThis.fetch = async (url, init) => {

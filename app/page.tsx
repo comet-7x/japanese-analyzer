@@ -4,14 +4,13 @@ import { analysisCache, sentenceCacheKey } from './utils/sentenceCache';
 import { useReadingPreferences } from './hooks/useReadingPreferences';
 import ShareControl from './components/ShareControl';
 import DictionaryLookup from './components/DictionaryLookup';
-import WordLearningTools from './components/WordLearningTools';
 import ResegmentEditor from './components/ResegmentEditor';
 import { useAnalysisEditing } from './hooks/useAnalysisEditing';
 import { buildReadingGroups } from './utils/analysisEditing';
-import { vocabularyKey } from './utils/sentenceVocabulary';
 import { readDictionarySettings, DICTIONARY_SETTINGS_KEY, type DictionarySettings } from './lib/dictionary';
 import { browserStorage } from './utils/storage';
 import { loadSpeechSettings, SPEECH_PRESETS, SPEECH_SETTINGS_KEY, type SpeechSettings } from './lib/speechServices';
+import { readTranslationServiceSettings, TRANSLATION_SERVICES_KEY, type TranslationProviderId, type TranslationServiceSettings } from './lib/translationServices';
 
 import { useLanguage } from './contexts/LanguageContext';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -24,14 +23,17 @@ import Header from './components/Header';
 import LoginModal from './components/LoginModal';
 import AIChat from './components/AIChat';
 import ReasoningStream from './components/ReasoningStream';
-import WordDetailPanel from './components/WordDetailPanel';
-import { useWordDetail } from './hooks/useWordDetail';
+import SelectionDetailPanel from './components/SelectionDetailPanel';
 import { useAnalysisHistory } from './hooks/useAnalysisHistory';
 import AnalysisProgressView from './components/AnalysisProgressView';
+import AnalysisEngineControl from './components/AnalysisEngineControl';
+import { analyzeLocally, clearLocalDictionaryCache } from './services/localAnalyzer';
+import { createLocalCorrectionSession } from './services/localCorrection';
+import type { AnalysisEngine, LocalProgress } from './lib/localAnalyzerTypes';
 import type { AnalysisSession, AnalysisProgress } from './utils/analysisSession';
 import { selectWordDetailContext } from './utils/wordDetailContext';
 import { getPhraseReading, getPhraseText, mergePhraseTokens, normalizePhraseRange, isPunctuationToken, type PhraseRange } from './utils/phraseRange';
-import { createRequestMetrics, trackAnalyzeUsage, trackWordDetailUsage, type AnalyzeUsageMetadata } from './utils/analytics';
+import { createRequestMetrics, trackAnalyzeUsage, type AnalyzeUsageMetadata } from './utils/analytics';
 import { localizeError } from './i18n';
 import {
   createAnalysisSession,
@@ -51,12 +53,15 @@ export default function Home() {
   const history = useAnalysisHistory();
   const [currentSentence, setCurrentSentence] = useState('');
   const editing = useAnalysisEditing();
+  const startAnalysisWorkspace = editing.startWorkspace;
   const analyzedTokens = editing.state.tokens;
   const setAnalyzedTokens = editing.setTokens;
-  const startAnalysisTask = editing.startTask;
+  const resultKind = editing.activeVariant;
+  const analysisValidated = editing.variant.validated;
+  const analysisSource = { key: editing.variant.sourceKey ?? '', model: editing.variant.model ?? '' };
+  const analysisFromCache = editing.variant.fromCache === true;
   const [draft, setDraft] = useState('');
   const [dictionaryDraft, setDictionaryDraft] = useState('');
-  const [knownDictionaryForms, setKnownDictionaryForms] = useState<{ taskId: number; forms: Record<string, string> }>({ taskId: -1, forms: {} });
   const [mode, setMode] = useState<'analyze' | 'dictionary'>('analyze');
   const [dictionarySettings, setDictionarySettings] = useState<DictionarySettings>(() => readDictionarySettings(null));
   const dictionaryProvider = dictionarySettings.providers.find(p => p.id === dictionarySettings.activeId) ?? dictionarySettings.providers[0];
@@ -66,10 +71,11 @@ export default function Home() {
     if (value !== currentSentence) {
       analysisAbortControllerRef.current?.abort('edit');
       const cancelled = analysisSessionRef.current?.session.getSnapshot();
-      if (cancelled) setAnalyzedTokens(cancelled.confirmedTokens);
+      if (cancelled && activeAnalysisTypeRef.current === 'model') setAnalyzedTokens(cancelled.confirmedTokens);
       analysisAbortControllerRef.current = null;
       analysisSessionRef.current = null;
       setAnalysisProgress(null);
+      setLocalProgress(null);
       setIsAnalyzing(false);
     }
   }, [currentSentence, setAnalyzedTokens]);
@@ -78,10 +84,10 @@ export default function Home() {
   const [analysisError, setAnalysisError] = useState('');
   const [analysisProgress, setAnalysisProgress] = useState<AnalysisProgress | null>(null);
   const analysisSessionRef = useRef<{ session: AnalysisSession; retry: () => Promise<void> } | null>(null);
-  const [analysisFromCache, setAnalysisFromCache] = useState(false);
-  // Matching all source characters is insufficient until JSON and termination validate.
-  const [analysisValidated, setAnalysisValidated] = useState(false);
-  const [analysisSource, setAnalysisSource] = useState({ key: '', model: '' });
+  const [analysisEngine, setAnalysisEngine] = useState<AnalysisEngine>('model');
+  const [localProgress, setLocalProgress] = useState<LocalProgress | null>(null);
+  const [localNotice, setLocalNotice] = useState('');
+  const activeAnalysisTypeRef = useRef<'model' | 'local' | 'correction'>('model');
   const [editNotice, setEditNotice] = useState('');
   const activeAnalysisKeyRef = useRef('');
   const [useStream, setUseStream] = useState<boolean>(true);
@@ -129,6 +135,7 @@ export default function Home() {
   const reasoningSummaryControllerRef = useRef<ReasoningSummaryController | null>(null);
   const analysisAbortControllerRef = useRef<AbortController | null>(null);
   const [speechSettings, setSpeechSettings] = useState<SpeechSettings>({ services: [{ ...SPEECH_PRESETS[0] }, { ...SPEECH_PRESETS[1] }], activeId: 'edge' });
+  const [translationSettings, setTranslationSettings] = useState<TranslationServiceSettings>(() => readTranslationServiceSettings(null));
   const activeSpeechService = speechSettings.services.find((service) => service.id === speechSettings.activeId) ?? speechSettings.services[0];
 
   // 密码验证相关状态
@@ -149,36 +156,14 @@ export default function Home() {
   // 选中词汇（右侧详情面板 / 移动端模态）
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isDesktop, setIsDesktop] = useState(true);
-  const {
-    wordDetail,
-    isLoading: isWordDetailLoading,
-    isStreamLoading: isWordDetailStreaming,
-    streamContent: wordDetailStreamContent,
-    streamError: wordDetailStreamError,
-    fetchWordDetails,
-    clearWordDetail,
-  } = useWordDetail({ userApiKey, endpoint, useStream });
-
-  useEffect(() => {
-    if (selectedIndex === null || isWordDetailLoading || isWordDetailStreaming || wordDetailStreamError || wordDetail?.kind === 'phrase' || !wordDetail?.dictionaryForm) return;
-    const token = analyzedTokens[selectedIndex];
-    if (!token || wordDetail.originalWord !== token.word) return;
-    const key = vocabularyKey(token);
-    const lemma = wordDetail.dictionaryForm;
-    if (Array.from(lemma).length > 120) return;
-    setKnownDictionaryForms(previous => {
-      const forms = previous.taskId === editing.state.taskId ? previous.forms : {};
-      return forms[key] === lemma ? previous : { taskId: editing.state.taskId, forms: { ...forms, [key]: lemma } };
-    });
-  }, [selectedIndex, analyzedTokens, wordDetail, isWordDetailLoading, isWordDetailStreaming, wordDetailStreamError, editing.state.taskId]);
-
   useEffect(() => {
     analysisAbortControllerRef.current?.abort('language-change');
     const cancelled = analysisSessionRef.current?.session.getSnapshot();
-    if (cancelled && cancelled.status !== 'complete') setAnalyzedTokens(cancelled.confirmedTokens);
+    if (cancelled && cancelled.status !== 'complete' && activeAnalysisTypeRef.current === 'model') setAnalyzedTokens(cancelled.confirmedTokens);
     analysisAbortControllerRef.current = null;
     analysisSessionRef.current = null;
     setAnalysisProgress(null);
+    setLocalProgress(null);
     reasoningSummaryControllerRef.current?.cancel();
     setIsAnalyzing(false);
     setAnalysisError('');
@@ -194,18 +179,15 @@ export default function Home() {
   }, [analysisConfigKey, reasoningTextStore, setAnalyzedTokens]);
 
   useEffect(() => {
-    if (!currentSentence || !activeModel) return;
+    if (!currentSentence || !activeModel || analysisEngine !== 'model' || resultKind !== 'model') return;
     const key = sentenceCacheKey(currentSentence, endpoint, locale, userApiKey, thinkingEnabled);
     if (activeAnalysisKeyRef.current === key) return;
     const cached = analysisCache.get(key);
     if (!cached) return;
     activeAnalysisKeyRef.current = key;
-    startAnalysisTask(cached);
-    setAnalysisValidated(true);
-    setAnalysisSource({ key, model: endpoint.model });
-    setAnalysisFromCache(true);
+    startAnalysisWorkspace(currentSentence, 'model', cached, { status: 'complete', validated: true, sourceKey: key, model: endpoint.model, fromCache: true });
     setEditNotice('');
-  }, [analysisConfigKey, currentSentence, activeModel, endpoint, locale, userApiKey, thinkingEnabled, startAnalysisTask]);
+  }, [analysisConfigKey, currentSentence, activeModel, endpoint, locale, userApiKey, thinkingEnabled, startAnalysisWorkspace, analysisEngine, resultKind]);
 
   // 侧栏在 lg(1024px) 以上显示，以下使用模态
   useEffect(() => {
@@ -297,7 +279,9 @@ export default function Home() {
     setActiveModelId(storedAISettings.activeModelId);
     setGeminiApiKey(storedAISettings.geminiApiKey);
     setThinkingEnabled(storedAISettings.thinkingEnabled);
+    setAnalysisEngine(browserStorage.getItem('japaneseAnalyzer:analysisEngine') === 'local' ? 'local' : 'model');
     setSpeechSettings(loadSpeechSettings(browserStorage));
+    setTranslationSettings(readTranslationServiceSettings(browserStorage.getItem(TRANSLATION_SERVICES_KEY)));
 
     // 只有当明确设置了值时才更新，否则保持默认值
     if (storedUseStream !== null) {
@@ -309,10 +293,11 @@ export default function Home() {
   const resetAnalysisState = () => {
     analysisAbortControllerRef.current?.abort('settings-change');
     const cancelled = analysisSessionRef.current?.session.getSnapshot();
-    if (cancelled && cancelled.status !== 'complete') setAnalyzedTokens(cancelled.confirmedTokens);
+    if (cancelled && cancelled.status !== 'complete' && activeAnalysisTypeRef.current === 'model') setAnalyzedTokens(cancelled.confirmedTokens);
     analysisAbortControllerRef.current = null;
     analysisSessionRef.current = null;
     setAnalysisProgress(null);
+    setLocalProgress(null);
     setIsAnalyzing(false);
     reasoningTextStore.reset();
     hasDeepseekReasoningRef.current = false;
@@ -334,6 +319,7 @@ export default function Home() {
     speechSettings: SpeechSettings;
     thinkingEnabled: boolean;
     useStream: boolean;
+    translationSettings: TranslationServiceSettings;
   }) => {
     setDictionarySettings(settings.dictionarySettings);
     browserStorage.setItem(DICTIONARY_SETTINGS_KEY, JSON.stringify(settings.dictionarySettings));
@@ -346,7 +332,9 @@ export default function Home() {
     });
     browserStorage.setItem('useStream', settings.useStream.toString());
     browserStorage.setItem(SPEECH_SETTINGS_KEY, JSON.stringify(settings.speechSettings));
+    browserStorage.setItem(TRANSLATION_SERVICES_KEY, JSON.stringify(settings.translationSettings));
     setSpeechSettings(settings.speechSettings);
+    setTranslationSettings(settings.translationSettings);
 
     setServices(settings.services);
     setActiveServiceId(settings.activeServiceId);
@@ -410,8 +398,7 @@ export default function Home() {
     setSelectedIndex(null);
     setSelectedRange(null);
     setPickAnchor(null);
-    clearWordDetail();
-  }, [clearWordDetail]);
+  }, []);
 
   // 点击词汇 → 查询详情
   const handleWordClick = useCallback((token: TokenData, index: number) => {
@@ -421,20 +408,7 @@ export default function Home() {
     }
     setSelectedRange(null);
     setSelectedIndex(index);
-    trackWordDetailUsage(activeService?.id ?? '', activeModel?.model ?? '');
-    const context = selectWordDetailContext(currentSentence, analyzedTokens, index);
-    fetchWordDetails(token.word, token.pos, context, token.furigana);
-  }, [activeService, activeModel, selectedIndex, currentSentence, analyzedTokens, fetchWordDetails, handleCloseWordDetail]);
-
-  const fetchPhraseDetails = useCallback((range: PhraseRange, force = false) => {
-    fetchWordDetails(
-      getPhraseText(analyzedTokens, range),
-      '',
-      selectWordDetailContext(currentSentence, analyzedTokens, range.start),
-      getPhraseReading(analyzedTokens, range),
-      { kind: 'phrase', force }
-    );
-  }, [analyzedTokens, currentSentence, fetchWordDetails]);
+  }, [selectedIndex, handleCloseWordDetail]);
 
   // 圈选多个词：拖动 / Shift 点击 / 手机长按后再点
   const handleRangeSelect = useCallback((a: number, b: number) => {
@@ -444,28 +418,7 @@ export default function Home() {
     if (!range) return;
     setSelectedIndex(null);
     setSelectedRange(range);
-    trackWordDetailUsage(activeService?.id ?? '', activeModel?.model ?? '');
-    fetchPhraseDetails(range);
-  }, [activeService, activeModel, analyzedTokens, fetchPhraseDetails]);
-
-  const handleRefreshWordDetail = useCallback(() => {
-    if (selectedRange) {
-      fetchPhraseDetails(selectedRange, true);
-      return;
-    }
-    if (selectedIndex === null) return;
-
-    const token = analyzedTokens[selectedIndex];
-    if (!token) return;
-
-    fetchWordDetails(
-      token.word,
-      token.pos,
-      selectWordDetailContext(currentSentence, analyzedTokens, selectedIndex),
-      token.furigana,
-      { force: true }
-    );
-  }, [analyzedTokens, currentSentence, fetchPhraseDetails, fetchWordDetails, selectedIndex, selectedRange]);
+  }, [analyzedTokens]);
 
   // 详情里的「选中多个词」：以当前词为起点进入圈选。手机上先收起弹窗，露出句子
   const handleStartPick = useCallback(() => {
@@ -476,18 +429,92 @@ export default function Home() {
   }, [handleCloseWordDetail, isDesktop, selectedIndex]);
 
   // AI 判断圈选的其实是一个被拆开的词时，合并回单个词项（只影响当前结果）
-  const canMergePhrase = analysisValidated && analyzedTokens.map(token => token.word).join('') === currentSentence && !isAnalyzing && selectedRange !== null && wordDetail?.kind === 'phrase' && wordDetail.category === '単語';
-  const handleMergePhrase = useCallback(() => {
-    if (!selectedRange || !wordDetail) return;
+  const canMergePhrase = analysisValidated && analyzedTokens.map(token => token.word).join('') === currentSentence && !isAnalyzing && selectedRange !== null;
+  const handleMergePhrase = useCallback((analysis: { pos: string; furigana: string }) => {
+    if (!selectedRange) return;
     const replacements = mergePhraseTokens(analyzedTokens.slice(selectedRange.start, selectedRange.end + 1), { start: 0, end: selectedRange.end - selectedRange.start }, {
-      pos: wordDetail.pos, furigana: wordDetail.mergeReading || wordDetail.furigana,
+      pos: analysis.pos, furigana: analysis.furigana,
     });
     editing.edit(selectedRange, replacements, editing.state.taskId, editing.state.revision);
     handleCloseWordDetail();
-  }, [selectedRange, wordDetail, analyzedTokens, editing, handleCloseWordDetail]);
+  }, [selectedRange, analyzedTokens, editing, handleCloseWordDetail]);
+
+  const handleLocalAnalyze = async (text: string) => {
+    resetAnalysisState(); handleCloseWordDetail(); setEditRange(null);
+    const controller = new AbortController();
+    analysisAbortControllerRef.current = controller;
+    activeAnalysisTypeRef.current = 'local';
+    setAnalysisSignal(controller.signal);
+    const current = () => analysisAbortControllerRef.current === controller && !controller.signal.aborted;
+    activeAnalysisKeyRef.current = '';
+    setLocalNotice(''); setEditNotice('');
+    setDraft(text); setCurrentSentence(text);
+    editing.startWorkspace(text, 'local', [], { status: 'running', validated: false, model: 'Sudachi', fromCache: false });
+    setIsAnalyzing(true); setIsEditingInput(false); setAnalysisError('');
+    try {
+      const tokens = await analyzeLocally(text, { signal: controller.signal,
+        onProgress: progress => { if (current()) setLocalProgress(progress); },
+        onPartial: tokens => { if (current()) editing.setVariantTokens('local', tokens); },
+      });
+      if (!current()) return;
+      editing.setVariantTokens('local', tokens, true);
+      editing.updateVariant('local', { status: 'complete', validated: true, model: 'Sudachi' }); history.record(text);
+    } catch (error) {
+      if (current()) setAnalysisError(error instanceof Error ? error.message : '本地解析失败，请重试或切换模型解析。');
+    } finally {
+      if (current()) { setIsAnalyzing(false); setLocalProgress(null); analysisAbortControllerRef.current = null; }
+    }
+  };
+
+  const handleCorrectLocal = async () => {
+    const local = editing.variants.local;
+    if (isAnalyzing || !local?.validated) return;
+    if (!activeService || !activeModel) { setAnalysisError(t('请先在设置中配置模型服务')); setIsSettingsModalOpen(true); return; }
+    resetAnalysisState(); handleCloseWordDetail(); setEditRange(null);
+    const controller = new AbortController();
+    analysisAbortControllerRef.current = controller;
+    activeAnalysisTypeRef.current = 'correction';
+    const frozenTokens = local.editing.tokens;
+    const { taskId, revision } = local.editing;
+    editing.startVariant('local-corrected', frozenTokens, { status: 'running', validated: false, sourceRevision: revision, model: endpoint.model, progress: null }, true);
+    const current = () => analysisAbortControllerRef.current === controller && !controller.signal.aborted
+      && editing.workspaceRef.current.variants.local?.editing.taskId === taskId
+      && editing.workspaceRef.current.variants.local?.editing.revision === revision;
+    setIsAnalyzing(true); setAnalysisError('');
+    const finish = (result: AnalysisProgress) => {
+      if (!current()) return;
+      setIsAnalyzing(false);
+      if (result.status === 'complete') {
+        editing.setVariantTokens('local-corrected', result.confirmedTokens, true);
+        editing.updateVariant('local-corrected', { status: 'complete', validated: true, model: endpoint.model, progress: null, sourceRevision: revision });
+        setAnalysisProgress(null);
+        analysisAbortControllerRef.current = null; analysisSessionRef.current = null;
+      } else if (result.status === 'failed') {
+        editing.setVariantTokens('local-corrected', result.confirmedTokens, true);
+        editing.updateVariant('local-corrected', { status: 'incomplete', validated: false, model: endpoint.model, progress: result, sourceRevision: revision });
+        const error = result.chunks.find(chunk => chunk.error)?.error;
+        setAnalysisError(t('模型校正未完成，已保留原有分词：{0}', localizeError(error?.message ?? '未知错误', locale)));
+      }
+    };
+    try {
+      const session = createLocalCorrectionSession(currentSentence, frozenTokens, learningModel, {
+        signal: controller.signal, thinkingEnabled,
+        onProgress: progress => { if (current()) { setAnalysisProgress(progress); editing.updateVariant('local-corrected', { progress, status: progress.status === 'failed' ? 'incomplete' : 'running' }); if (progress.confirmedTokens.length) editing.setVariantTokens('local-corrected', progress.confirmedTokens); } },
+      });
+      analysisSessionRef.current = { session, retry: async () => {
+        if (!current()) return;
+        setIsAnalyzing(true); setAnalysisError(''); finish(await session.retryFailed());
+      } };
+      finish(await session.run());
+    } catch (error) {
+      if (current()) { setIsAnalyzing(false); setAnalysisError(error instanceof Error ? error.message : '模型校正失败，请重试。'); }
+    }
+  };
 
   const handleAnalyze = async (text: string, usage?: AnalyzeUsageMetadata, force = false) => {
     if (!text.trim()) return;
+
+    if (analysisEngine === 'local') { await handleLocalAnalyze(text); return; }
 
     if (!activeService || !activeModel) {
       setAnalysisError(t("请先在设置中配置模型服务"));
@@ -496,6 +523,7 @@ export default function Home() {
     }
 
     const cacheKey = sentenceCacheKey(text, endpoint, locale, userApiKey, thinkingEnabled);
+    setLocalProgress(null); activeAnalysisTypeRef.current = 'model';
     const cached = force ? undefined : analysisCache.get(cacheKey);
     if (cached) {
       analysisAbortControllerRef.current?.abort('cache-hit');
@@ -509,19 +537,14 @@ export default function Home() {
       setDraft(text);
       setCurrentSentence(text);
       setTranslationTrigger(value => value + 1);
-      if (activeAnalysisKeyRef.current !== cacheKey || !analysisValidated || analyzedTokens.map(token => token.word).join('') !== text) startAnalysisTask(cached);
+      editing.startWorkspace(text, 'model', cached, { status: 'complete', validated: true, sourceKey: cacheKey, model: endpoint.model, fromCache: true });
       activeAnalysisKeyRef.current = cacheKey;
-      setAnalysisSource({ key: cacheKey, model: endpoint.model });
-      setAnalysisFromCache(true);
-      setAnalysisValidated(true);
       setEditNotice('');
       history.record(text);
       return;
     }
     activeAnalysisKeyRef.current = cacheKey;
-    setAnalysisSource({ key: cacheKey, model: endpoint.model });
-    setAnalysisFromCache(false);
-    setAnalysisValidated(false);
+    editing.startWorkspace(text, 'model', [], { status: 'running', validated: false, sourceKey: cacheKey, model: endpoint.model, fromCache: false });
     setEditNotice('');
     analysisAbortControllerRef.current?.abort('superseded');
     const analysisAbortController = new AbortController();
@@ -543,7 +566,6 @@ export default function Home() {
     setDraft(text);
     setCurrentSentence(text);
     setTranslationTrigger(value => value + 1);
-    setAnalyzedTokens([]);
     const deepseekThinkingActive = !!activeModel?.caps?.thinking && thinkingEnabled;
     reasoningTextStore.reset();
     hasDeepseekReasoningRef.current = false;
@@ -615,7 +637,7 @@ export default function Home() {
         if (serialized !== previousTokens) {
           previousTokens = serialized;
           if (progress.tokens.length) metrics.firstResult();
-          setAnalyzedTokens(progress.tokens);
+          editing.setVariantTokens('model', progress.tokens);
           handleCloseWordDetail();
         }
       },
@@ -625,13 +647,15 @@ export default function Home() {
       setIsAnalyzing(false);
       finishReasoningStatus(t(result.status === 'complete' ? '已深度思考' : '深度思考已中止'));
       if (result.status === 'complete') {
-        setAnalysisValidated(true);
+        editing.setVariantTokens('model', result.confirmedTokens, true);
+        editing.updateVariant('model', { status: 'complete', validated: true, sourceKey: cacheKey, model: endpoint.model });
         metrics.firstResult();
         analysisCache.set(cacheKey, result.confirmedTokens);
         metrics.succeed();
         history.record(text);
         analysisAbortControllerRef.current = null;
       } else if (result.status === 'failed') {
+        editing.updateVariant('model', { status: 'failed', validated: false, progress: result });
         const error = result.chunks.find(chunk => chunk.error)?.error ?? new Error(t('未知错误'));
         metrics.fail(error);
         setAnalysisError(error.message);
@@ -655,7 +679,8 @@ export default function Home() {
     analysisAbortControllerRef.current = null;
     controller.abort('user');
     const cancelled = analysisSessionRef.current?.session.getSnapshot();
-    if (cancelled) { setAnalysisProgress(cancelled); setAnalyzedTokens(cancelled.confirmedTokens); }
+    if (cancelled) { setAnalysisProgress(cancelled); if (activeAnalysisTypeRef.current === 'model') editing.setVariantTokens('model', cancelled.confirmedTokens); }
+    setLocalProgress(null);
     analysisSessionRef.current = null;
     handleCloseWordDetail();
     reasoningSummaryControllerRef.current?.cancel();
@@ -680,9 +705,9 @@ export default function Home() {
 
   // 「新句子」：清空当前解析，回到首页
   const handleStartOver = () => {
-    setAnalysisValidated(false);
     analysisSessionRef.current = null;
     setAnalysisProgress(null);
+    setLocalProgress(null); setLocalNotice('');
     analysisAbortControllerRef.current?.abort();
     analysisAbortControllerRef.current = null;
     setIsAnalyzing(false);
@@ -694,20 +719,17 @@ export default function Home() {
     setHasDeepseekReasoning(false);
     setDeepseekReasoningDone(true);
     setDeepseekReasoningSummaryHistory([]);
-    setAnalyzedTokens([]);
+    editing.clearWorkspace();
     setDraft('');
     setDictionaryDraft('');
     setCurrentSentence('');
     activeAnalysisKeyRef.current = '';
-    setAnalysisSource({ key: '', model: '' });
-    setAnalysisFromCache(false);
     setEditNotice('');
     setAnalysisError('');
     setIsEditingInput(true);
   };
 
-  const hasWordDetail = mode === 'analyze' && (selectedIndex !== null || selectedRange !== null)
-    && (isWordDetailLoading || isWordDetailStreaming || wordDetail !== null || !!wordDetailStreamError);
+  const hasWordDetail = mode === 'analyze' && (selectedIndex !== null || selectedRange !== null);
 
   const detailRange = selectedRange ?? (selectedIndex === null ? null : { start: selectedIndex, end: selectedIndex });
   const detailWord = detailRange ? getPhraseText(analyzedTokens, detailRange) : '';
@@ -715,31 +737,22 @@ export default function Home() {
   const detailReading = detailRange ? getPhraseReading(analyzedTokens, detailRange) : '';
   const canEdit = !!detailRange && !editingLocked && [...detailWord].length <= 120;
   const canGroup = !!detailRange && analyzedTokens.slice(detailRange.start, detailRange.end + 1).every(token => !isPunctuationToken(token) && !/\s/.test(token.word));
-  const analysisUsesPreviousSettings = analysisSource.key !== sentenceCacheKey(currentSentence, endpoint, locale, userApiKey, thinkingEnabled);
-  const wordDetailPanel = (
-    <>
-    <WordDetailPanel
-      wordDetail={wordDetail}
-      selectedText={detailWord}
-      isLoading={isWordDetailLoading}
-      isStreamLoading={isWordDetailStreaming}
-      streamError={wordDetailStreamError}
-      streamContent={wordDetailStreamContent}
-      onClose={handleCloseWordDetail}
-      onRefresh={handleRefreshWordDetail}
-      onMerge={canMergePhrase ? handleMergePhrase : undefined}
-      onSelectMore={selectedIndex !== null ? handleStartPick : undefined}
-      hideClose={!isDesktop}
-    />
-    <div className="learning-detail">
-      <div className="learning-actions">
-        <button className="nd-soft-btn" disabled={!canEdit} onClick={() => { if (detailRange) { setEditRange({ range: detailRange, taskId: editing.state.taskId, revision: editing.state.revision }); handleCloseWordDetail(); } }}>{t('调整分词')}</button>
-        {selectedRange && <><button className="nd-ghost-btn" disabled={editingLocked || !canGroup} title={!canGroup ? t('阅读组不能跨标点或空白') : undefined} onClick={() => { editing.group(selectedRange); handleCloseWordDetail(); }}>{t('设为阅读组')}</button><button className="nd-ghost-btn" disabled={editingLocked || !canGroup} title={!canGroup ? t('阅读组不能跨标点或空白') : undefined} onClick={() => { editing.ungroup(selectedRange); handleCloseWordDetail(); }}>{t('取消阅读组')}</button></>}
-      </div>
-      <WordLearningTools word={detailWord} lemma={wordDetail?.dictionaryForm} reading={detailReading} context={detailContext} tokens={detailRange ? analyzedTokens.slice(detailRange.start, detailRange.end + 1) : []} selectionKind={selectedRange || wordDetail?.kind === 'phrase' ? 'phrase' : 'word'} provider={dictionaryProvider} model={learningModel} />
-    </div>
-    </>
-  );
+  const analysisUsesPreviousSettings = resultKind === 'model' && analysisSource.key !== sentenceCacheKey(currentSentence, endpoint, locale, userApiKey, thinkingEnabled);
+  const localVariant = editing.variants.local;
+  const correctedVariant = editing.variants['local-corrected'];
+  const correctedStale = !!localVariant && !!correctedVariant && correctedVariant.sourceRevision !== localVariant.editing.revision;
+  const detailTokens = detailRange ? analyzedTokens.slice(detailRange.start, detailRange.end + 1) : [];
+  const wordDetailPanel = detailRange ? <SelectionDetailPanel
+    selectedText={detailWord} pos={selectedRange ? '' : detailTokens[0]?.pos ?? ''} reading={detailReading}
+    context={detailContext} tokens={detailTokens} selectionKind={selectedRange ? 'phrase' : 'word'}
+    identity={`${editing.state.taskId}:${editing.state.revision}:${detailRange.start}:${detailRange.end}`}
+    provider={dictionaryProvider} model={learningModel} onClose={handleCloseWordDetail}
+    onMerge={canMergePhrase ? handleMergePhrase : undefined} onSelectMore={selectedIndex !== null ? handleStartPick : undefined}
+    onEdit={() => { setEditRange({ range: detailRange, taskId: editing.state.taskId, revision: editing.state.revision }); handleCloseWordDetail(); }}
+    onGroup={selectedRange ? () => { editing.group(selectedRange); handleCloseWordDetail(); } : undefined}
+    onUngroup={selectedRange ? () => { editing.ungroup(selectedRange); handleCloseWordDetail(); } : undefined}
+    canEdit={canEdit} canGroup={!editingLocked && canGroup} hideClose={!isDesktop}
+  /> : null;
 
   // 如果需要认证但未认证，只显示登录界面
   if (requiresAuth && !isAuthenticated) {
@@ -789,10 +802,15 @@ export default function Home() {
               <button className="display-chip" aria-pressed={mode === 'dictionary'} disabled={isAnalyzing} onClick={() => { if (!currentSentence && !dictionaryDraft) setDictionaryDraft(draft); setMode('dictionary'); setEditRange(null); handleCloseWordDetail(); }}>{t('查词')}</button>
             </nav>
             <div className={mode === 'dictionary' ? undefined : 'hidden'}>
-              <DictionaryLookup draft={dictionaryDraft} onDraftChange={setDictionaryDraft} provider={dictionaryProvider} model={learningModel} active={mode === 'dictionary'} sentence={currentSentence} tokens={isAnalyzing ? [] : analyzedTokens} analysisId={editing.state.taskId} dictionaryForms={knownDictionaryForms.taskId === editing.state.taskId ? knownDictionaryForms.forms : undefined} />
+              <DictionaryLookup draft={dictionaryDraft} onDraftChange={setDictionaryDraft} provider={dictionaryProvider} model={learningModel} active={mode === 'dictionary'} sentence={currentSentence} tokens={isAnalyzing ? [] : analyzedTokens} analysisId={editing.state.taskId} />
             </div>
             {/* Keep completed output and pending translation mounted when visiting dictionary mode. */}
             <div className={mode === 'analyze' ? 'flex flex-col gap-[22px]' : 'hidden'}>
+            <AnalysisEngineControl value={analysisEngine} disabled={isAnalyzing} onChange={value => {
+              resetAnalysisState(); setAnalysisEngine(value); setLocalNotice('');
+              browserStorage.setItem('japaneseAnalyzer:analysisEngine', value);
+            }} onClear={() => { void clearLocalDictionaryCache().then(() => setLocalNotice('已清除词典缓存。')).catch(error => setLocalNotice(error.message)); }} />
+            {analysisEngine === 'local' && localNotice && <p className="tool-note" role="status">{t(localNotice)}</p>}
             <InputSection
               originalText={currentSentence || draft}
               draft={draft}
@@ -833,9 +851,13 @@ export default function Home() {
               )}
             />
 
+            {localProgress && <p className="tool-note" role="status">{localProgress.stage === 'download'
+              ? t('正在准备本地词典：{0}/{1} MB', (localProgress.loaded / 1e6).toFixed(1), (localProgress.total / 1e6).toFixed(1))
+              : t(localProgress.stage === 'load' ? '正在加载本地词典…' : '正在本地解析…')}</p>}
+
             {!!activeModel?.caps?.thinking
               && thinkingEnabled
-              && (isAnalyzing || hasDeepseekReasoning) && (
+              && activeAnalysisTypeRef.current === 'model' && (isAnalyzing || hasDeepseekReasoning) && (
                 <ReasoningStream
                   store={reasoningTextStore}
                   done={deepseekReasoningDone}
@@ -869,6 +891,17 @@ export default function Home() {
 
             {(shouldShowAnalyzer() || currentSentence) && (
               <div className="reading-surface">
+                {localVariant && <div className="analysis-variant-bar" role="group" aria-label={t('解析结果版本')}>
+                  <button className="display-chip" aria-pressed={resultKind === 'local'} onClick={() => { editing.selectVariant('local'); handleCloseWordDetail(); setEditRange(null); }}>{t('本地解析')}</button>
+                  {correctedVariant && <button className="display-chip" aria-pressed={resultKind === 'local-corrected'} onClick={() => { editing.selectVariant('local-corrected'); handleCloseWordDetail(); setEditRange(null); }}>
+                    {t('模型校正版')}{correctedVariant.status === 'running' ? ` · ${t('进行中')}` : correctedVariant.status === 'incomplete' ? ` · ${t('未完成')}` : ''}
+                  </button>}
+                  <button className="nd-ghost-btn" disabled={isAnalyzing || !localVariant.validated} onClick={() => void handleCorrectLocal()}>{t(correctedVariant ? '重新生成模型校正版' : '生成模型校正版')}</button>
+                </div>}
+                {resultKind !== 'model' && shouldShowAnalyzer() && <div className="local-draft-status" role="status">
+                  <span>{t(resultKind === 'local-corrected' ? correctedVariant?.status === 'complete' ? '已由模型校正：{0}' : '模型校正未完成，当前显示已确认的连续部分。' : '本地初稿：读音和词性尚未经过模型校正。', analysisSource.model)}</span>
+                  {resultKind === 'local-corrected' && correctedStale && <span>{t('基于较早的本地版本')}</span>}
+                </div>}
                 {shouldShowAnalyzer() && <div className="learning-actions reading-tools">
                   <button className="display-chip" aria-pressed={viewMode === 'lexical'} onClick={() => setViewMode('lexical')}>{t('词法视图')}</button>
                   <button className="display-chip" aria-pressed={viewMode === 'reading'} onClick={() => setViewMode('reading')}>{t('阅读视图')}</button>
@@ -906,7 +939,15 @@ export default function Home() {
                     endpoint={endpoint}
                     useStream={useStream}
                     trigger={translationTrigger}
+                    automatic={resultKind === 'model'}
+                    onConfigureModel={() => setIsSettingsModalOpen(true)}
                     analysisSignal={analysisSignal}
+                    settings={translationSettings}
+                    onProviderChange={(provider: TranslationProviderId) => {
+                      const next = { ...translationSettings, preferredProvider: provider };
+                      setTranslationSettings(next); browserStorage.setItem(TRANSLATION_SERVICES_KEY, JSON.stringify(next));
+                    }}
+                    thinkingEnabled={thinkingEnabled}
                   />
                 )}
               </div>
@@ -937,6 +978,7 @@ export default function Home() {
           speechSettings={speechSettings}
           thinkingEnabled={thinkingEnabled}
           useStream={useStream}
+          translationSettings={translationSettings}
           onSaveSettings={handleSaveSettings}
           isModalOpen={isSettingsModalOpen}
           onModalClose={() => setIsSettingsModalOpen(!isSettingsModalOpen)}

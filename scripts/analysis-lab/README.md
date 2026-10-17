@@ -1,5 +1,12 @@
 # Analysis experiments
 
+For the separate multi-engine offline comparison and the selected next-stage
+candidate, see [local engine cross-validation](./engines/README.md) and its
+[measured decision](./engines/RESULTS.md). The original kuromoji experiment below
+remains a reproducible historical baseline. The production browser parser now uses
+the selected Sudachi.rs Core A engine; its verification and live correction records
+are under `results/sudachi-*.json` and `results/correction-live.json`.
+
 This development-only CLI does not change application settings, read browser
 storage, use production caches, or add kuromoji to the application bundle.
 Requires the project's Node 22 runtime. The pinned development dependency is
@@ -38,8 +45,8 @@ only when `ANALYSIS_LAB_CAPS.thinking` declares parameter support.
   separately reports cold dictionary loading and the process RSS increase.
 - `initialSuccess` excludes model runs that needed recovery. `recoveredSuccess`
   reports final success; `modelVerified` distinguishes local drafts from completed
-  model results. The hybrid prototype rejects an invalid correction atomically,
-  retains its local draft, and records `modelVerified: false` without retrying.
+  model results. The hybrid prototype uses correction protocol v2 (`sourceIds`,
+  `pos`, `furigana`), rejects an invalid correction atomically, and retains its local draft.
 - Quality compares exact token boundaries, school POS and effective readings to
   nine fixed fixtures. A pure-kana word may have empty furigana. This is a small
   regression corpus, not an estimate of general Japanese accuracy.
@@ -58,8 +65,9 @@ used hundreds of MiB of process RSS in this Node process; these numbers do not
 measure browser/Worker startup or memory. Keep this engine experimental until a
 larger corpus and live model-correction results justify integrating it.
 
-The default application retains 280/420/180 chunks, three request slots and an
-8192 output limit. Its recoverable session keeps successful spans, makes at most
-one automatic recovery round per original chunk (up to two smaller requests),
-then exposes manual failed-span retries. Every request has a 120-second deadline;
-HTTP/configuration/content-filter failures and timeouts do not automatically retry.
+Direct model analysis retains its existing 280/420/180 text chunks. Production local
+correction uses targets of at most 80 tokens and 180 NFC characters, plus 120-character
+read-only context on each side, three request slots and an 8192 output limit. It keeps
+successful spans, makes at most one automatic recovery round for recoverable format,
+protocol, timeout or connection failures, then exposes manual failed-span retries.
+Authentication, parameter, content-filter and cancellation failures are not retried.

@@ -1,0 +1,27 @@
+[package]
+name = "japanese-analyzer-sudachi-web"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[workspace]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+sudachi = { path = "../../.codex-dev/sudachi-web/sudachi.rs-0.7.0/sudachi", version = "=0.7.0" }
+wasm-bindgen = "=0.2.129"
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "=0.6.5"
+
+[patch.crates-io]
+libloading = { path = "libloading-disabled" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

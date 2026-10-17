@@ -9,6 +9,7 @@ import { Icon } from './Icons';
 import { AutoAnimateHeight } from '@/components/ui/auto-animate-height';
 import { FlowAnimatedMarkdown } from '@/components/ui/flow-animated-markdown';
 import { escapeHtmlForMarkdown, preserveLineBreaksForMarkdown } from '../utils/markdown';
+import type { TranslationProviderId, TranslationServiceSettings } from '../lib/translationServices';
 
 interface TranslationSectionProps {
   japaneseText: string;
@@ -17,6 +18,11 @@ interface TranslationSectionProps {
   useStream?: boolean;
   trigger?: number;
   analysisSignal?: AbortSignal;
+  automatic?: boolean;
+  onConfigureModel?: () => void;
+  settings: TranslationServiceSettings;
+  onProviderChange: (provider: TranslationProviderId) => void;
+  thinkingEnabled?: boolean;
 }
 
 export default function TranslationSection({
@@ -25,11 +31,19 @@ export default function TranslationSection({
   endpoint,
   useStream = true, // 默认为true，保持向后兼容
   trigger,
-  analysisSignal
+  analysisSignal,
+  automatic = true,
+  onConfigureModel,
+  settings,
+  onProviderChange,
+  thinkingEnabled = false,
 }: TranslationSectionProps) {
   const { t, locale, errorText } = useLanguage();
-  const { translation, error, isLoading, fromCache, translate } = useSentenceTranslation({
-    text: japaneseText, endpoint, apiKey: userApiKey, locale, useStream, trigger, analysisSignal,
+  const provider = settings.preferredProvider;
+  const { translation, review, displayedTranslation, showReview, setShowReview, error, reviewError,
+    isLoading, isReviewing, fromCache, translate, reviewTranslation } = useSentenceTranslation({
+    text: japaneseText, endpoint, apiKey: userApiKey, locale, useStream, trigger: automatic ? trigger : 0, analysisSignal,
+    provider, settings, thinkingEnabled,
   });
   const [isVisible, setIsVisible] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -40,8 +54,8 @@ export default function TranslationSection({
   }, []);
 
   const handleCopy = () => {
-    if (!translation) return;
-    navigator.clipboard?.writeText(translation).catch(() => {});
+    if (!displayedTranslation) return;
+    navigator.clipboard?.writeText(displayedTranslation).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
@@ -51,36 +65,49 @@ export default function TranslationSection({
   };
 
   const animatedTranslation = useMemo(() => {
-    return preserveLineBreaksForMarkdown(escapeHtmlForMarkdown(translation));
-  }, [translation]);
+    return preserveLineBreaksForMarkdown(escapeHtmlForMarkdown(displayedTranslation));
+  }, [displayedTranslation]);
 
   useEffect(() => {
-    if (!translation) {
+    if (!displayedTranslation) {
       setCanAnimateTranslation(false);
       return;
     }
 
-    if (!isLoading || translation.length >= 16 || /[。！？.!?，,、\n]/.test(translation)) {
+    if (!isLoading || displayedTranslation.length >= 16 || /[。！？.!?，,、\n]/.test(displayedTranslation)) {
       setCanAnimateTranslation(true);
     }
-  }, [isLoading, translation]);
+  }, [isLoading, displayedTranslation]);
 
   const actions = (
     <div className="translation-actions flex items-center gap-1">
+      <label className="sr-only" htmlFor="translationProvider">{t('翻译来源')}</label>
+      <select id="translationProvider" className="translation-provider-select" value={provider}
+        onChange={event => onProviderChange(event.target.value as TranslationProviderId)} disabled={isLoading || isReviewing}>
+        <option value="model">{t('当前模型')}</option>
+        <option value="google">Google</option>
+        <option value="baidu">{t('百度')}</option>
+      </select>
       <button
         id="translateSentenceButton"
         className="nd-ghost-btn"
-        onClick={() => { setIsVisible(true); setCanAnimateTranslation(false); void translate(true); }}
+        onClick={() => { if (provider === 'model' && !endpoint.model) { onConfigureModel?.(); return; } setIsVisible(true); setCanAnimateTranslation(false); void translate(true); }}
         disabled={isLoading}
       >
         {Icon.refresh}
         <span>{isLoading ? t("翻译中") : translation ? t("重新翻译") : t("翻译")}</span>
       </button>
+      {provider !== 'model' && translation && (
+        <button className="nd-ghost-btn" disabled={isReviewing || !endpoint.model}
+          onClick={() => { if (!endpoint.model) { onConfigureModel?.(); return; } void reviewTranslation(true); }}>
+          {Icon.refresh}<span>{t(isReviewing ? '复核中…' : review ? '重新用模型复核' : '用当前模型复核')}</span>
+        </button>
+      )}
       <button
         onClick={handleCopy}
         className="nd-ghost-btn"
         style={copied ? { color: 'var(--primary)' } : undefined}
-        disabled={!translation}
+        disabled={!displayedTranslation}
       >
         {Icon.copy}<span>{copied ? t("已复制") : t("复制")}</span>
       </button>
@@ -106,9 +133,13 @@ export default function TranslationSection({
         <AutoAnimateHeight duration={300} contentClassName="flow-root">
           {isVisible ? (
             <div className="translation-scroll-region flow-root" role="region" aria-label={t("中文译文正文")} tabIndex={0}>
-              {isLoading && !translation ? (
+              {review && provider !== 'model' && <div className="translation-version-tabs" role="tablist" aria-label={t('译文版本')}>
+                <button role="tab" aria-selected={!showReview} className="display-chip" onClick={() => setShowReview(false)}>{t('机器译文')}</button>
+                <button role="tab" aria-selected={showReview} className="display-chip" onClick={() => setShowReview(true)}>{t('模型复核版')}</button>
+              </div>}
+              {isLoading && !displayedTranslation ? (
                 <ThinkingIndicator label={t("翻译中")} />
-              ) : translation ? (
+              ) : displayedTranslation ? (
                 <div className="flow-markdown full-translation-markdown translation-text">
                   {canAnimateTranslation ? (
                     <FlowAnimatedMarkdown
@@ -119,20 +150,24 @@ export default function TranslationSection({
                       animationTimingFunction="ease-out"
                     />
                   ) : (
-                    <span className="whitespace-pre-wrap">{translation}</span>
+                    <span className="whitespace-pre-wrap">{displayedTranslation}</span>
                   )}
                 </div>
               ) : (
                 <p className="translation-text mb-0 whitespace-pre-wrap">
-                  {translation || <span style={{ color: 'var(--ink-3)' }}>{t("解析后将自动翻译。")}</span>}
+                  {translation || <span style={{ color: 'var(--ink-3)' }}>{t(automatic && provider === 'model'
+                    ? '解析后将自动翻译。'
+                    : provider === 'model' ? '点击翻译时将调用当前模型。' : '点击翻译以使用所选翻译来源。')}</span>}
                 </p>
               )}
+              {showReview && review?.summary && <p className="tool-note">{t('模型复核说明：{0}', review.summary)}</p>}
             </div>
           ) : null}
         </AutoAnimateHeight>
       </div>
 
       {error && <p role="alert">{t("翻译时发生错误: {0}。", errorText(error))}</p>}
+      {reviewError && <p role="alert">{t('模型复核失败：{0}', errorText(reviewError))}</p>}
       {fromCache && <p className="tool-note">{t('已使用缓存')}</p>}
       {actions}
     </section>

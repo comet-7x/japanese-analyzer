@@ -21,6 +21,8 @@ const eslintConfig = [
       "src-tauri/gen/**",
       "src-tauri/resources/**",
       ".desktop-cache/**",
+      "public/local-analyzer/**",
+      "crates/**/target/**",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

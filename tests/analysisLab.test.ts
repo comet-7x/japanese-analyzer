@@ -19,16 +19,16 @@ async function main() {
   assert.ok(localDraft('ポムレリアンヌ。', tokenizer).tokens.some(token => token.review.includes('unknown')));
   const original = localDraft('猫がいる。', tokenizer);
   const untouched = JSON.stringify(original);
-  const valid = applyCorrections(original, { edits: [{ from: 0, to: 1, tokens: [{ word: '猫', pos: '名詞', furigana: 'ねこ' }] }] });
+  const valid = applyCorrections(original, { edits: [{ sourceIds: [0], pos: '名詞', furigana: 'ねこ' }] });
   assert.equal(valid[0].furigana, 'ねこ');
   assert.equal(valid.map(token => token.word).join(''), original.source);
   for (const edits of [
-    [{ from: -1, to: 1, tokens: [valid[0]] }],
-    [{ from: 0, to: 99, tokens: [valid[0]] }],
-    [{ from: 0, to: 1, tokens: [{ word: '犬', pos: '名詞', furigana: 'いぬ' }] }],
-    [{ from: 0, to: 1, tokens: [{ word: '猫', pos: 'incorrect', furigana: 'ねこ' }] }],
-    [{ from: 0, to: 1, tokens: [] }],
-    [{ from: 0, to: 1, tokens: [valid[0]] }, { from: 0, to: 1, tokens: [valid[0]] }],
+    [{ sourceIds: [-1], pos: '名詞', furigana: 'ねこ' }],
+    [{ sourceIds: [99], pos: '名詞', furigana: 'ねこ' }],
+    [{ sourceIds: [0, 2], pos: '名詞', furigana: 'ねこ' }],
+    [{ sourceIds: [0], pos: 'incorrect', furigana: 'ねこ' }],
+    [{ sourceIds: [], pos: '名詞', furigana: 'ねこ' }],
+    [{ sourceIds: [0], pos: '名詞', furigana: 'ねこ' }, { sourceIds: [0], pos: '名詞', furigana: 'ねこ' }],
     [null],
   ]) assert.throws(() => applyCorrections(original, { edits }));
   assert.equal(JSON.stringify(original), untouched, 'Rejected or applied corrections never mutate the draft');
@@ -47,10 +47,10 @@ async function main() {
       const prompt = body.messages[1].content as string;
       const full = prompt.match(/待解析句子.*： (.*)$/u);
       const content = full ? JSON.stringify({ tokens: localDraft(JSON.parse(full[1]), tokenizer).tokens })
-        : JSON.stringify({ edits: invalid ? [{ from: 0, to: 1, tokens: [{ word: 'wrong', pos: '名詞', furigana: '' }] }] : [] });
+        : JSON.stringify({ edits: invalid ? [{ sourceIds: [0, 2], pos: '名詞', furigana: '' }] : [] });
       return new Response(`data: ${JSON.stringify({ choices: [{ delta: { content }, finish_reason: 'stop' }] })}\n\ndata: [DONE]\n\n`);
     };
-    const config = experimentConfig({ ANALYSIS_LAB_BASE_URL: 'https://test.example', ANALYSIS_LAB_MODEL: 'test', ANALYSIS_LAB_API_KEY: 'sk-private', ANALYSIS_LAB_CAPS: '{"thinking":true,"jsonSchema":true}' });
+    const config = experimentConfig({ ANALYSIS_LAB_BASE_URL: 'https://test.example', ANALYSIS_LAB_MODEL: 'test', ANALYSIS_LAB_API_KEY: 'sk-private', ANALYSIS_LAB_CAPS: '{"thinking":true,"structuredOutput":"json_schema"}' });
     const report = await runExperiments({ mode: 'compare', text: '食べた。', runs: 1, config });
     assert.deepEqual(report.summary.map(row => row.profile), ['local', 'current', 'current-compact', 'small-compact', 'local-plus-model']);
     assert.ok(report.rows.every(row => row.sourcePreserved));

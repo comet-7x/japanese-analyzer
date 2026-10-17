@@ -11,8 +11,17 @@ export async function postLearning<T>(path: string, data: unknown, signal: Abort
   const metric = (outcome: string) => { if (typeof window !== 'undefined') { try { window.umami?.track?.('learning_tool', { feature: path.split('/').at(-1) ?? '', outcome, duration_ms: Math.round(performance.now() - started), source_type: sourceType }); } catch {} } };
   try {
     const response = await fetch(path, { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'X-App-Locale': getClientLocale(), ...(model?.apiKey ? { Authorization: `Bearer ${model.apiKey}` } : {}) }, body: JSON.stringify({ ...(data as object), ...(model ? { ...model.endpoint } : {}) }) });
-    const result = await response.json();
-    if (!response.ok) throw new ApiRequestError(result.error?.message || '学习工具请求失败', response.status);
+    const result = await response.json().catch(() => null);
+    if (!result || typeof result !== 'object') {
+      throw new ApiRequestError(
+        response.ok ? '学习工具返回了无效响应。' : `学习工具请求失败（HTTP ${response.status}）。`,
+        response.status,
+        'invalid_response',
+      );
+    }
+    if (!response.ok) throw new ApiRequestError(result.error?.message || '学习工具请求失败', response.status,
+      typeof result.error?.code === 'string' ? result.error.code : undefined,
+      result.error?.details && typeof result.error.details === 'object' ? result.error.details : undefined);
     metric('success'); return result;
   } catch (error) { metric(signal.aborted ? 'cancel' : 'error'); throw error; }
 }

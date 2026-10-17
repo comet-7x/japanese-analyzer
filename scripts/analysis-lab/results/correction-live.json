@@ -1,0 +1,164 @@
+{
+  "observedOn": "2026-10-17",
+  "method": "Existing Chrome application UI and saved model configuration; manual sequential full-document trials, two concurrent chunks per trial, fresh Sudachi draft for each trial",
+  "liveProviderCalls": true,
+  "fixture": {
+    "id": "four-seasons-NFD-LF",
+    "inputUtf16Units": 476,
+    "nfcUtf16Units": 446,
+    "combiningKanaMarks": 30,
+    "localTokenCount": 287
+  },
+  "languageQualityScored": false,
+  "timingBenchmark": false,
+  "privacy": "No keys, endpoints, source text, full model responses or reasoning recorded",
+  "trials": [
+    {
+      "variant": "strict-code-unit-baseline",
+      "model": "deepseek-v4-flash",
+      "status": "failed",
+      "failedChunks": 2,
+      "reason": "canonical_unicode_difference",
+      "range": [
+        5,
+        6
+      ]
+    },
+    {
+      "variant": "strict-code-unit-baseline",
+      "model": "doubao-seed-2.1-lite",
+      "status": "failed",
+      "failedChunks": 1,
+      "reason": "canonical_unicode_difference",
+      "range": [
+        17,
+        20
+      ]
+    },
+    {
+      "variant": "strict-code-unit-baseline",
+      "model": "doubao-seed-2.1-pro",
+      "status": "timeout",
+      "failedChunks": 2,
+      "deadlineMs": 120000
+    },
+    {
+      "variant": "lossless-canonical-restoration",
+      "model": "deepseek-v4-flash",
+      "run": 1,
+      "status": "complete",
+      "renderedWordsPreserveOriginalOutsideLineBreaks": true,
+      "combiningKanaMarksPreserved": 30
+    },
+    {
+      "variant": "lossless-canonical-restoration",
+      "model": "deepseek-v4-flash",
+      "run": 2,
+      "status": "failed",
+      "failedChunks": 2,
+      "reason": "invalid_tokens"
+    },
+    {
+      "variant": "lossless-canonical-restoration",
+      "model": "doubao-seed-2.1-lite",
+      "run": 1,
+      "status": "failed",
+      "failedChunks": 1,
+      "reason": "source_mismatch",
+      "range": [
+        22,
+        24
+      ]
+    },
+    {
+      "variant": "lossless-canonical-restoration",
+      "model": "doubao-seed-2.1-lite",
+      "run": 2,
+      "status": "failed",
+      "failedChunks": 1,
+      "reason": "inserted_source_text",
+      "range": [
+        47,
+        48
+      ],
+      "expectedUtf16Units": 1,
+      "actualUtf16Units": 3
+    },
+    {
+      "variant": "canonical-restoration-and-pos-enum",
+      "model": "deepseek-v4-flash",
+      "run": 1,
+      "status": "failed",
+      "failedChunks": 1,
+      "reason": "invalid_pos",
+      "editIndex": 3,
+      "replacementIndex": 0
+    },
+    {
+      "variant": "canonical-restoration-and-pos-enum",
+      "model": "kimi-k3",
+      "run": 1,
+      "status": "timeout",
+      "failedChunks": 1,
+      "completedChunks": 1,
+      "deadlineMs": 120000
+    }
+  ],
+  "protocolV2": {
+    "protocol": "sourceIds-only; model never returns source text",
+    "configuration": {
+      "maxTargetTokens": 80,
+      "maxTargetNfcChars": 180,
+      "contextCharsEachSide": 120,
+      "maxConcurrency": 3,
+      "requestDeadlineMs": 120000,
+      "automaticRecoveryRounds": 1,
+      "thinkingDisabled": true
+    },
+    "fixture": "four-seasons-NFD-LF / 287 Sudachi A tokens / 4 root chunks",
+    "runs": [
+      {
+        "model": "deepseek-v4-flash",
+        "structuredOutput": "json_object",
+        "sequentialRuns": 5,
+        "firstPassComplete": 2,
+        "completeAfterRecovery": 5,
+        "longestObservedRequestMs": 3850,
+        "reasoningChars": 0,
+        "recoveredReasons": ["invalid_pos", "invalid_edit", "non_contiguous_ids"],
+        "originalCodeUnitsPreserved": true
+      },
+      {
+        "model": "doubao-seed-2.1-lite",
+        "structuredOutput": "json_schema",
+        "sequentialRuns": 5,
+        "firstPassComplete": 3,
+        "completeAfterRecovery": 5,
+        "longestObservedRequestMs": 3885,
+        "reasoningChars": 0,
+        "recoveredReasons": ["overlapping_source_ids"],
+        "originalCodeUnitsPreserved": true
+      },
+      {
+        "model": "kimi-k3",
+        "structuredOutput": "json_schema",
+        "sequentialRuns": 5,
+        "firstPassComplete": 5,
+        "completeAfterRecovery": 5,
+        "medianDocumentMsApprox": 6872,
+        "longestObservedDocumentMsApprox": 10044,
+        "reasoningChars": 0,
+        "originalCodeUnitsPreserved": true,
+        "note": "These five runs explicitly sent thinking disabled. Before declaring thinking support, one run recovered after about 192 seconds and one still failed after about 300 seconds; accepted upstream responses contained up to 8889 reasoning characters."
+      }
+    ],
+    "recommendation": "Kimi K3 met the 5/5 technical completion gate only after thinking was explicitly disabled. No model is promoted as a linguistic-quality recommendation because the fixed human school-grammar corpus was not rescored in this live browser run. Model correction remains optional.",
+    "privacy": "Only aggregate metrics and rejection categories are recorded; no key, endpoint, source text, model content, reasoning text or request ID is stored."
+  },
+  "limitations": [
+    "Development hot reload interrupted one Kimi attempt; excluded from comparison",
+    "Code variants differ; do not aggregate trials into a single success rate",
+    "One public fixture and few trials cannot establish overall model reliability or linguistic quality",
+    "Structured output requests do not replace server-side source and field validation"
+  ]
+}

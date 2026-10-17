@@ -1,0 +1,26 @@
+[
+  {
+    "name": "lindera-ipadic-6.2.0.zip",
+    "url": "https://github.com/lindera/lindera/releases/download/v6.2.0/lindera-ipadic-6.2.0.zip",
+    "sha256": "5ed4bba6b429030b0387df67d40d5751d35dedef0306f4bac6d957cad5f04b72",
+    "bytes": 10519550
+  },
+  {
+    "name": "lindera-unidic-6.2.0.zip",
+    "url": "https://github.com/lindera/lindera/releases/download/v6.2.0/lindera-unidic-6.2.0.zip",
+    "sha256": "45dc294a729afefb513f5732aff025bf530e54ae52b2cea22618f44e9acdda81",
+    "bytes": 46359822
+  },
+  {
+    "name": "bccwj-suw+unidic_pos+kana.tar.xz",
+    "url": "https://github.com/daac-tools/vaporetto-models/releases/download/v0.5.0/bccwj-suw%2Bunidic_pos%2Bkana.tar.xz",
+    "sha256": "179680b4f82cd6034325e73c8d36a250db66d3f2b8d8a991b90128fd2d32eadc",
+    "bytes": 6053964
+  },
+  {
+    "name": "bccwj-suw+unidic_pos+pron.tar.xz",
+    "url": "https://github.com/daac-tools/vaporetto-models/releases/download/v0.5.0/bccwj-suw%2Bunidic_pos%2Bpron.tar.xz",
+    "sha256": "034bc8af4ec6a23f614dc04bef201e09486686ba57859b163ed39b91a4a28810",
+    "bytes": 6033172
+  }
+]
