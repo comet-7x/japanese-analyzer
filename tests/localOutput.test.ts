@@ -49,9 +49,9 @@ assert.strictEqual(corrected.romaji,'yonda');
 assert.strictEqual(corrected.pos,'動詞（五段・他動）');
 const loose = JSON.stringify(compact).replace(compact.explanation,'对应英语"read"。');
 assert.strictEqual(parseWordDetailResponseContent(loose,context).explanation,'对应英语"read"。');
-const schema = (getStructuredResponseFormat({},'analysisTokens') as {json_schema:{schema:{properties:{tokens:{items:{properties:Record<string, unknown>}}}}}}).json_schema.schema;
+const schema = (getStructuredResponseFormat({ structuredOutput: 'json_schema' },'analysisTokens') as {json_schema:{schema:{properties:{tokens:{items:{properties:Record<string, unknown>}}}}}}).json_schema.schema;
 assert.ok(!('romaji' in schema.properties.tokens.items.properties));
-const detailSchema = (getStructuredResponseFormat({},'wordDetail') as {json_schema:{schema:{properties:Record<string, unknown>}}}).json_schema.schema;
+const detailSchema = (getStructuredResponseFormat({ structuredOutput: 'json_schema' },'wordDetail') as {json_schema:{schema:{properties:Record<string, unknown>}}}).json_schema.schema;
 assert.ok(!('originalWord' in detailSchema.properties));
 assert.ok(!('romaji' in detailSchema.properties));
 

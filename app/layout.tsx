@@ -6,6 +6,7 @@ import "./globals.css";
 import DeferredFonts from "./components/DeferredFonts";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { ExternalLookupProvider } from "./contexts/ExternalLookupContext";
 
 export const metadata: Metadata = {
   title: "日本語文章解析器 - AI驱动",
@@ -79,7 +80,7 @@ export default function RootLayout({
       <body className="antialiased transition-colors duration-200">
         <DeferredFonts />
         <ThemeProvider>
-          <LanguageProvider>{children}</LanguageProvider>
+          <LanguageProvider><ExternalLookupProvider>{children}</ExternalLookupProvider></LanguageProvider>
         </ThemeProvider>
         <Script src="/api/umami/script" strategy="afterInteractive" />
       </body>

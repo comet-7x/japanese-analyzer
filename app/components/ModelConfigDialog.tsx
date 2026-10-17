@@ -4,7 +4,7 @@ import SettingsConfigLayer from './SettingsConfigLayer';
 
 import { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import type { ModelCaps, ModelConfig } from '../lib/aiModels';
+import type { ModelCaps, ModelConfig, StructuredOutputMode } from '../lib/aiModels';
 import { Icon } from './Icons';
 import { Switch } from '@/components/ui/switch';
 
@@ -23,12 +23,14 @@ export default function ModelConfigDialog({ serviceId, serviceName, model, onSav
   const { t } = useLanguage();
   const [modelName, setModelName] = useState(model.model);
   const [thinking, setThinking] = useState(model.caps?.thinking === true);
+  const [structuredOutput, setStructuredOutput] = useState<StructuredOutputMode>(model.caps?.structuredOutput ?? 'json_object');
   const [reasoningEffort, setReasoningEffort] = useState(model.caps?.reasoningEffort ?? '');
 
   // 打开的是另一个模型时同步表单
   useEffect(() => {
     setModelName(model.model);
     setThinking(model.caps?.thinking === true);
+    setStructuredOutput(model.caps?.structuredOutput ?? 'json_object');
     setReasoningEffort(model.caps?.reasoningEffort ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model.id]);
@@ -43,7 +45,7 @@ export default function ModelConfigDialog({ serviceId, serviceName, model, onSav
 
   const handleSave = () => {
     const trimmed = modelName.trim();
-    const caps: ModelCaps = { thinking };
+    const caps: ModelCaps = { thinking, structuredOutput };
     if (thinking && trimmed) {
       const effort = reasoningEffort.trim();
       if (effort) caps.reasoningEffort = effort;
@@ -86,6 +88,19 @@ export default function ModelConfigDialog({ serviceId, serviceName, model, onSav
               value={modelName}
               onChange={(e) => setModelName(e.target.value)}
             />
+          </div>
+          <div>
+            <label htmlFor="modelCfgStructuredOutput" className="mb-1.5 block text-sm font-medium" style={{ color: 'var(--ink-2)' }}>
+              {t('结构化输出方式')}
+            </label>
+            <select id="modelCfgStructuredOutput" className="nd-input" value={structuredOutput}
+              onChange={(event) => setStructuredOutput(event.target.value as StructuredOutputMode)}>
+              <option value="json_object">json_object（兼容模式）</option>
+              <option value="json_schema">json_schema（严格 Schema）</option>
+            </select>
+            <p className="m-0 mt-1 text-xs leading-5" style={{ color: 'var(--ink-3)' }}>
+              {t('请按该模型的连接测试结果选择；严格 Schema 仍会经过本地语义校验。')}
+            </p>
           </div>
           <div className="settings-option-row" style={{ borderTop: '1px solid var(--line)', padding: '12px 0' }}>
             <div className="flex items-center justify-between gap-4">

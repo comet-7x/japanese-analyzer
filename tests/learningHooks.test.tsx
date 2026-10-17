@@ -85,6 +85,26 @@ async function main() {
     assert.ok(editing.state.taskId > oldTask, 'A cached analysis starts a new edit task');
     await act(async () => { editing.setTokens([]); });
     assert.notEqual(editing.state.taskId, ticket.taskId);
+
+    await act(async () => { editing.startWorkspace('食べた', 'local', tokens, { status: 'complete', validated: true, model: 'Sudachi' }); });
+    await act(async () => { editing.group({ start: 0, end: 1 }); });
+    const localRevision = editing.state.revision;
+    const frozenLocal = editing.state.tokens;
+    await act(async () => { editing.startVariant('local-corrected', frozenLocal, { status: 'complete', validated: true, sourceRevision: localRevision, model: 'test-model' }); });
+    const correctedTicket = { taskId: editing.state.taskId, revision: editing.state.revision };
+    await act(async () => { editing.edit({ start: 0, end: 1 }, [{ word: '食べた', pos: '動詞' }], correctedTicket.taskId, correctedTicket.revision); });
+    assert.equal(editing.state.tokens.length, 1);
+    assert.equal(editing.state.groups.length, 0, 'A corrected version has its own reading groups');
+    await act(async () => { editing.selectVariant('local'); });
+    assert.deepEqual(editing.state.tokens, tokens, 'Switching back preserves the local token version');
+    assert.equal(editing.state.groups.length, 1);
+    assert.equal(editing.state.history.length, 1, 'Each analysis version retains its own edit history');
+    const localTicket = { taskId: editing.state.taskId, revision: editing.state.revision };
+    await act(async () => { editing.edit({ start: 0, end: 1 }, [{ word: '食べた', pos: '動詞' }], localTicket.taskId, localTicket.revision); });
+    assert.notEqual(editing.variants['local-corrected']?.sourceRevision, editing.variants.local?.editing.revision,
+      'Editing local results makes the frozen corrected result stale without replacing it');
+    await act(async () => { editing.selectVariant('local-corrected'); });
+    assert.equal(editing.state.tokens.length, 1);
     await act(async () => { renderer!.unmount(); }); renderer = undefined;
 
     const stored = new Map([[READING_PREFERENCES_KEY, JSON.stringify({ showFurigana: false, showRomaji: true, viewMode: 'reading' })]]);
@@ -110,7 +130,7 @@ async function main() {
     await act(async () => { listeners.get('hashchange')?.(); });
     assert.equal(sharedText, '別の原文', 'A shared fragment also works within an already open app');
     assert.equal(writes.length, 1);
-    console.log('Learning hooks passed: late responses, lemma enrichment/failure, provider cancellation, edit revisions, preferences hydration and shared-session isolation.');
+    console.log('Learning hooks passed: late responses, versioned analysis workspaces, edit revisions, preferences hydration and shared-session isolation.');
   } finally {
     if (renderer) await act(async () => { renderer!.unmount(); });
     globalThis.fetch = originalFetch;

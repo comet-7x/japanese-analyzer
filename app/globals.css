@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+.analysis-engine-control { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.analysis-engine-label { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 13px; }
+.analysis-engine-label .nd-input { width: auto; min-width: 126px; padding: 7px 12px; font-size: 13px; }
+.analysis-engine-help { display: flex; flex: 1 1 300px; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.analysis-engine-help .tool-note { flex: 1 1 240px; }
+.local-draft-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink-2); font-size: 13px; }
+
 /* ========== 新设计 Design Tokens ========== */
 :root {
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
@@ -2469,7 +2476,7 @@ body {
 }
 .word-unit-wrapper.is-pending:hover { background: none; }
 .word-unit-wrapper.is-pending .pos-underline { background: transparent; }
-.pending-rest { flex-basis: 100%; color: var(--ink-3); font-size: 0.6em; line-height: 1.8; }
+.pending-rest { white-space: pre-wrap; overflow-wrap: anywhere; flex-basis: 100%; color: var(--ink-3); font-size: 0.6em; line-height: 1.8; }
 .reading-surface .word-unit-wrapper:not(.is-pending) { animation: tokenIn 0.45s ease both; }
 .reading-surface .word-unit-wrapper:not(.is-pending) .pos-underline {
   transform-origin: left center;
@@ -2565,6 +2572,20 @@ body {
   opacity: 0;
   transition: opacity 180ms ease;
 }
+.translation-provider-select {
+  min-height: 32px;
+  max-width: 132px;
+  padding: 4px 24px 4px 9px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--reading-surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12px;
+}
+.translation-version-tabs, .analysis-variant-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.translation-version-tabs { margin-bottom: 14px; }
+.analysis-variant-bar { padding: 6px 0; }
 .translation-section:hover .translation-actions,
 .translation-section:focus-within .translation-actions,
 .translation-section[data-collapsed="true"] .translation-actions { opacity: 1; }
@@ -2576,6 +2597,7 @@ body {
 /* 阅读态胶囊：输入卡片收起后的形态，和顶栏玻璃按钮组同一套质感 */
 /* 不加 backdrop-filter：底下是纯色画布，模糊看不出来，却会拖慢进出场动画 */
 .input-compact-bar {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -2589,6 +2611,7 @@ body {
   transform-origin: left top;
 }
 .input-card { transform-origin: center top; }
+.input-edit-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: var(--ink-3); font-size: 12px; }
 .input-section-sticky {
   position: sticky;
   top: 12px;
@@ -2684,7 +2707,7 @@ body {
   .input-compact-bar .nd-ghost-btn, .display-chip { padding-inline: 10px; }
 }
 @media (max-width: 480px) {
-  .input-compact-bar .compact-label { display: none; }
+  .input-compact-bar .compact-label, .input-compact-bar .copy-text-label { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .detail-rail, .translation-actions { transition: none; }
@@ -2884,10 +2907,22 @@ body {
 
 /* Dictionary and learning tools share the existing paper/ink theme. */
 .learning-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.copy-text-control { display: inline-flex; flex-direction: column; align-items: flex-start; min-width: 0; max-width: 100%; }
+.copy-text-fallback { width: 280px; max-width: 100%; }
+.word-detail-headword .copy-text-fallback { position: absolute; top: 100%; left: 20px; right: 20px; z-index: 5; width: auto; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); box-shadow: var(--glass-shadow); }
+.input-compact-bar .copy-text-fallback { position: absolute; top: calc(100% + 8px); left: 0; z-index: 5; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); box-shadow: var(--glass-shadow); }
 .learning-fields { display: grid; gap: 14px; }
 .learning-input { display: block; width: 100%; padding: 10px 12px; margin-top: 6px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--ink); font: inherit; }
 .learning-input:focus-visible, .boundary-editor button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .learning-detail { padding: 12px 20px 20px; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.8; }
+.selection-tools-panel .detail-disclosure > :not(summary) { margin-left: 0; margin-right: 0; }
+.selection-tools-panel .dictionary-results-standalone { margin: 0 0 14px; padding: 14px 0 0; border: 0; border-radius: 0; background: transparent; }
+.selection-tools-panel .dictionary-results-title { display: none; }
+.selection-analysis-content { padding-bottom: 14px; color: var(--ink-2); }
+.selection-analysis-content p { margin: 6px 0; }
+.selection-analysis-content strong { margin-right: 6px; color: var(--ink-3); font-size: 11px; font-weight: 500; }
+.selection-edit-actions { margin-top: 18px; }
+.translation-service-settings { margin-top: 24px; }
 .tool-note { color: var(--ink-3); font-size: 12px; overflow-wrap: anywhere; line-height: 1.7; }
 .dictionary-results { font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
 .dictionary-settings summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
@@ -2952,10 +2987,28 @@ body {
 .external-dictionary-links { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-bottom: 16px; }
 .external-dictionary-links a { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
 .external-dictionary-links a:hover { color: var(--primary); }
+.ichi-options-disclosure { margin-top: 4px; margin-bottom: 12px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.ichi-options-summary { font-size: 0.8125rem; color: var(--ink-3); cursor: pointer; user-select: none; }
+.ichi-options-summary:hover { color: var(--ink-1); }
+.ichi-options-panel { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; }
+.ichi-option-row { display: flex; align-items: center; gap: 12px; font-size: 0.8125rem; color: var(--ink-2); }
+.ichi-option-label { min-width: 72px; }
+.ichi-select { font-size: 0.8125rem; padding: 4px 8px; height: 32px; }
+.ichi-option-checkboxes { display: flex; flex-wrap: wrap; gap: 16px; padding-top: 2px; }
+.ichi-option-checkbox { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--ink-2); cursor: pointer; }
+.ichi-option-checkbox input[type="checkbox"] { cursor: pointer; }
 .disclosure-hint { color: var(--ink-3); font-size: 11px; font-weight: 400; }
 .conjugation-example { margin: 0 0 12px; color: var(--ink-2); font-size: 12px; }
 .conjugation-tool .learning-actions { margin: 8px 0 12px; }
 .dictionary-lookup { min-width: 0; }
+.dictionary-lookup-form { display: grid; grid-template-columns: minmax(0, 1fr) max-content auto; align-items: end; gap: 10px; }
+.dictionary-lookup-form label { display: flex; min-width: 0; flex-direction: column; gap: 6px; }
+.dictionary-lookup-form .learning-input { height: 44px; margin-top: 0; box-sizing: border-box; }
+.dictionary-lookup-form > button { height: 44px; white-space: nowrap; }
+@media (max-width: 600px) {
+  .dictionary-lookup-form { grid-template-columns: minmax(0, 1fr) auto; }
+  .dictionary-lookup-form > label:first-child { grid-column: 1 / -1; }
+}
 .sentence-dictionary-layout { display: grid; gap: 18px; margin-top: 18px; align-items: start; }
 .nd-card.sentence-vocabulary { min-width: 0; padding: 20px; border-radius: 14px; box-shadow: none; }
 .sentence-vocabulary h2 { margin: 0; font-size: 15px; font-weight: 500; }

@@ -162,6 +162,7 @@ export async function proxyOpenAICompatibleRequest(options: {
   payload: Record<string, unknown>;
   signal?: AbortSignal;
   errorBodyTimeoutMs?: number;
+  requestTimeoutMs?: number;
 }): Promise<
   | { ok: true; response: Response }
   | { ok: false; status: number; error: ParsedUpstreamError }
@@ -172,9 +173,9 @@ export async function proxyOpenAICompatibleRequest(options: {
   };
   const isStreamingRequest = options.payload.stream === true;
   const streamConnectionTimeout = isStreamingRequest
-    ? createUpstreamTimeoutController()
+    ? createUpstreamTimeoutController(options.requestTimeoutMs)
     : null;
-  const timeoutSignal = streamConnectionTimeout?.controller.signal ?? createUpstreamSignal();
+  const timeoutSignal = streamConnectionTimeout?.controller.signal ?? createUpstreamSignal(options.requestTimeoutMs);
   // 读取错误正文超时后用它中止上游连接。
   const errorBodyController = new AbortController();
   const upstreamSignal = AbortSignal.any(

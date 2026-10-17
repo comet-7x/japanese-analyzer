@@ -44,6 +44,9 @@ export async function POST(req: NextRequest) {
     const payload = buildCompletionPayload(providerConfig.caps, {
       model: providerConfig.model,
       messages: [{ role: "system", content: getResponseLanguageInstruction(locale) }, { role: "user", content: prompt }],
+      // A chunk expands into many token objects; the common 4096-token default
+      // can truncate otherwise valid analysis before the JSON array closes.
+      max_tokens: 8192,
       stream: stream,
     }, {
       structuredOutput: 'analysisTokens',

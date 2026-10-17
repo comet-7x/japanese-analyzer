@@ -1,0 +1,13 @@
+{
+  "measuredAt": "2026-10-16T13:57:46.833Z",
+  "engine": "sudachi-0.7.0-core-20261015-A",
+  "cases": 76,
+  "exactSourceCases": 76,
+  "nativeReferenceCases": 76,
+  "grammarExact": 30,
+  "grammarTotal": 30,
+  "readingPassed": 17,
+  "readingTotal": 21,
+  "wasmLinearMemoryMiB": 196.6875,
+  "noModelCalls": true
+}

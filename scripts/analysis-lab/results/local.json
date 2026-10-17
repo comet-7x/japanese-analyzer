@@ -1,0 +1,118 @@
+{
+  "measuredAt": "2026-10-16T13:03:42.427Z",
+  "nodeVersion": "v22.23.3",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "inputChars": 446,
+  "engine": "kuromoji@0.1.2 / bundled IPADIC",
+  "localInitialization": {
+    "coldLoadMs": 202.56,
+    "rssIncreaseBytes": 359989248
+  },
+  "cache": "disabled",
+  "thinking": "disabled when declared supported",
+  "productionConcurrency": 3,
+  "hybridConcurrency": 3,
+  "rows": [
+    {
+      "profile": "local",
+      "caseId": "four-seasons",
+      "run": 1,
+      "firstTokenMs": 8.41,
+      "durationMs": 8.51,
+      "initialSuccess": true,
+      "recoveredSuccess": true,
+      "requests": 0,
+      "outputChars": 0,
+      "sourcePreserved": true,
+      "modelVerified": false,
+      "errorCodes": []
+    },
+    {
+      "profile": "local",
+      "caseId": "school-grammar",
+      "run": 1,
+      "firstTokenMs": 0.3,
+      "durationMs": 0.31,
+      "initialSuccess": true,
+      "recoveredSuccess": true,
+      "requests": 0,
+      "outputChars": 0,
+      "sourcePreserved": true,
+      "modelVerified": false,
+      "errorCodes": [],
+      "qualityAccuracy": 0.98,
+      "qualityCasesPassed": 8
+    },
+    {
+      "profile": "local",
+      "caseId": "four-seasons",
+      "run": 2,
+      "firstTokenMs": 2.96,
+      "durationMs": 2.98,
+      "initialSuccess": true,
+      "recoveredSuccess": true,
+      "requests": 0,
+      "outputChars": 0,
+      "sourcePreserved": true,
+      "modelVerified": false,
+      "errorCodes": []
+    },
+    {
+      "profile": "local",
+      "caseId": "school-grammar",
+      "run": 2,
+      "firstTokenMs": 0.24,
+      "durationMs": 0.25,
+      "initialSuccess": true,
+      "recoveredSuccess": true,
+      "requests": 0,
+      "outputChars": 0,
+      "sourcePreserved": true,
+      "modelVerified": false,
+      "errorCodes": [],
+      "qualityAccuracy": 0.98,
+      "qualityCasesPassed": 8
+    },
+    {
+      "profile": "local",
+      "caseId": "four-seasons",
+      "run": 3,
+      "firstTokenMs": 1.23,
+      "durationMs": 1.24,
+      "initialSuccess": true,
+      "recoveredSuccess": true,
+      "requests": 0,
+      "outputChars": 0,
+      "sourcePreserved": true,
+      "modelVerified": false,
+      "errorCodes": []
+    },
+    {
+      "profile": "local",
+      "caseId": "school-grammar",
+      "run": 3,
+      "firstTokenMs": 0.14,
+      "durationMs": 0.15,
+      "initialSuccess": true,
+      "recoveredSuccess": true,
+      "requests": 0,
+      "outputChars": 0,
+      "sourcePreserved": true,
+      "modelVerified": false,
+      "errorCodes": [],
+      "qualityAccuracy": 0.98,
+      "qualityCasesPassed": 8
+    }
+  ],
+  "summary": [
+    {
+      "profile": "local",
+      "runs": 3,
+      "medianDurationMs": 2.98,
+      "initialSuccessRate": 1,
+      "finalSuccessRate": 1,
+      "modelVerifiedRate": 0
+    }
+  ]
+}

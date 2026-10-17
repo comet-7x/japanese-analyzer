@@ -7,7 +7,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { createCustomModelId, type ProviderProfile } from '../lib/aiModels';
 import { testProviderConnection } from '../lib/providerConnection';
 import { Icon } from './Icons';
-import { Switch } from '@/components/ui/switch';
 
 export type TestState = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -30,7 +29,6 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
   const [name, setName] = useState(service.name);
   const [baseUrl, setBaseUrl] = useState(service.baseUrl);
   const [apiKey, setApiKey] = useState(service.apiKey);
-  const [jsonSchema, setJsonSchema] = useState(service.jsonSchema !== false);
   const [testModel, setTestModel] = useState(service.models.find((model) => model.model.trim())?.model ?? '');
   const [testResult, setTestResult] = useState<TestResult>();
   const testController = useRef<AbortController | null>(null);
@@ -41,14 +39,13 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
       testController.current?.abort();
       testController.current = null;
     };
-  }, [baseUrl, apiKey, testModel, jsonSchema, locale]);
+  }, [baseUrl, apiKey, testModel, locale]);
 
   // 打开的是另一个服务商时同步表单
   useEffect(() => {
     setName(service.name);
     setBaseUrl(service.baseUrl);
     setApiKey(service.apiKey);
-    setJsonSchema(service.jsonSchema !== false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service.id]);
 
@@ -64,9 +61,9 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
     const models = service.models.filter((model) => model.model.trim());
     const modelName = testModel.trim();
     if (modelName && !models.some((model) => model.model === modelName)) {
-      models.push({ id: createCustomModelId(), name: modelName, model: modelName });
+      models.push({ id: createCustomModelId(), name: modelName, model: modelName, caps: { structuredOutput: 'json_object' } });
     }
-    onSave(service.id, { name: name.trim(), baseUrl: baseUrl.trim(), apiKey: apiKey.trim(), jsonSchema, models });
+    onSave(service.id, { name: name.trim(), baseUrl: baseUrl.trim(), apiKey: apiKey.trim(), models });
     onClose();
   };
 
@@ -76,8 +73,11 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
     testController.current = controller;
     setTestResult({ state: 'loading', message: '' });
     try {
-      await testProviderConnection({ ...service, baseUrl, apiKey }, testModel, locale, controller.signal);
-      if (!controller.signal.aborted) setTestResult({ state: 'ok', message: t('连接成功') });
+      const result = await testProviderConnection({ ...service, baseUrl, apiKey }, testModel, locale, controller.signal);
+      const message = result.structuredOutput === 'json_schema' ? t('连接成功：严格 Schema 已生效')
+        : result.structuredOutput === 'json_object' ? t('连接成功：仅 JSON 模式可用')
+        : t('连接成功：不支持结构化输出');
+      if (!controller.signal.aborted) setTestResult({ state: 'ok', message });
     } catch (error) {
       if (controller.signal.aborted) return;
       const message = error instanceof Error && error.name === 'TimeoutError'
@@ -166,19 +166,6 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
               {t('选择已有模型或输入模型名称；新模型会在保存时添加。')}
               {t('测试会发送一条简短消息，可能产生少量费用。')}
             </p>
-          </div>
-          <div className="settings-option-row" style={{ borderTop: '1px solid var(--line)', padding: '12px 0' }}>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <label className="block text-sm font-semibold" style={{ color: 'var(--ink)' }}>{t('使用严格结构化输出（json_schema）')}</label>
-                <p className="m-0 mt-1 text-xs leading-5" style={{ color: 'var(--ink-3)' }}>{t('部分网关只接受 json_object，可关闭此项。')}</p>
-              </div>
-              <Switch
-                aria-label={t('使用严格结构化输出（json_schema）')}
-                checked={jsonSchema}
-                onCheckedChange={setJsonSchema}
-              />
-            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button

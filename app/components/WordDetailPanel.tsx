@@ -8,9 +8,11 @@ import { trackTtsUsage } from '../utils/analytics';
 import { Icon, I } from './Icons';
 import { loadSpeechSettings } from '../lib/speechServices';
 import { browserStorage } from '../utils/storage';
+import CopyTextButton from './CopyTextButton';
 
 interface WordDetailPanelProps {
   wordDetail: WordDetail | null;
+  selectedText?: string;
   isLoading: boolean;
   isStreamLoading: boolean;
   streamError: string;
@@ -42,6 +44,23 @@ function DetailSection({ label, children }: { label: string; children: React.Rea
       {children}
     </div>
   );
+}
+
+function SelectionHeading({ text, copyText, isPhrase, onSpeak }: {
+  text: string; copyText: string; isPhrase: boolean; onSpeak: (text: string) => void;
+}) {
+  const { t } = useLanguage();
+  return <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5">
+    <h2 lang="ja" className={`jp m-0 min-w-0 font-medium leading-snug tracking-[.5px] ${isPhrase && Array.from(text).length > 5
+      ? 'text-[22px] sm:text-[24px]' : 'text-[28px] sm:text-[30px]'}`} style={{ color: 'var(--ink)' }}>
+      {text}
+    </h2>
+    <button type="button" title={t('朗读发音')} aria-label={t('朗读发音')}
+      className="dictionary-icon-btn dictionary-pronunciation" onClick={() => onSpeak(text)}>
+      {Icon.speaker}
+    </button>
+    <CopyTextButton text={copyText} label="复制选中文本" iconOnly />
+  </div>;
 }
 
 export function WordDetailPlaceholder() {
@@ -102,6 +121,7 @@ function renderStaticExplanation(text: string): React.ReactNode {
 
 export default function WordDetailPanel({
   wordDetail,
+  selectedText,
   isLoading,
   isStreamLoading,
   streamError,
@@ -116,6 +136,7 @@ export default function WordDetailPanel({
   const [isExplanationExpanded, setIsExplanationExpanded] = useState(false);
   const [showExpandButton, setShowExpandButton] = useState(false);
   const speechCleanup = useRef<() => void>(() => undefined);
+  const copyText = selectedText ?? wordDetail?.originalWord ?? '';
 
   useEffect(() => () => speechCleanup.current(), [wordDetail?.originalWord]);
 
@@ -184,6 +205,11 @@ export default function WordDetailPanel({
   if (isLoading || (isStreamLoading && !wordDetail)) {
     return (
       <section className="word-detail-panel">
+        {copyText && <div className="word-detail-headword relative px-5 pb-4 pt-5">
+          <div className={`dictionary-heading${hideClose ? ' has-modal-close' : ''}`}>
+            <SelectionHeading text={copyText} copyText={copyText} isPhrase onSpeak={handleWordSpeak} />
+          </div>
+        </div>}
         <div className="flex items-center justify-center py-10">
           <div className="loading-spinner"></div>
           <span className="ml-2 text-sm" style={{ color: 'var(--ink-3)' }}>{t("正在查询释义...")}</span>
@@ -195,6 +221,11 @@ export default function WordDetailPanel({
   if (streamError) {
     return (
       <section className="word-detail-panel">
+        {copyText && <div className="word-detail-headword relative px-5 pb-4 pt-5">
+          <div className={`dictionary-heading${hideClose ? ' has-modal-close' : ''}`}>
+            <SelectionHeading text={copyText} copyText={copyText} isPhrase onSpeak={handleWordSpeak} />
+          </div>
+        </div>}
         <div className="p-5">
           <div className={`mb-3 flex items-center justify-between gap-3${hideClose ? ' pr-[34px]' : ''}`}>
             <h3 className="m-0 text-base font-semibold" style={{ color: 'var(--pos-p)' }}>{t("释义暂不可用")}</h3>
@@ -259,26 +290,7 @@ export default function WordDetailPanel({
         className="word-detail-headword relative px-5 pb-4 pt-5"
       >
         <div className={`dictionary-heading flex items-start gap-3${hideClose ? ' has-modal-close' : ''}`}>
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5">
-            <h2
-              lang="ja"
-              className={`jp m-0 min-w-0 font-medium leading-snug tracking-[.5px] ${isPhrase && Array.from(display).length > 5
-                ? 'text-[22px] sm:text-[24px]'
-                : 'text-[28px] sm:text-[30px]'}`}
-              style={{ color: 'var(--ink)' }}
-            >
-              {display}
-            </h2>
-            <button
-              type="button"
-              title={t("朗读发音")}
-              aria-label={t("朗读发音")}
-              className="dictionary-icon-btn dictionary-pronunciation"
-              onClick={() => handleWordSpeak(display)}
-            >
-              {Icon.speaker}
-            </button>
-          </div>
+          <SelectionHeading text={display} copyText={copyText} isPhrase={isPhrase} onSpeak={handleWordSpeak} />
           <div className="flex shrink-0 items-center gap-0.5 pt-1">
             {onRefresh ? (
               <button

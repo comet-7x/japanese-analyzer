@@ -14,7 +14,15 @@ import { POST as translate } from '../app/api/dictionary/translate/route';
 import { POST as detail } from '../app/api/word-detail/route';
 import { applyTokenEdit, buildReadingGroups, type EditState } from '../app/utils/analysisEditing';
 import { parseReadingPreferences, makeShareLink, parseSharedText } from '../app/utils/readingPreferences';
-import { externalDictionaryLinks, normalizeDictionaryKey, readDictionarySettings, type DictionaryEntry, type DictionaryResult } from '../app/lib/dictionary';
+import {
+  externalDictionaryLinks,
+  normalizeDictionaryKey,
+  readDictionarySettings,
+  readExternalServicesSettings,
+  readIchiOptions,
+  type DictionaryEntry,
+  type DictionaryResult,
+} from '../app/lib/dictionary';
 import { validateCandidates, validateConjugation, validateTranslations } from '../app/lib/learningTools';
 import { convertWord } from '../scripts/dictionary/format.mjs';
 
@@ -66,6 +74,29 @@ async function main() {
     assert.equal(readDictionarySettings('{').activeId, 'builtin');
     assert.equal(readDictionarySettings(JSON.stringify({ activeId: 'secret', providers: [{ id: 'bad', adapter: 'script' }] })).providers.length, 1);
     assert.ok(externalDictionaryLinks('表面', '食べる').ichi.endsWith(encodeURIComponent('食べる')));
+    assert.match(externalDictionaryLinks('表面', '食べる').ichi, /^https:\/\/ichi\.moe\/cl\/word\/\?q=/);
+    assert.match(externalDictionaryLinks('表面', '食べる').google, /^https:\/\/translate\.google\.com\/\?sl=ja&tl=zh-CN&text=%E8%A1%A8%E9%9D%A2&op=translate$/);
+    assert.match(externalDictionaryLinks('表面', '食べる').baidu, /^https:\/\/fanyi\.baidu\.com\/mtpe-individual\/multimodal\?query=%E8%A1%A8%E9%9D%A2&lang=jp2zh$/);
+    const multiLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'zh-TW', ichiOptions: { r: 'kana', hira: true, noseg: true } });
+    assert.match(multiLookup.ichi, /^https:\/\/ichi\.moe\/cl\/qr\/\?q=%E9%A7%85%E3%81%AE%E5%89%8D&r=kana&hira=true&noseg=true$/);
+    assert.match(multiLookup.google, /tl=zh-TW/);
+    assert.match(multiLookup.baidu, /lang=jp2cht/);
+    const enLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'en' });
+    assert.match(enLookup.google, /tl=en/);
+    assert.match(enLookup.baidu, /lang=jp2en/);
+    const koLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'ko' });
+    assert.match(koLookup.google, /tl=ko/);
+    assert.match(koLookup.baidu, /lang=jp2kor/);
+    assert.equal(readExternalServicesSettings(null).enabled.google, true);
+    assert.equal(readExternalServicesSettings('{"enabled":{"google":false}}').enabled.google, false);
+    assert.equal(readExternalServicesSettings('{"enabled":{"google":false}}').enabled.baidu, true);
+    assert.equal(readIchiOptions(null).r, 'htr');
+    assert.equal(readIchiOptions(null).noseg, false, 'Keep segmented definitions by default');
+    assert.equal(readIchiOptions('{"noseg":"false","hira":"false"}').noseg, false, 'String values cannot accidentally enable no segmentation');
+    assert.equal(readIchiOptions('{"noseg":true}').noseg, true, 'Explicit user preference is preserved');
+    assert.equal(new URL(externalDictionaryLinks('猫が窓の外を見ている。', '', { multiWord: true }).ichi).searchParams.has('noseg'), false, 'Off means omit noseg: even noseg=false enables it on ichi.moe');
+    assert.equal(readIchiOptions('{"r":"kana","hira":true}').r, 'kana');
+    assert.equal(readIchiOptions('{"r":"kana","hira":true}').hira, true);
     // Conversion preserves restrictions instead of attributing every sense to every spelling.
     const converted = convertWord({ id: '3', kanji: [{ text: '前', common: true, tags: [] }], kana: [{ text: 'ぜん', common: false, appliesToKanji: ['前'], tags: [] }], sense: [{ partOfSpeech: ['n-pref'], gloss: [{ lang: 'eng', text: 'previous' }], appliesToKanji: ['前'], appliesToKana: ['ぜん'], field: [], dialect: [], misc: [], info: ['note'] }] });
     assert.deepEqual(converted.senses[0].appliesToReadings, ['ぜん']);
@@ -105,7 +136,7 @@ async function main() {
     assert.equal((await lookup(request({ query: 1 }))).status, 400);
     assert.equal((await lookup(request({ query: '駅', offset: -1 }))).status, 400);
     assert.equal((await lookup(request({ query: '駅', provider: null }))).status, 400);
-    const endpoint = { baseUrl: 'https://ai.example/v1', model: 'chosen' };
+    const endpoint = { baseUrl: 'https://ai.example/v1', model: 'chosen', caps: { structuredOutput: 'json_schema' } };
     const headers = { Authorization: 'Bearer model-key' };
     globalThis.fetch = async (_url, init) => {
       const payload = JSON.parse(String(init?.body)); assert.equal(payload.stream, false); assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer model-key');
@@ -122,8 +153,13 @@ async function main() {
     assert.equal((await conjugation(request({ ...endpoint, surface: '食べ', context: '食べた' }, headers))).status, 200);
     globalThis.fetch = async () => completion({}, 'length');
     assert.equal((await conjugation(request({ ...endpoint, surface: '食べ', context: '食べた' }, headers))).status, 502);
-    globalThis.fetch = async (_url, init) => { const content = JSON.parse(String(init?.body)).messages[0].content; assert.match(content, /standalone lookup/); return completion({ dictionaryForm: '食べる' }); };
-    assert.equal((await detail(request({ ...endpoint, word: '食べられなかった', kind: 'lookup' }, headers))).status, 200);
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      assert.match(payload.messages[0].content, /selected Japanese word/);
+      assert.equal(JSON.parse(payload.messages[1].content).selection, '食べられなかった');
+      return completion({ dictionaryForm: '食べる', explanation: '受身・可能の形。', example: '魚を食べられた。', exampleTranslation: '吃到了鱼。', pos: '', furigana: '' });
+    };
+    assert.equal((await detail(request({ ...endpoint, task: 'analyze', word: '食べられなかった', pos: '動詞', furigana: 'たべられなかった', sentence: '魚を食べられなかった。', kind: 'word' }, headers))).status, 200);
 
     const provider = { id: 'remote', name: 'Remote', adapter: 'http-v1' as const, lookupUrl: 'https://dict.example/lookup', apiKey: 'dictionary-key' };
     globalThis.fetch = async (url, init) => {

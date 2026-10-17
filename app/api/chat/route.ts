@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     if (authError) return authError;
 
     // 解析请求体
-    const { messages, useStream = true, baseUrl, model, caps } = await readJsonBody(req);
+    const { messages, useStream = true, baseUrl, model, caps, connectionProbe } = await readJsonBody(req);
     const providerConfig = resolveProviderConfig(req, { baseUrl, model, caps });
 
     if (!providerConfig.apiKey) {
@@ -34,16 +34,14 @@ export async function POST(req: NextRequest) {
     // 构建系统提示词，让AI专注于日语学习辅助
     const systemPrompt = getChatSystemPrompt(locale);
 
-    const fullMessages = [
-      { role: "system", content: systemPrompt },
-      ...messages
-    ];
+    const probing = connectionProbe === 'json_schema' || connectionProbe === 'json_object';
+    const fullMessages = probing ? messages : [{ role: "system", content: systemPrompt }, ...messages];
 
     const payload = buildCompletionPayload(providerConfig.caps, {
       model: providerConfig.model,
       messages: fullMessages,
       stream: useStream,
-    });
+    }, probing ? { structuredOutput: 'connectionProbe', enableThinking: false } : {});
 
     const proxied = await proxyOpenAICompatibleRequest({
       url: providerConfig.baseUrl,

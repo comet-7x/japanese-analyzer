@@ -1,0 +1,20 @@
+{
+  "status": "available-as-opt-in-browser-local-draft",
+  "engine": "sudachi.rs",
+  "engineVersion": "0.7.0",
+  "testedBinding": "SudachiPy 0.7.0",
+  "dictionary": "SudachiDict Core",
+  "dictionaryVersion": "20261015",
+  "mode": "A",
+  "requiresSchoolGrammarAdapter": true,
+  "requiresContextualModelCorrection": true,
+  "productionDefaultChanged": false,
+  "browserBinding": "Same-version custom WASM wrapper; 76 inputs match SudachiPy reference",
+  "browserValidation": ["Chrome 155.0.8059.80", "WebKit 27.2"],
+  "alternative": "Lindera 6.2.0 + IPADIC for tighter Node.js integration and lower runtime memory",
+  "remainingGates": [
+    "Desktop cross-platform release packaging and low-memory device validation",
+    "Broader independent school-grammar and contextual-reading corpus",
+    "Live end-to-end local-plus-model comparison against direct model parsing"
+  ]
+}

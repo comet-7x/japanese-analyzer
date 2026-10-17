@@ -50,7 +50,7 @@ async function main() {
   const bodies = {
     analyze: { prompt: 'Analyze 本を読む。', thinkingEnabled: true, ...endpointBody },
     translate: { text: '本を読む。\n図書館で勉強する。', ...endpointBody },
-    wordDetail: { word: '本', pos: '名詞', sentence: '本を読む。', furigana: 'ほん', ...endpointBody },
+    wordDetail: { task: 'analyze', kind: 'word', word: '本', pos: '名詞', sentence: '本を読む。', furigana: 'ほん', ...endpointBody },
     chat: { messages: [{ role: 'user', content: 'Explain を' }], ...endpointBody },
     imageToText: { imageData: 'data:image/png;base64,dGVzdA==', ...endpointBody },
     summary: { reasoningSnippet: 'Checking the verb conjugation and particle attachment.', ...endpointBody },
@@ -78,19 +78,17 @@ async function main() {
               assert.match(payload.messages[0].content, /Preserve exactly the original paragraph/);
             }
             if (name === 'wordDetail') {
-              assert.match(payload.messages[0].content, /chineseTranslation/);
+              assert.doesNotMatch(payload.messages[0].content, /chineseTranslation/);
               assert.match(payload.messages[0].content, /exampleTranslation/);
-              assert.equal(JSON.parse(payload.messages[1].content).word, '本');
-              if (locale === 'ko') {
-                assert.match(payload.messages[0].content, /읽었다/);
-                assert.doesNotMatch(payload.messages[0].content, /讀了|中文释义|对应中文/);
-              }
-              if (locale === 'en') assert.doesNotMatch(payload.messages[0].content, /中文释义|对应中文/);
+              assert.equal(JSON.parse(payload.messages[1].content).selection, '本');
             }
             const content = locale === 'ko' ? '문장에 쓰인 동사의 활용과 앞뒤 단어 사이의 조사 연결 관계를 확인하는 중' : locale === 'en' ? 'Checking the verb conjugation and particle attachment' : '正在確認動詞活用與助詞接續';
+            const responseContent = name === 'wordDetail'
+              ? JSON.stringify({ dictionaryForm: '本', explanation: content, example: '本を読む。', exampleTranslation: content, pos: '', furigana: '' })
+              : content;
             return payload.stream
-              ? new Response(`data: ${JSON.stringify({ choices: [{ delta: { content }, finish_reason: 'stop' }] })}\n\ndata: [DONE]\n\n`, { headers: { 'Content-Type': 'text/event-stream' } })
-              : Response.json({ choices: [{ message: { content } }] });
+              ? new Response(`data: ${JSON.stringify({ choices: [{ delta: { content: responseContent }, finish_reason: 'stop' }] })}\n\ndata: [DONE]\n\n`, { headers: { 'Content-Type': 'text/event-stream' } })
+              : Response.json({ choices: [{ message: { content: responseContent } }] });
           };
           const response = await handlers[name](new NextRequest('http://localhost/api/test', {
             method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-key', 'X-App-Locale': locale },

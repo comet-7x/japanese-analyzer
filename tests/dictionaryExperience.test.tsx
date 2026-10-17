@@ -5,6 +5,7 @@ import { dictionaryMatch, BUILTIN_DICTIONARY, type DictionaryEntry } from '../ap
 import DictionaryPanel from '../app/components/DictionaryPanel';
 import WordLearningTools from '../app/components/WordLearningTools';
 import ConjugationPanel from '../app/components/ConjugationPanel';
+import { ExternalLookupProvider } from '../app/contexts/ExternalLookupContext';
 import { LanguageProvider } from '../app/contexts/LanguageContext';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -32,7 +33,7 @@ async function main() {
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { documentElement: { lang: 'zh-CN' }, querySelector: () => null, title: '' } });
   let renderer: ReactTestRenderer | undefined;
   const requests: { path: string; body: Record<string, unknown>; signal: AbortSignal; resolve: (value: Response) => void }[] = [];
-  const view = (node: React.ReactNode) => <LanguageProvider>{node}</LanguageProvider>;
+  const view = (node: React.ReactNode) => <LanguageProvider><ExternalLookupProvider>{node}</ExternalLookupProvider></LanguageProvider>;
   try {
     globalThis.fetch = async (path, init) => new Promise<Response>(resolve => requests.push({ path: String(path), body: JSON.parse(String(init?.body)), signal: init!.signal!, resolve }));
     const dictionary = <DictionaryPanel word="駅" reading="えき" provider={BUILTIN_DICTIONARY} model={model} />;
@@ -59,6 +60,13 @@ async function main() {
     assert.equal(renderer!.root.findAllByType(ConjugationPanel).length, 0, 'Noun phrases do not offer conjugation');
     assert.ok(renderer!.root.findAllByType('summary').some(node => textOf(node) === '外部查询'));
     assert.ok(renderer!.root.findAllByType('a')[0].props.href.endsWith(encodeURIComponent('駅の前')));
+    assert.match(renderer!.root.findAllByType('a')[0].props.href, /^https:\/\/ichi\.moe\/cl\/qr\/\?q=/);
+    assert.ok(renderer!.root.findAllByType('a').some(node => node.props.href.includes('translate.google.com')));
+    assert.ok(renderer!.root.findAllByType('a').some(node => node.props.href.includes('fanyi.baidu.com')));
+    assert.ok(renderer!.root.findAllByType('summary').some(node => textOf(node) === 'ichi.moe 选项'));
+    const ichiSelect = renderer!.root.findByType('select');
+    await act(async () => { ichiSelect.props.onChange({ target: { value: 'kana' } }); });
+    assert.match(renderer!.root.findAllByType('a')[0].props.href, /&r=kana/);
     await act(async () => { renderer!.update(view(<WordLearningTools {...props} word="駅" tokens={[{ word: '駅', pos: '名詞' }]} selectionKind="word" />)); });
     assert.equal(renderer!.root.findAllByType(DictionaryPanel).length, 1);
     const disclosures = renderer!.root.findAllByType('details');

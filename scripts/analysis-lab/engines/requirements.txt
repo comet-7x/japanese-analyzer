@@ -1,0 +1,9 @@
+SudachiPy==0.7.0
+SudachiDict-core==20261015
+SudachiDict-small==20261015
+vaporetto==0.3.3
+zstandard==0.25.0
+psutil==7.2.2
+fugashi==1.5.2
+ipadic==1.0.0
+unidic-lite==1.0.8

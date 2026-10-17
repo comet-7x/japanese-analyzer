@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "id": "sudachi-0.7.0-core-20261015-A",
+  "engine": {
+    "version": "0.7.0",
+    "sourceUrl": "https://github.com/WorksApplications/sudachi.rs/archive/refs/tags/v0.7.0.tar.gz",
+    "sourceSha256": "dd90a4710ed507f03876ba0809f069e130ca8dfd21726ffa0d4b69beb2ff9d46",
+    "wasmBindgen": "0.2.129",
+    "assets": {
+      "sudachi.js": "4fe20690d342565d0dc4bd8f44e4bb920920fdd9ddcfb1286e5cd0923de4e2ca",
+      "sudachi_bg.wasm": "8d653d5e575e2cc10b2b5d33431d26234fa5aaa309a495340609f0ced2616c6d"
+    }
+  },
+  "dictionary": {
+    "version": "20261015",
+    "edition": "core",
+    "url": "https://files.pythonhosted.org/packages/3d/6a/9dddc36e33ff7f86e394315a77b90d0f41bfd161e011d77a8397662d53e0/sudachidict_core-20261015-py3-none-any.whl",
+    "archiveSha256": "6d7774b518e64c88a0578975d569590b3dae3b3c834f166486aa611879ee9d98",
+    "archiveBytes": 76937301,
+    "entry": "sudachidict_core/resources/system.dic",
+    "rawSha256": "e815659f6ad6f6118725103d47d317d660276ff3a15f668f8fc123ec3c4e6646",
+    "rawBytes": 202236003,
+    "chunkBytes": 4000000,
+    "manifestSha256": "192672c08c5fd5f95c646dbc50e6560858595e29eb8388421677a875a3df5999"
+  }
+}

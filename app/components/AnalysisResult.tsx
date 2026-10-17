@@ -23,6 +23,7 @@ interface AnalysisResultProps {
   showDisplayOptions?: boolean;
   /** 解析中：原句里还没解析到的部分，接在已解析的词后面以灰字流光显示 */
   pendingText?: string;
+  pendingActive?: boolean;
   /** 当前圈选的多词短语 */
   selectedRange?: PhraseRange | null;
   /** 圈选了多个词（拖动 / Shift 点击 / 长按后再点）；未提供则不支持圈选 */
@@ -207,6 +208,7 @@ export default function AnalysisResult({
   selectedIndex,
   showDisplayOptions = true,
   pendingText = '',
+  pendingActive = true,
   selectedRange = null,
   onRangeSelect,
   pickAnchor = null,
@@ -237,16 +239,14 @@ export default function AnalysisResult({
     <section className="analysis-card relative">
       <h2 className="sr-only">{t("解析结果")}</h2>
 
-      {showDisplayOptions && (
-        <div className="analysis-heading mb-4 flex flex-wrap items-center justify-end gap-y-2">
-          <DisplayOptions
-            showFurigana={showFurigana}
-            onShowFuriganaChange={onShowFuriganaChange}
-            showRomaji={showRomaji}
-            onShowRomajiChange={onShowRomajiChange}
-          />
-        </div>
-      )}
+      {showDisplayOptions && <div className="analysis-heading mb-4 flex flex-wrap items-center justify-end gap-y-2">
+        <DisplayOptions
+          showFurigana={showFurigana}
+          onShowFuriganaChange={onShowFuriganaChange}
+          showRomaji={showRomaji}
+          onShowRomajiChange={onShowRomajiChange}
+        />
+      </div>}
 
       {/* 高度动画容器会裁掉溢出内容，外框多留一圈空间，选中高亮和焦点框不被切 */}
       <AutoAnimateHeight duration={300} className="analysis-output-frame" contentClassName="analysis-output-frame-content">
@@ -322,9 +322,9 @@ export default function AnalysisResult({
               </span>
             );
           })}
-          {pendingText && <PendingText text={pendingText} offset={analyzedLength} />}
+          {pendingText && (pendingActive ? <PendingText text={pendingText} offset={analyzedLength} /> : <span className="pending-rest">{pendingText}</span>)}
         </div>
-        {pendingText && <span className="sr-only" role="status">{t("思考中")}</span>}
+        {pendingText && pendingActive && <span className="sr-only" role="status">{t("思考中")}</span>}
         {pickAnchor !== null && <PickHint onCancel={selection.cancelPick} />}
       </AutoAnimateHeight>
 

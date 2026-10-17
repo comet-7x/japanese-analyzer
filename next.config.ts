@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingIncludes: {
+    "/api/local-analyzer/dictionary/*": ["./data/local-analyzer/**/*", "./LICENSES/**/*"],
     "/api/dictionary/lookup": ["./data/dictionary/**/*", "./LICENSES/**/*"],
     "/api/dictionary/assets/*": ["./data/dictionary/manifest.json", "./data/dictionary/locales/manifest.json", "./data/dictionary/locales/assets/**/*", "./LICENSES/**/*"],
   },

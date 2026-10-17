@@ -50,7 +50,102 @@ export function readDictionarySettings(raw: string | null): DictionarySettings {
     return { providers, activeId: providers.some(p => p.id === data.activeId) ? data.activeId : 'builtin' };
   } catch { return { providers: [BUILTIN_DICTIONARY], activeId: 'builtin' }; }
 }
-export function externalDictionaryLinks(word: string, lemma?: string) {
-  const key = lemma?.trim() || word;
-  return { ichi: `https://ichi.moe/cl/word/?q=${encodeURIComponent(key)}`, wiktionary: `https://en.wiktionary.org/wiki/${encodeURIComponent(key)}` };
+export type ExternalServiceId = 'ichi' | 'google' | 'baidu' | 'wiktionary';
+export interface ExternalServicesSettings {
+  enabled: Record<ExternalServiceId, boolean>;
+}
+export const DEFAULT_EXTERNAL_SERVICES: ExternalServicesSettings = {
+  enabled: {
+    ichi: true,
+    google: true,
+    baidu: true,
+    wiktionary: true,
+  },
+};
+export const EXTERNAL_SERVICES_KEY = 'japaneseAnalyzer:externalServices:v1';
+export function readExternalServicesSettings(raw: string | null): ExternalServicesSettings {
+  try {
+    const data = JSON.parse(raw || '{}');
+    const enabled = { ...DEFAULT_EXTERNAL_SERVICES.enabled };
+    if (data?.enabled && typeof data.enabled === 'object') {
+      for (const key of ['ichi', 'google', 'baidu', 'wiktionary'] as const) {
+        if (typeof data.enabled[key] === 'boolean') {
+          enabled[key] = data.enabled[key];
+        }
+      }
+    }
+    return { enabled };
+  } catch { return { enabled: { ...DEFAULT_EXTERNAL_SERVICES.enabled } }; }
+}
+export type IchiRomanizationMethod = 'htr' | 'kana' | 'text' | 'hb' | 'hm' | 'ks';
+export interface IchiMoeOptions {
+  r?: IchiRomanizationMethod;
+  hira?: boolean;
+  noseg?: boolean;
+}
+export const DEFAULT_ICHI_OPTIONS: IchiMoeOptions = { r: 'htr', hira: false, noseg: false };
+export const ICHI_OPTIONS_KEY = 'japaneseAnalyzer:ichimoe:v1';
+export function readIchiOptions(raw: string | null): IchiMoeOptions {
+  try {
+    const data = JSON.parse(raw || '{}');
+    const validR: IchiRomanizationMethod[] = ['htr', 'kana', 'text', 'hb', 'hm', 'ks'];
+    return {
+      r: validR.includes(data?.r) ? data.r : 'htr',
+      hira: data?.hira === true,
+      noseg: data?.noseg === true,
+    };
+  } catch { return { ...DEFAULT_ICHI_OPTIONS }; }
+}
+export function buildIchiMoeUrl(text: string, isMultiWord: boolean, options?: IchiMoeOptions, lemma?: string): string {
+  const cleanWord = text.trim();
+  if (!isMultiWord) {
+    const key = lemma?.trim() || cleanWord;
+    return `https://ichi.moe/cl/word/?q=${encodeURIComponent(key)}`;
+  }
+  const params = new URLSearchParams();
+  params.set('q', cleanWord);
+  if (options?.r && options.r !== 'htr') {
+    params.set('r', options.r);
+  }
+  if (options?.hira) {
+    params.set('hira', 'true');
+  }
+  if (options?.noseg) {
+    params.set('noseg', 'true');
+  }
+  return `https://ichi.moe/cl/qr/?${params.toString()}`;
+}
+export interface ExternalLookupOptions {
+  multiWord?: boolean;
+  ichiOptions?: IchiMoeOptions;
+  locale?: Locale;
+}
+/** Prefer analyzed selection metadata; segmentation is only a heuristic for manual input. */
+export function isMultiWordLookup(text: string, selection?: { kind: 'word' | 'phrase'; tokenCount: number }): boolean {
+  if (selection) return selection.kind !== 'word' || selection.tokenCount !== 1;
+  const clean = text.trim();
+  if (!clean) return false;
+  if (/\s/.test(clean)) return true;
+  // Older browsers can still submit arbitrary text to the sentence parser.
+  if (typeof Intl.Segmenter !== 'function') return true;
+  const segments = new Intl.Segmenter('ja', { granularity: 'word' }).segment(clean);
+  let words = 0;
+  for (const segment of segments) {
+    if (segment.isWordLike && ++words > 1) return true;
+  }
+  return false;
+}
+export function externalDictionaryLinks(word: string, lemma = '', options: ExternalLookupOptions = {}) {
+  const isMulti = Boolean(options.multiWord);
+  const cleanWord = word.trim();
+  const key = (!isMulti && lemma?.trim()) ? lemma.trim() : cleanWord;
+  const locale = options.locale || 'zh-CN';
+  const targetGoogle = locale === 'zh-TW' ? 'zh-TW' : locale === 'en' ? 'en' : locale === 'ko' ? 'ko' : 'zh-CN';
+  const targetBaidu = locale === 'zh-TW' ? 'cht' : locale === 'en' ? 'en' : locale === 'ko' ? 'kor' : 'zh';
+  return {
+    ichi: buildIchiMoeUrl(cleanWord, isMulti, options.ichiOptions, lemma),
+    google: `https://translate.google.com/?sl=ja&tl=${targetGoogle}&text=${encodeURIComponent(cleanWord)}&op=translate`,
+    baidu: `https://fanyi.baidu.com/mtpe-individual/multimodal?query=${encodeURIComponent(cleanWord)}&lang=jp2${targetBaidu}`,
+    wiktionary: `https://en.wiktionary.org/wiki/${encodeURIComponent(key)}`,
+  };
 }

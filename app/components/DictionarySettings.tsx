@@ -2,7 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { queryDictionary } from '../services/learning';
-import { type DictionarySettings as Settings } from '../lib/dictionary';
+import { type DictionarySettings as Settings, type ExternalServiceId } from '../lib/dictionary';
+import { useExternalLookupSettings } from '../contexts/ExternalLookupContext';
+import IchiMoeOptionsPanel from './IchiMoeOptionsPanel';
 import type { DictionaryLocalizationInfo } from '../lib/dictionary';
 import { LatestRequest } from '../utils/latestRequest';
 
@@ -12,6 +14,10 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
   const [status, setStatus] = useState(''); const [loading, setLoading] = useState(false);
   const [metadata, setMetadata] = useState(''); const request = useRef(new LatestRequest());
   const [datasets, setDatasets] = useState<DictionaryLocalizationInfo[]>([]);
+  const { services, ichiOptions, updateServices, updateIchiOptions } = useExternalLookupSettings();
+  const updateService = (id: ExternalServiceId, enabled: boolean) => {
+    updateServices({ ...services, enabled: { ...services.enabled, [id]: enabled } });
+  };
   useEffect(() => { request.current.cancel(); setLoading(false); setStatus(''); }, [url, key]);
   useEffect(() => { const manager = request.current; const controller = new AbortController(); void queryDictionary({ query: '駅' }, value.providers[0], controller.signal).then(r => { if (!controller.signal.aborted) { setMetadata(`${r.source.name} · ${r.source.date} · ${r.source.version}`); setDatasets(r.datasets ?? []); } }).catch(() => { if (!controller.signal.aborted) setMetadata(t('词典数据不可用，请重新准备词典数据')); }); return () => { controller.abort(); manager.cancel(); }; }, [value.providers, t]);
   const validUrl = () => { try { const u = new URL(url); return /^https?:$/.test(u.protocol) && !u.username && !u.password && !u.search && !u.hash; } catch { return false; } };
@@ -35,6 +41,47 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
       <p className="tool-note">{t('使用 HTTP v1 协议；不同厂商需要对应适配器。')}</p>
       <div className="learning-actions"><button type="button" className="nd-ghost-btn" disabled={!validUrl() || loading} onClick={test}>{t(loading ? '测试中…' : '测试连接')}</button><button type="button" className="nd-soft-btn" disabled={!name.trim() || !validUrl()} onClick={() => { const id = `dictionary-${Date.now()}`; onChange({ providers: [...value.providers, { id, name: name.trim(), adapter: 'http-v1', lookupUrl: url.trim(), apiKey: key }], activeId: id }); setName(''); setUrl(''); setKey(''); setStatus(''); }}>{t('添加')}</button></div>
       {status && <p role="status">{status}</p>}
+    </div></details>
+    <details><summary>{t('外部查询与翻译')}</summary><div className="learning-fields" style={{ paddingTop: '8px' }}>
+      <p className="tool-note" style={{ margin: '0 0 8px' }}>{t('在词卡中显示的外部服务')}</p>
+      <div className="ichi-option-checkboxes" style={{ paddingBottom: '10px' }}>
+        <label className="ichi-option-checkbox">
+          <input
+            type="checkbox"
+            checked={Boolean(services.enabled.ichi)}
+            onChange={e => updateService('ichi', e.target.checked)}
+          />
+          <span>ichi.moe</span>
+        </label>
+        <label className="ichi-option-checkbox">
+          <input
+            type="checkbox"
+            checked={Boolean(services.enabled.google)}
+            onChange={e => updateService('google', e.target.checked)}
+          />
+          <span>{t('Google 翻译')}</span>
+        </label>
+        <label className="ichi-option-checkbox">
+          <input
+            type="checkbox"
+            checked={Boolean(services.enabled.baidu)}
+            onChange={e => updateService('baidu', e.target.checked)}
+          />
+          <span>{t('百度翻译')}</span>
+        </label>
+        <label className="ichi-option-checkbox">
+          <input
+            type="checkbox"
+            checked={Boolean(services.enabled.wiktionary)}
+            onChange={e => updateService('wiktionary', e.target.checked)}
+          />
+          <span>Wiktionary</span>
+        </label>
+      </div>
+
+      {services.enabled.ichi && (
+        <IchiMoeOptionsPanel value={ichiOptions} onChange={updateIchiOptions} defaultOpen />
+      )}
     </div></details>
     <a href="https://www.edrdg.org/edrdg/licence.html" target="_blank" rel="noreferrer">JMdict / EDRDG · CC BY-SA 4.0</a>
   </section>;
