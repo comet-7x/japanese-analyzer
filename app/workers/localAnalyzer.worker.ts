@@ -21,10 +21,22 @@ async function openCache(): Promise<IDBDatabase | null> {
   try {
     return await new Promise((resolve, reject) => {
       const request = indexedDB.open('japaneseAnalyzer-localDictionary', 1);
-      request.onupgradeneeded = () => request.result.createObjectStore('chunks');
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains('chunks')) {
+          request.result.createObjectStore('chunks');
+        }
+      };
       request.onerror = () => reject(request.error);
       request.onblocked = () => resolve(null);
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains('chunks')) {
+          db.close();
+          resolve(null);
+          return;
+        }
+        resolve(db);
+      };
     });
   } catch { return null; }
 }
