@@ -49,7 +49,16 @@ export function useAnalysisEditing() {
 
   const startWorkspace = useCallback((source: string, id: AnalysisVariantId, tokens: TokenData[] = [], meta: Partial<Omit<AnalysisVariant, 'id' | 'editing'>> = {}) => {
     const variant: AnalysisVariant = { ...initialVariant(id), ...meta, id, editing: nextEditing(tokens) };
-    updateWorkspace(() => ({ source, activeVariant: id, variants: { [id]: variant } }));
+    updateWorkspace((prev) => {
+      if (prev.source === source) {
+        return {
+          source,
+          activeVariant: id,
+          variants: { ...prev.variants, [id]: variant },
+        };
+      }
+      return { source, activeVariant: id, variants: { [id]: variant } };
+    });
   }, [nextEditing, updateWorkspace]);
   const startVariant = useCallback((id: AnalysisVariantId, tokens: TokenData[], meta: Partial<Omit<AnalysisVariant, 'id' | 'editing'>> = {}, activate = true) => {
     updateWorkspace(value => ({ ...value, activeVariant: activate ? id : value.activeVariant, variants: {

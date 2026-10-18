@@ -1,6 +1,6 @@
 'use client';
 
-import { analysisCache, sentenceCacheKey } from './utils/sentenceCache';
+import { analysisCache, sentenceCacheKey, localCorrectionCache, localCorrectionCacheKey } from './utils/sentenceCache';
 import { useReadingPreferences } from './hooks/useReadingPreferences';
 import ShareControl from './components/ShareControl';
 import DictionaryLookup from './components/DictionaryLookup';
@@ -20,6 +20,7 @@ import AnalysisResult, { DisplayOptions } from './components/AnalysisResult';
 import TranslationSection from './components/TranslationSection';
 import SettingsModal from './components/SettingsModal';
 import Header from './components/Header';
+import { Icon } from './components/Icons';
 import LoginModal from './components/LoginModal';
 import AIChat from './components/AIChat';
 import ReasoningStream from './components/ReasoningStream';
@@ -136,7 +137,9 @@ export default function Home() {
   const reasoningSummaryControllerRef = useRef<ReasoningSummaryController | null>(null);
   const analysisAbortControllerRef = useRef<AbortController | null>(null);
   const [speechSettings, setSpeechSettings] = useState<SpeechSettings>({ services: [{ ...SPEECH_PRESETS[0] }, { ...SPEECH_PRESETS[1] }], activeId: 'edge' });
-  const [translationSettings, setTranslationSettings] = useState<TranslationServiceSettings>(() => readTranslationServiceSettings(null));
+  const [translationSettings, setTranslationSettings] = useState<TranslationServiceSettings>(() => {
+    return readTranslationServiceSettings(null);
+  });
   const activeSpeechService = speechSettings.services.find((service) => service.id === speechSettings.activeId) ?? speechSettings.services[0];
 
   // 密码验证相关状态
@@ -328,7 +331,12 @@ export default function Home() {
     setThinkingEnabled(storedAISettings.thinkingEnabled);
     setAnalysisEngine(browserStorage.getItem('japaneseAnalyzer:analysisEngine') === 'local' ? 'local' : 'model');
     setSpeechSettings(loadSpeechSettings(browserStorage));
-    setTranslationSettings(readTranslationServiceSettings(browserStorage.getItem(TRANSLATION_SERVICES_KEY)));
+    const storedTranslation = browserStorage.getItem(TRANSLATION_SERVICES_KEY);
+    if (storedTranslation) {
+      setTranslationSettings(readTranslationServiceSettings(storedTranslation));
+    } else {
+      setTranslationSettings(readTranslationServiceSettings(null));
+    }
 
     // 只有当明确设置了值时才更新，否则保持默认值
     if (storedUseStream !== null) {
@@ -358,6 +366,7 @@ export default function Home() {
 
   // 保存用户API设置
   const handleSaveSettings = (settings: {
+    translationSettings: TranslationServiceSettings;
     dictionarySettings: DictionarySettings;
     services: ProviderProfile[];
     activeServiceId: string;
@@ -366,8 +375,9 @@ export default function Home() {
     speechSettings: SpeechSettings;
     thinkingEnabled: boolean;
     useStream: boolean;
-    translationSettings: TranslationServiceSettings;
   }) => {
+    setTranslationSettings(settings.translationSettings);
+    browserStorage.setItem(TRANSLATION_SERVICES_KEY, JSON.stringify(settings.translationSettings));
     setDictionarySettings(settings.dictionarySettings);
     browserStorage.setItem(DICTIONARY_SETTINGS_KEY, JSON.stringify(settings.dictionarySettings));
     saveAISettingsToStorage(browserStorage, {
@@ -379,9 +389,7 @@ export default function Home() {
     });
     browserStorage.setItem('useStream', settings.useStream.toString());
     browserStorage.setItem(SPEECH_SETTINGS_KEY, JSON.stringify(settings.speechSettings));
-    browserStorage.setItem(TRANSLATION_SERVICES_KEY, JSON.stringify(settings.translationSettings));
     setSpeechSettings(settings.speechSettings);
-    setTranslationSettings(settings.translationSettings);
 
     setServices(settings.services);
     setActiveServiceId(settings.activeServiceId);
@@ -448,7 +456,7 @@ export default function Home() {
   }, []);
 
   // 点击词汇 → 查询详情
-  const handleWordClick = useCallback((token: TokenData, index: number) => {
+  const handleWordClick = useCallback((_token: TokenData, index: number) => {
     if (selectedIndex === index) {
       handleCloseWordDetail();
       return;
@@ -506,6 +514,11 @@ export default function Home() {
       if (!current()) return;
       editing.setVariantTokens('local', tokens, true);
       editing.updateVariant('local', { status: 'complete', validated: true, model: 'Sudachi' }); history.record(text);
+      const correctionKey = localCorrectionCacheKey(text, endpoint, locale, userApiKey, thinkingEnabled);
+      const cachedCorrection = localCorrectionCache.get(correctionKey);
+      if (cachedCorrection && cachedCorrection.length > 0) {
+        editing.startVariant('local-corrected', cachedCorrection, { status: 'complete', validated: true, model: endpoint.model, fromCache: true }, true);
+      }
       setTranslationTrigger(value => value + 1);
     } catch (error) {
       if (current()) setAnalysisError(error instanceof Error ? error.message : '本地解析失败，请重试或切换模型解析。');
@@ -535,6 +548,8 @@ export default function Home() {
       if (result.status === 'complete') {
         editing.setVariantTokens('local-corrected', result.confirmedTokens, true);
         editing.updateVariant('local-corrected', { status: 'complete', validated: true, model: endpoint.model, progress: null, sourceRevision: revision });
+        const correctionKey = localCorrectionCacheKey(currentSentence, endpoint, locale, userApiKey, thinkingEnabled);
+        localCorrectionCache.set(correctionKey, result.confirmedTokens);
         setAnalysisProgress(null);
         analysisAbortControllerRef.current = null; analysisSessionRef.current = null;
       } else if (result.status === 'failed') {
@@ -850,13 +865,55 @@ export default function Home() {
               <button className="display-chip" aria-pressed={mode === 'dictionary'} disabled={isAnalyzing} onClick={() => { if (!currentSentence && !dictionaryDraft) setDictionaryDraft(draft); setMode('dictionary'); setEditRange(null); handleCloseWordDetail(); }}>{t('查词')}</button>
             </nav>
             <div className={mode === 'dictionary' ? undefined : 'hidden'}>
-              <DictionaryLookup draft={dictionaryDraft} onDraftChange={setDictionaryDraft} provider={dictionaryProvider} model={learningModel} active={mode === 'dictionary'} sentence={currentSentence} tokens={isAnalyzing ? [] : analyzedTokens} analysisId={editing.state.taskId} />
+              <DictionaryLookup
+                draft={dictionaryDraft}
+                onDraftChange={setDictionaryDraft}
+                provider={dictionaryProvider}
+                model={learningModel}
+                active={mode === 'dictionary'}
+                sentence={currentSentence}
+                tokens={isAnalyzing ? [] : analyzedTokens}
+                analysisId={editing.state.taskId}
+                onGoToAnalyze={text => {
+                  setDraft(text);
+                  setDictionaryDraft(text);
+                  setMode('analyze');
+                  setEditRange(null);
+                  handleCloseWordDetail();
+                }}
+              />
             </div>
             {/* Keep completed output and pending translation mounted when visiting dictionary mode. */}
             <div className={mode === 'analyze' ? 'flex flex-col gap-[22px]' : 'hidden'}>
             <AnalysisEngineControl value={analysisEngine} disabled={isAnalyzing} onChange={value => {
-              resetAnalysisState(); setAnalysisEngine(value); setLocalNotice('');
+              resetAnalysisState();
+              setAnalysisEngine(value);
+              setLocalNotice('');
               browserStorage.setItem('japaneseAnalyzer:analysisEngine', value);
+              handleCloseWordDetail();
+              setEditRange(null);
+
+              const text = currentSentence || draft;
+              if (!text.trim()) return;
+
+              if (value === 'local') {
+                if (editing.variants.local && editing.variants.local.editing.tokens.length > 0) {
+                  const targetVariant = editing.variants['local-corrected'] ? 'local-corrected' : 'local';
+                  editing.selectVariant(targetVariant);
+                } else {
+                  void handleLocalAnalyze(text);
+                }
+              } else if (value === 'model') {
+                if (editing.variants.model && editing.variants.model.editing.tokens.length > 0) {
+                  editing.selectVariant('model');
+                } else {
+                  const cacheKey = sentenceCacheKey(text, endpoint, locale, userApiKey, thinkingEnabled);
+                  const cached = analysisCache.get(cacheKey);
+                  if (cached) {
+                    editing.startVariant('model', cached, { status: 'complete', validated: true, sourceKey: cacheKey, model: endpoint.model, fromCache: true }, true);
+                  }
+                }
+              }
             }} onClear={() => { void clearLocalDictionaryCache().then(() => setLocalNotice('已清除词典缓存。')).catch(error => setLocalNotice(error.message)); }} />
             {analysisEngine === 'local' && localNotice && <p className="tool-note" role="status">{t(localNotice)}</p>}
             <InputSection
@@ -942,21 +999,21 @@ export default function Home() {
 
             {(shouldShowAnalyzer() || currentSentence) && (
               <div className="reading-surface">
-                {localVariant && <div className="analysis-variant-bar" role="group" aria-label={t('解析结果版本')}>
+                {analysisEngine === 'local' && localVariant && <div className="analysis-variant-bar" role="group" aria-label={t('解析结果版本')}>
                   <button className="display-chip" aria-pressed={resultKind === 'local'} onClick={() => { editing.selectVariant('local'); handleCloseWordDetail(); setEditRange(null); }}>{t('本地解析')}</button>
                   {correctedVariant && <button className="display-chip" aria-pressed={resultKind === 'local-corrected'} onClick={() => { editing.selectVariant('local-corrected'); handleCloseWordDetail(); setEditRange(null); }}>
                     {t('模型校正版')}{correctedVariant.status === 'running' ? ` · ${t('进行中')}` : correctedVariant.status === 'incomplete' ? ` · ${t('未完成')}` : ''}
                   </button>}
-                  <button className="nd-ghost-btn" disabled={isAnalyzing || !localVariant.validated} onClick={() => void handleCorrectLocal()}>{t(correctedVariant ? '重新生成模型校正版' : '生成模型校正版')}</button>
+                  <button className="nd-ghost-btn flex items-center gap-1.5" disabled={isAnalyzing || !localVariant.validated} onClick={() => void handleCorrectLocal()}>{Icon.refresh}<span>{t(correctedVariant ? '重新用模型校正' : '用模型校正')}</span></button>
                 </div>}
-                {resultKind !== 'model' && shouldShowAnalyzer() && <div className="local-draft-status" role="status">
+                {analysisEngine === 'local' && resultKind !== 'model' && shouldShowAnalyzer() && <div className="local-draft-status" role="status">
                   <span>{t(resultKind === 'local-corrected' ? correctedVariant?.status === 'complete' ? '已由模型校正：{0}' : '模型校正未完成，当前显示已确认的连续部分。' : '本地初稿：读音和词性尚未经过模型校正。', analysisSource.model)}</span>
                   {resultKind === 'local-corrected' && correctedStale && <span>{t('基于较早的本地版本')}</span>}
                 </div>}
                 {shouldShowAnalyzer() && <div className="learning-actions reading-tools">
                   <button className="display-chip" aria-pressed={viewMode === 'lexical'} onClick={() => setViewMode('lexical')}>{t('词法视图')}</button>
                   <button className="display-chip" aria-pressed={viewMode === 'reading'} onClick={() => setViewMode('reading')}>{t('阅读视图')}</button>
-                  <button className="nd-ghost-btn" disabled={isAnalyzing} onClick={() => void handleAnalyze(currentSentence, undefined, true)}>{t('重新解析')}</button>
+                  <button className="nd-ghost-btn flex items-center gap-1.5" disabled={isAnalyzing} onClick={() => void handleAnalyze(currentSentence, undefined, true)}>{Icon.refresh}<span>{t('重新解析')}</span></button>
                   <button className="nd-ghost-btn" disabled={editingLocked || !editing.state.history.length} title={!editing.state.history.length ? t('尚无可撤销的调整') : t('撤销最近一次分词或阅读分组调整')} onClick={() => { editing.undo(); handleCloseWordDetail(); setEditNotice('已撤销最近一次调整'); }}>{t('撤销')}</button>
                   <button className="nd-ghost-btn" disabled={editingLocked || !editing.canRestore} title={!editing.canRestore ? t('当前已经是初始分词') : t('恢复本次解析的初始分词并清除手动阅读分组')} onClick={() => { editing.restore(); handleCloseWordDetail(); setEditNotice('已恢复初始分词'); }}>{t('恢复初始分词')}</button>
                 </div>}
@@ -1022,6 +1079,7 @@ export default function Home() {
 
         {/* 设置模态框 */}
         <SettingsModal
+          translationSettings={translationSettings}
           dictionarySettings={dictionarySettings}
           services={services}
           activeServiceId={activeServiceId}
@@ -1030,7 +1088,6 @@ export default function Home() {
           speechSettings={speechSettings}
           thinkingEnabled={thinkingEnabled}
           useStream={useStream}
-          translationSettings={translationSettings}
           onSaveSettings={handleSaveSettings}
           isModalOpen={isSettingsModalOpen}
           onModalClose={() => setIsSettingsModalOpen(!isSettingsModalOpen)}
@@ -1048,8 +1105,10 @@ export default function Home() {
         >
           <div className="word-detail-modal-content">
             <button
+              type="button"
               className="modal-close-button"
               title={t("关闭详情")}
+              aria-label={t("关闭详情")}
               onClick={handleCloseWordDetail}
             >
               &times;

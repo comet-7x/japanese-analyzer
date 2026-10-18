@@ -15,15 +15,21 @@ import CopyTextButton from './CopyTextButton';
 import DictionaryPanel from './DictionaryPanel';
 import ExternalDictionaryLookup from './ExternalDictionaryLookup';
 import ConjugationPanel from './ConjugationPanel';
+import { useConjugation } from '../hooks/useConjugation';
 import { useSelectionTools } from '../hooks/useSelectionTools';
+import { LatestRequest } from '../utils/latestRequest';
+import { credentialScope } from '../utils/sentenceCache';
 
-function LazyDisclosure({ label, hint, onFirstOpen, children }: {
-  label: string; hint?: string; onFirstOpen?: () => void; children: React.ReactNode;
+function LazyDisclosure({ label, open, onToggle, onFirstOpen, children }: {
+  label: string; open: boolean; onToggle: (open: boolean) => void; onFirstOpen?: () => void; children: React.ReactNode;
 }) {
   const loaded = useRef(false);
-  return <details className="detail-disclosure" onToggle={event => {
-    if (event.currentTarget.open && !loaded.current) { loaded.current = true; onFirstOpen?.(); }
-  }}><summary>{label}{hint && <span className="disclosure-hint">{hint}</span>}</summary>{children}</details>;
+
+  return <details className="detail-disclosure" open={open} onToggle={event => {
+    const nextOpen = event.currentTarget.open;
+    onToggle(nextOpen);
+    if (nextOpen && !loaded.current) { loaded.current = true; onFirstOpen?.(); }
+  }}><summary>{label}</summary>{children}</details>;
 }
 
 export default function SelectionDetailPanel({ selectedText, pos, reading, context, tokens, selectionKind,
@@ -40,9 +46,67 @@ export default function SelectionDetailPanel({ selectedText, pos, reading, conte
     identity, word: selectedText, pos, sentence: context, furigana: reading, kind: selectionKind, model, locale,
   });
   const [dictionaryOpen, setDictionaryOpen] = useState(false);
+  const [translationOpen, setTranslationOpen] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [conjugationOpen, setConjugationOpen] = useState(false);
+  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+  const conjugation = useConjugation({ surface: selectedText, context, model, locale, identity });
+  const batchRequest = useRef(new LatestRequest());
+  const batchScope = JSON.stringify([identity, selectedText, context, locale, model.endpoint, credentialScope(model.apiKey)]);
   const speechCleanup = useRef<() => void>(() => undefined);
-  useEffect(() => { setDictionaryOpen(false); }, [identity]);
+
+  useEffect(() => {
+    const manager = batchRequest.current;
+    manager.cancel();
+    setDictionaryOpen(false);
+    setTranslationOpen(false);
+    setAnalysisOpen(false);
+    setConjugationOpen(false);
+    setIsBatchGenerating(false);
+    return () => manager.cancel();
+  }, [batchScope]);
+
   useEffect(() => () => speechCleanup.current(), []);
+
+  const conjugatable = !multiWord && tokens.some(token => ['v', 'adj', 'adjv', 'aux'].includes(getPosGroup(token.pos)));
+  const hasTranslation = !!translation;
+  const hasAnalysis = !!analysis;
+  const totalCount = conjugatable ? 3 : 2;
+  const doneCount = (hasTranslation ? 1 : 0) + (hasAnalysis ? 1 : 0) + (conjugatable && !!conjugation.result ? 1 : 0);
+  const isAllDone = doneCount === totalCount;
+
+  const handleBatchAnalyze = async (force = false) => {
+    const ticket = batchRequest.current.start();
+    setTranslationOpen(true);
+    setAnalysisOpen(true);
+    if (conjugatable) setConjugationOpen(true);
+    setIsBatchGenerating(true);
+    const promises: Promise<unknown>[] = [];
+
+    if (force || !hasTranslation) {
+      promises.push(loadTranslation(force));
+    }
+    let analysisPromise = Promise.resolve(analysis);
+    if (force || !hasAnalysis) {
+      analysisPromise = loadAnalysis(force);
+      promises.push(analysisPromise);
+    }
+    if (conjugatable && (force || !conjugation.result)) {
+      promises.push(
+        analysisPromise.then(result => {
+          if (!ticket.isCurrent() || !result) return null;
+          return conjugation.load(result.dictionaryForm, force);
+        })
+      );
+    }
+
+    try {
+      await Promise.allSettled(promises);
+    } finally {
+      if (ticket.isCurrent()) setIsBatchGenerating(false);
+    }
+  };
+
   const speak = async () => {
     speechCleanup.current();
     const controller = new AbortController(); let audio: HTMLAudioElement | undefined; let url: string | undefined;
@@ -55,9 +119,9 @@ export default function SelectionDetailPanel({ selectedText, pos, reading, conte
     } catch { if (!controller.signal.aborted) { cleanup(); speakJapanese(selectedText); } }
   };
   const lemma = analysis?.dictionaryForm ?? '';
-  const conjugatable = tokens.some(token => ['v', 'adj', 'adjv', 'aux'].includes(getPosGroup(token.pos)));
+
   return <section className="word-detail-panel selection-tools-panel">
-    <header className="word-detail-headword relative px-5 pb-4 pt-5">
+    <header className="word-detail-headword relative px-5 pb-3.5 pt-4">
       <div className={`dictionary-heading flex items-start gap-3${hideClose ? ' has-modal-close' : ''}`}>
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
           <h2 lang="ja" className="jp m-0 min-w-0 text-[26px] font-medium leading-snug">{selectedText}</h2>
@@ -66,15 +130,40 @@ export default function SelectionDetailPanel({ selectedText, pos, reading, conte
         </div>
         {!hideClose && <button type="button" className="dictionary-icon-btn" title={t('关闭')} aria-label={t('关闭')} onClick={onClose}><I w={16}><path d="M6 6l12 12M18 6L6 18" /></I></button>}
       </div>
-      {(reading || pos) && <p className="tool-note mb-0 mt-2">{reading && <span lang="ja">{reading}</span>}{reading && pos ? ' · ' : ''}{pos}</p>}
+      {(reading || pos) && <p className="tool-note mb-0 mt-1.5">{reading && <span lang="ja">{reading}</span>}{reading && pos ? ' · ' : ''}{pos}</p>}
+      <div className="batch-analyze-bar mt-3 flex items-center justify-between gap-2 border-t border-[var(--line-2)] pt-2.5">
+        <button
+          type="button"
+          className={`batch-analyze-btn${isBatchGenerating ? ' is-generating' : ''}`}
+          disabled={isBatchGenerating || !model.apiKey}
+          onClick={() => void handleBatchAnalyze(isAllDone)}
+        >
+          {isBatchGenerating ? (
+            <>
+              <span className="batch-icon animate-spin text-[var(--primary)]" aria-hidden="true">{Icon.refresh}</span>
+              <span>{t('正在生成全部… ({0}/{1})', doneCount, totalCount)}</span>
+            </>
+          ) : isAllDone ? (
+            <>
+              <span className="batch-icon text-[var(--primary)]" aria-hidden="true">{Icon.refresh}</span>
+              <span>{t('重新解析')}</span>
+            </>
+          ) : (
+            <>
+              <span className="batch-icon text-[var(--primary)]" aria-hidden="true">{Icon.sparkles}</span>
+              <span>{t('一键完整解析')}</span>
+            </>
+          )}
+        </button>
+      </div>
     </header>
-    <div className="px-5 pb-5">
-      <LazyDisclosure label={t('翻译')} onFirstOpen={() => void loadTranslation()}>
+    <div className="word-detail-body px-5 pb-5">
+      <LazyDisclosure key={`${batchScope}:translation`} label={t('翻译')} open={translationOpen} onToggle={setTranslationOpen} onFirstOpen={() => void loadTranslation()}>
         {translationLoading && <p role="status">{t('翻译中…')}</p>}
         {translation && <p className="dictionary-definition">{translation}</p>}
         {translationError && <p role="alert">{errorText(translationError)} <button className="nd-ghost-btn" onClick={() => void loadTranslation(true)}>{t('重试')}</button></p>}
       </LazyDisclosure>
-      <LazyDisclosure label={t('用法解析')} onFirstOpen={() => void loadAnalysis()}>
+      <LazyDisclosure key={`${batchScope}:analysis`} label={t('用法解析')} open={analysisOpen} onToggle={setAnalysisOpen} onFirstOpen={() => void loadAnalysis()}>
         {analysisLoading && <p role="status">{t('解析中…')}</p>}
         {analysis && <div className="selection-analysis-content">
           {analysis.dictionaryForm && <p><strong>{t('原形')}</strong> <span lang="ja">{analysis.dictionaryForm}</span></p>}
@@ -86,10 +175,10 @@ export default function SelectionDetailPanel({ selectedText, pos, reading, conte
         </div>}
         {analysisError && <p role="alert">{errorText(analysisError)} <button className="nd-ghost-btn" onClick={() => void loadAnalysis(true)}>{t('重试')}</button></p>}
       </LazyDisclosure>
-      {!multiWord && <LazyDisclosure label={t('词典解释')} onFirstOpen={() => setDictionaryOpen(true)}>
+      {!multiWord && <LazyDisclosure label={t('词典解释')} open={dictionaryOpen} onToggle={setDictionaryOpen}>
         {dictionaryOpen && <DictionaryPanel word={selectedText} lemma={lemma} reading={reading} provider={provider} model={model} standalone />}
       </LazyDisclosure>}
-      {conjugatable && <ConjugationPanel surface={selectedText} lemma={lemma} context={context} model={model} />}
+      {conjugatable && <ConjugationPanel tool={conjugation} onLoad={() => conjugation.load(lemma)} open={conjugationOpen} onOpenChange={setConjugationOpen} />}
       <ExternalDictionaryLookup word={selectedText} lemma={!multiWord ? lemma : ''} multiWord={multiWord} />
       <div className="learning-actions selection-edit-actions">
         <button className="nd-soft-btn" disabled={!canEdit} onClick={onEdit}>{t('调整分词')}</button>

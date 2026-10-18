@@ -3,7 +3,8 @@ import './canonicalSurface.test';
 import { NextRequest } from 'next/server';
 import { zipSync, strToU8 } from 'fflate';
 import { zipEntry } from '../scripts/local-analyzer/archive.mjs';
-import { analyzeLocally, clearLocalDictionaryCache } from '../app/services/localAnalyzer';
+import { analyzeLocally, clearLocalDictionaryCache, isLocalDictionaryCached } from '../app/services/localAnalyzer';
+import localAnalyzerManifest from '../app/lib/localAnalyzerManifest.json';
 import { applyLocalCorrections, correctionChunks, LocalCorrectionValidationError, validateLocalTokens, type LocalCorrectionErrorReason } from '../app/lib/localCorrections';
 import { LocalCorrectionFormatError, localCorrectionCompletionContent, parseLocalCorrectionContent, type CorrectionFormatDetails } from '../app/lib/localCorrectionFormat';
 import { createLocalCorrectionSession } from '../app/services/localCorrection';
@@ -23,6 +24,7 @@ const request = (body: object) => new NextRequest('http://localhost/api/local-an
 
 async function main() {
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  const indexedDbDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'indexedDB');
   const originalFetch = globalThis.fetch;
   const originalWarn = console.warn;
   const diagnostics: string[] = [];
@@ -44,6 +46,25 @@ async function main() {
   }
   Object.defineProperty(globalThis, 'Worker', { configurable: true, value: FakeWorker });
   try {
+    let cachedKeys = localAnalyzerManifest.chunks.map((_, index) => `obsolete-${index}`);
+    Object.defineProperty(globalThis, 'indexedDB', { configurable: true, value: {
+      open() {
+        const request = {
+          result: { objectStoreNames: { contains: () => true }, close() {}, transaction: () => ({ objectStore: () => ({ getAllKeys() {
+            const keys = { result: cachedKeys, onsuccess: () => undefined };
+            queueMicrotask(() => keys.onsuccess()); return keys;
+          } }) }) },
+          onsuccess: () => undefined,
+        };
+        queueMicrotask(() => request.onsuccess()); return request;
+      },
+    } });
+    assert.equal(await isLocalDictionaryCached(), false, 'An old dictionary with the same number of chunks is not ready');
+    cachedKeys = localAnalyzerManifest.chunks.slice(0, -1).map(chunk => chunk.sha256);
+    assert.equal(await isLocalDictionaryCached(), false);
+    cachedKeys = localAnalyzerManifest.chunks.map(chunk => chunk.sha256);
+    assert.equal(await isLocalDictionaryCached(), true, 'Ready status requires all current manifest chunks');
+    if (indexedDbDescriptor) Object.defineProperty(globalThis, 'indexedDB', indexedDbDescriptor); else Reflect.deleteProperty(globalThis, 'indexedDB');
     const a = new AbortController(); let partials = 0;
     const pending = analyzeLocally('猫。', { signal: a.signal, onPartial: () => partials++ });
     const old = FakeWorker.instances.at(-1)!;
@@ -386,6 +407,7 @@ async function main() {
     }
     console.log('Local browser analysis passed: worker cancellation/reuse, source fidelity, atomic correction, failed-only retries, auth, provider controls, bounded archives and locales.');
   } finally {
+    if (indexedDbDescriptor) Object.defineProperty(globalThis, 'indexedDB', indexedDbDescriptor); else Reflect.deleteProperty(globalThis, 'indexedDB');
     console.warn = originalWarn;
     globalThis.fetch = originalFetch;
     if (originalCode === undefined) delete process.env.CODE; else process.env.CODE = originalCode;

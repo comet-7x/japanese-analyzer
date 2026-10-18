@@ -9,21 +9,23 @@ const tokens = [
   token('なけれ', '助動詞'), token('ば', '助詞'), token('なら', '動詞'), token('ない', '助動詞'), token('。', '記号'),
 ];
 
-// 顺序无关，首尾标点去掉
+// 顺序无关，短语选区
 assert.deepEqual(normalizePhraseRange(tokens, 7, 4), { start: 4, end: 7 });
-assert.deepEqual(normalizePhraseRange(tokens, 4, 8), { start: 4, end: 7 });
-// 不足两个词（单词加标点）不成立
-assert.equal(normalizePhraseRange(tokens, 7, 8), null);
+// 包含句末标点的完整句子：保留句末标点，不漏句末
+assert.deepEqual(normalizePhraseRange(tokens, 4, 8), { start: 4, end: 8 });
+// 单个词不成立范围
 assert.equal(normalizePhraseRange(tokens, 3, 3), null);
-// 不跨换行：截到换行之前
+// 支持跨换行选择长句：从第 1 行跨过换行到第 2 行完整保留
 const withBreak = [token('今日'), token('は', '助詞'), token('\n', '改行'), token('明日'), token('も', '助詞')];
-assert.deepEqual(normalizePhraseRange(withBreak, 0, 4), { start: 0, end: 1 });
-// 往回拖过换行：保留起点（后一段）所在的段落
-assert.deepEqual(normalizePhraseRange(withBreak, 4, 0), { start: 3, end: 4 });
-// 最多 PHRASE_MAX_WORDS 个词
+assert.deepEqual(normalizePhraseRange(withBreak, 0, 4), { start: 0, end: 4 });
+// 往回跨行拖选同样完整保留
+assert.deepEqual(normalizePhraseRange(withBreak, 4, 0), { start: 0, end: 4 });
+// 支持超长长句（远超旧的 12 词限制），不漏词
+const sentence25 = Array.from({ length: 25 }, (_, i) => token(`語${i}`));
+assert.deepEqual(normalizePhraseRange(sentence25, 0, 24), { start: 0, end: 24 });
+// 超出 PHRASE_MAX_WORDS (200) 时才做安全截断
 const long = Array.from({ length: PHRASE_MAX_WORDS + 5 }, (_, i) => token(`語${i}`));
 assert.deepEqual(normalizePhraseRange(long, 0, long.length - 1), { start: 0, end: PHRASE_MAX_WORDS - 1 });
-// 往回选超出上限时，截掉远离起点的一侧（保留靠后的词）
 assert.deepEqual(normalizePhraseRange(long, long.length - 1, 0), { start: long.length - PHRASE_MAX_WORDS, end: long.length - 1 });
 
 const range = { start: 4, end: 7 };

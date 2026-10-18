@@ -50,7 +50,7 @@ export function readDictionarySettings(raw: string | null): DictionarySettings {
     return { providers, activeId: providers.some(p => p.id === data.activeId) ? data.activeId : 'builtin' };
   } catch { return { providers: [BUILTIN_DICTIONARY], activeId: 'builtin' }; }
 }
-export type ExternalServiceId = 'ichi' | 'google' | 'baidu' | 'wiktionary';
+export type ExternalServiceId = 'ichi' | 'google' | 'baidu' | 'wiktionary' | 'jisho' | 'weblio';
 export interface ExternalServicesSettings {
   enabled: Record<ExternalServiceId, boolean>;
 }
@@ -60,6 +60,8 @@ export const DEFAULT_EXTERNAL_SERVICES: ExternalServicesSettings = {
     google: true,
     baidu: true,
     wiktionary: true,
+    jisho: true,
+    weblio: true,
   },
 };
 export const EXTERNAL_SERVICES_KEY = 'japaneseAnalyzer:externalServices:v1';
@@ -68,7 +70,7 @@ export function readExternalServicesSettings(raw: string | null): ExternalServic
     const data = JSON.parse(raw || '{}');
     const enabled = { ...DEFAULT_EXTERNAL_SERVICES.enabled };
     if (data?.enabled && typeof data.enabled === 'object') {
-      for (const key of ['ichi', 'google', 'baidu', 'wiktionary'] as const) {
+      for (const key of ['ichi', 'google', 'baidu', 'wiktionary', 'jisho', 'weblio'] as const) {
         if (typeof data.enabled[key] === 'boolean') {
           enabled[key] = data.enabled[key];
         }
@@ -120,20 +122,33 @@ export interface ExternalLookupOptions {
   ichiOptions?: IchiMoeOptions;
   locale?: Locale;
 }
+
+const SENTENCE_PUNCTUATION_REGEX = /[。、，,\.！？!?…~〜;:；：\n\r\t]/;
+const SENTENCE_PARTICLES = new Set(['が', 'は', 'を', 'に', 'で', 'と', 'から', 'ので', 'たら', 'なら', 'ば', 'けど', 'のに']);
+
+function lookupFeatures(text: string): { sentenceLike: boolean; multiWord: boolean } {
+  const clean = text.trim();
+  if (!clean) return { sentenceLike: false, multiWord: false };
+  if (SENTENCE_PUNCTUATION_REGEX.test(clean) || /\s/.test(clean) || Array.from(clean).length >= 14) {
+    return { sentenceLike: true, multiWord: true };
+  }
+  if (typeof Intl.Segmenter !== 'function') return { sentenceLike: false, multiWord: true };
+  const words = Array.from(new Intl.Segmenter('ja', { granularity: 'word' }).segment(clean))
+    .filter(segment => segment.isWordLike).map(segment => segment.segment);
+  return {
+    sentenceLike: words.length >= 4 || (words.length >= 3 && words.some(word => SENTENCE_PARTICLES.has(word))),
+    multiWord: words.length > 1,
+  };
+}
+
+/** Sentence warnings are stricter than the multi-word routing used by dictionaries. */
+export function isSentenceLike(text: string): boolean {
+  return lookupFeatures(text).sentenceLike;
+}
+
 /** Prefer analyzed selection metadata; segmentation is only a heuristic for manual input. */
 export function isMultiWordLookup(text: string, selection?: { kind: 'word' | 'phrase'; tokenCount: number }): boolean {
-  if (selection) return selection.kind !== 'word' || selection.tokenCount !== 1;
-  const clean = text.trim();
-  if (!clean) return false;
-  if (/\s/.test(clean)) return true;
-  // Older browsers can still submit arbitrary text to the sentence parser.
-  if (typeof Intl.Segmenter !== 'function') return true;
-  const segments = new Intl.Segmenter('ja', { granularity: 'word' }).segment(clean);
-  let words = 0;
-  for (const segment of segments) {
-    if (segment.isWordLike && ++words > 1) return true;
-  }
-  return false;
+  return selection ? selection.kind !== 'word' || selection.tokenCount !== 1 : lookupFeatures(text).multiWord;
 }
 export function externalDictionaryLinks(word: string, lemma = '', options: ExternalLookupOptions = {}) {
   const isMulti = Boolean(options.multiWord);
@@ -147,5 +162,7 @@ export function externalDictionaryLinks(word: string, lemma = '', options: Exter
     google: `https://translate.google.com/?sl=ja&tl=${targetGoogle}&text=${encodeURIComponent(cleanWord)}&op=translate`,
     baidu: `https://fanyi.baidu.com/mtpe-individual/multimodal?query=${encodeURIComponent(cleanWord)}&lang=jp2${targetBaidu}`,
     wiktionary: `https://en.wiktionary.org/wiki/${encodeURIComponent(key)}`,
+    jisho: `https://jisho.org/search/${encodeURIComponent(key)}`,
+    weblio: `https://www.weblio.jp/content/${encodeURIComponent(key)}`,
   };
 }

@@ -1,6 +1,7 @@
 import { LOCAL_INPUT_LIMIT, type LocalProgress, type LocalReply } from '../lib/localAnalyzerTypes';
 import type { TokenData } from './api';
 import { validateLocalTokens } from '../lib/localCorrections';
+import localAnalyzerManifest from '../lib/localAnalyzerManifest.json';
 
 let instance: Worker | null = null;
 let busy = false;
@@ -52,4 +53,52 @@ export async function clearLocalDictionaryCache() {
     request.onerror = () => reject(new Error('无法清除本地词典缓存。'));
     request.onblocked = () => reject(new Error('请关闭其他解析页面后重试。'));
   });
+}
+
+export async function isLocalDictionaryCached(): Promise<boolean> {
+  if (typeof indexedDB === 'undefined') return false;
+  try {
+    return await new Promise<boolean>((resolve) => {
+      const request = indexedDB.open('japaneseAnalyzer-localDictionary', 1);
+      request.onupgradeneeded = () => {
+        try {
+          if (!request.result.objectStoreNames.contains('chunks')) {
+            request.result.createObjectStore('chunks');
+          }
+        } catch {
+          // Ignore
+        }
+      };
+      request.onerror = () => resolve(false);
+      request.onblocked = () => resolve(false);
+      request.onsuccess = () => {
+        const db = request.result;
+        try {
+          if (!db.objectStoreNames.contains('chunks')) {
+            db.close();
+            try { indexedDB.deleteDatabase('japaneseAnalyzer-localDictionary'); } catch {}
+            resolve(false);
+            return;
+          }
+          const tx = db.transaction('chunks', 'readonly');
+          const store = tx.objectStore('chunks');
+          const keysRequest = store.getAllKeys();
+          keysRequest.onsuccess = () => {
+            const keys = new Set(keysRequest.result);
+            db.close();
+            resolve(localAnalyzerManifest.chunks.every(chunk => keys.has(chunk.sha256)));
+          };
+          keysRequest.onerror = () => {
+            db.close();
+            resolve(false);
+          };
+        } catch {
+          db.close();
+          resolve(false);
+        }
+      };
+    });
+  } catch {
+    return false;
+  }
 }

@@ -5,7 +5,9 @@ import { LanguageProvider } from '../app/contexts/LanguageContext';
 import CopyTextButton from '../app/components/CopyTextButton';
 import AnalysisResult from '../app/components/AnalysisResult';
 import InputSection from '../app/components/InputSection';
-import WordDetailPanel from '../app/components/WordDetailPanel';
+import SelectionDetailPanel from '../app/components/SelectionDetailPanel';
+import { ExternalLookupProvider } from '../app/contexts/ExternalLookupContext';
+import { BUILTIN_DICTIONARY } from '../app/lib/dictionary';
 import { SPEECH_PRESETS } from '../app/lib/speechServices';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -23,7 +25,7 @@ async function main() {
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { documentElement: {}, querySelector: () => null, title: '' } });
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { clipboard: { writeText: (text: string) => write(text) } } });
   let renderer: ReactTestRenderer | undefined;
-  const wrap = (node: React.ReactNode) => <LanguageProvider>{node}</LanguageProvider>;
+  const wrap = (node: React.ReactNode) => <LanguageProvider><ExternalLookupProvider>{node}</ExternalLookupProvider></LanguageProvider>;
   const button = (label: string) => renderer!.root.findByProps({ 'aria-label': label });
   const copy = async (label: string) => { await act(async () => { button(label).props.onClick(); }); };
   const tokens = [
@@ -38,15 +40,15 @@ async function main() {
   const originalText = '  猫がいる。\n𠮷  ';
   const endpoint = { baseUrl: '', model: '' };
   const history = { entries: [], storageUnavailable: false, record() {}, clear() {} };
-  const view = (selection = '', state: 'ready' | 'loading' | 'streaming' | 'error' = 'ready') => wrap(<>
+  const view = (selection = '') => wrap(<>
     <InputSection draft="unsubmitted edit" originalText={originalText} onDraftChange={() => {}} history={history}
       onAnalyze={() => {}} onCancelAnalyze={() => {}} activeService={null} endpoint={endpoint}
       speechService={SPEECH_PRESETS[0]} speechServices={[...SPEECH_PRESETS]} onSpeechServiceChange={() => {}} compact />
     <AnalysisResult {...props} selectedIndex={selection ? 0 : null} />
-    <WordDetailPanel selectedText={selection}
-      wordDetail={selection && state === 'ready' ? { originalWord: 'AI-normalized text', chineseTranslation: 'meaning', pos: '名詞', explanation: '' } : null}
-      isLoading={state === 'loading'} isStreamLoading={state === 'streaming'} streamError={state === 'error' ? 'offline' : ''}
-      streamContent="" onClose={() => {}} />
+    {selection && <SelectionDetailPanel selectedText={selection} pos="名詞" reading="" context={originalText}
+      tokens={tokens} selectionKind="phrase" identity={selection} provider={BUILTIN_DICTIONARY}
+      model={{ endpoint }} onClose={() => {}} onEdit={() => {}} canEdit={false} canGroup={false} />}
+
   </>);
 
   try {
@@ -58,16 +60,16 @@ async function main() {
     assert.equal(button('复制原文').findByProps({ role: 'status' }).children.join(''), '已复制');
     assert.equal(renderer!.root.findAllByProps({ 'aria-label': '复制选中文本' }).length, 0);
 
-    for (const [selection, state] of [['猫', 'loading'], ['猫がいる', 'streaming'], ['猫がいる。\n𠮷', 'ready'], ['猫', 'error']] as const) {
-      await act(async () => { renderer!.update(view(selection, state)); });
+    for (const selection of ['猫', '猫がいる', '猫がいる。\n𠮷', '猫'] as const) {
+      await act(async () => { renderer!.update(view(selection)); });
       assert.equal(renderer!.root.findAllByProps({ 'aria-label': '复制选中文本' }).length, 1, 'Only one selection copy action across the toolbar, output and detail');
-      const heading = renderer!.root.findByType(WordDetailPanel).findByType('h2').parent!;
+      const heading = renderer!.root.findByType(SelectionDetailPanel).findByType('h2').parent!;
       assert.ok(heading.findByProps({ 'aria-label': '复制选中文本' }));
       assert.ok(heading.findByProps({ 'aria-label': '朗读发音' }), 'Copy and pronunciation are beside the selection title');
       assert.equal(button('复制选中文本').props.title, '复制选中文本');
       assert.equal(button('复制选中文本').findByProps({ role: 'status' }).props.className, 'sr-only', 'Selection copy displays only its icon');
       await copy('复制选中文本');
-      assert.equal(writes.at(-1), selection, 'Copy uses the exact selected surface text even while loading or after an error');
+      assert.equal(writes.at(-1), selection, 'Copy uses the exact selected surface text independently of model output');
       assert.equal(button('复制选中文本').props.title, '已复制');
     }
     await act(async () => { renderer!.unmount(); }); renderer = undefined;
@@ -93,7 +95,7 @@ async function main() {
     assert.equal(renderer!.root.findByType('textarea').props.value, 'new', 'Unavailable clipboard also supports manual copy');
     await act(async () => { renderer!.update(wrap(<CopyTextButton text="   " />)); });
     assert.equal(button('复制').props.disabled, true, 'Empty text cannot be copied');
-    console.log('Copy text passed: toolbar original, single selection icon beside pronunciation, loading/error states, exact surface text, feedback and manual fallback.');
+    console.log('Copy text passed: toolbar original, single selection icon beside pronunciation, exact surface text, feedback and manual fallback.');
   } finally {
     if (renderer) await act(async () => { renderer!.unmount(); });
     for (const [key, descriptor] of descriptors) {

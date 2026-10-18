@@ -141,9 +141,6 @@ export function normalizeEndpointUrl(baseUrl: string): string {
   return `${trimmed}/chat/completions`;
 }
 
-/** 程序化调用（如测试、无显式配置时）的兜底端点；真实客户端总会传入自己的端点 */
-export const DEFAULT_ENDPOINT: ModelEndpoint = { baseUrl: '', model: '' };
-
 /** 为自定义服务商生成一个稳定的本地 id（仅客户端使用） */
 export function createCustomProfileId(prefix = 'custom'): string {
   return `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;

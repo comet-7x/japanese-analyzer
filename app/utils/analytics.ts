@@ -146,10 +146,6 @@ export function trackTtsUsage(provider: TTSProvider, model?: string): void {
   trackUmamiEvent(getTtsUsageEvent(provider, model), 'tts usage');
 }
 
-export function trackWordDetailUsage(provider: string, model?: string): void {
-  trackUmamiEvent(getWordDetailUsageEvent(provider, model), 'word detail usage');
-}
-
 export function getRequestErrorCategory(error: unknown): string {
   if (error instanceof AnalysisValidationError && error.code === 'timeout') return 'timeout';
   if (error instanceof ApiRequestError) {

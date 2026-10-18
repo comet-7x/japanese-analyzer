@@ -19,7 +19,7 @@ export default function ExternalDictionaryLookup({
   const { services, ichiOptions, updateIchiOptions } = useExternalLookupSettings();
 
   const enabled = services.enabled;
-  const hasAnyEnabled = enabled.ichi || enabled.google || enabled.baidu || enabled.wiktionary;
+  const hasAnyEnabled = enabled.ichi || enabled.google || enabled.baidu || enabled.wiktionary || enabled.jisho || enabled.weblio;
   if (!word.trim() || !hasAnyEnabled) return null;
 
   const links = externalDictionaryLinks(word, lemma, {
@@ -50,6 +50,16 @@ export default function ExternalDictionaryLookup({
         {enabled.wiktionary && (
           <a href={links.wiktionary} target="_blank" rel="noreferrer">
             Wiktionary<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
+          </a>
+        )}
+        {enabled.jisho && (
+          <a href={links.jisho} target="_blank" rel="noreferrer">
+            Jisho<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
+          </a>
+        )}
+        {enabled.weblio && (
+          <a href={links.weblio} target="_blank" rel="noreferrer">
+            Weblio<I w={14}><path d="M14 3h7v7M21 3 10 14M10 3H3v18h18v-7" /></I>
           </a>
         )}
       </div>

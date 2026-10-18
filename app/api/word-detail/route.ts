@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const body = await readJsonBody(req);
     const { word, pos, sentence, furigana, model, baseUrl, caps, kind, task } = body;
     const phrase = kind === 'phrase';
-    if ((task !== 'translate' && task !== 'analyze') || (kind !== 'word' && kind !== 'phrase') || typeof word !== 'string' || !word.trim() || word.length > 240
+    if ((task !== 'translate' && task !== 'analyze') || (kind !== 'word' && kind !== 'phrase') || typeof word !== 'string' || !word.trim() || word.length > (phrase ? 12_000 : 240)
       || typeof sentence !== 'string' || !sentence || sentence.length > 12_000 || typeof pos !== 'string' || typeof furigana !== 'string') {
       return NextResponse.json({ error: { message: '词语工具参数无效。' } }, { status: 400 });
     }

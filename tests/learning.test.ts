@@ -160,6 +160,11 @@ async function main() {
       return completion({ dictionaryForm: '食べる', explanation: '受身・可能の形。', example: '魚を食べられた。', exampleTranslation: '吃到了鱼。', pos: '', furigana: '' });
     };
     assert.equal((await detail(request({ ...endpoint, task: 'analyze', word: '食べられなかった', pos: '動詞', furigana: 'たべられなかった', sentence: '魚を食べられなかった。', kind: 'word' }, headers))).status, 200);
+    globalThis.fetch = async () => completion({ dictionaryForm: '', explanation: '长句解析', example: '', exampleTranslation: '', pos: '', furigana: '', category: '連語', breakdown: '' });
+    const longSelection = { ...endpoint, task: 'analyze', word: 'あ'.repeat(600), pos: '', furigana: '', sentence: 'あ'.repeat(600), kind: 'phrase' };
+    assert.equal((await detail(request(longSelection, headers))).status, 200, 'Long phrase selections are not limited to the word lookup length');
+    assert.equal((await detail(request({ ...longSelection, word: 'あ'.repeat(12_001) }, headers))).status, 400);
+    assert.equal((await detail(request({ ...longSelection, kind: 'word' }, headers))).status, 400, 'Standalone word lookup retains its smaller bound');
 
     const provider = { id: 'remote', name: 'Remote', adapter: 'http-v1' as const, lookupUrl: 'https://dict.example/lookup', apiKey: 'dictionary-key' };
     globalThis.fetch = async (url, init) => {

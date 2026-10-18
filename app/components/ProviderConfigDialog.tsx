@@ -49,14 +49,6 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service.id]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
   const handleSave = () => {
     const models = service.models.filter((model) => model.model.trim());
     const modelName = testModel.trim();
@@ -89,7 +81,7 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
   };
 
   return (
-    <SettingsConfigLayer><div
+    <SettingsConfigLayer onClose={onClose}><div
       className="settings-config-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

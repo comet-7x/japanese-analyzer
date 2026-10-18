@@ -95,21 +95,32 @@ async function main() {
     assert.equal(pending[5].body.dictionaryForm, '食べる', 'Previously known lemmas supplement dictionary lookup without AI');
     await act(async () => { pending[5].resolve(Response.json(response('食べる'))); await tick(); });
     assert.ok(pending.every(request => request.path === '/api/dictionary/lookup'), 'No vocabulary interaction automatically invokes a model');
-    // Manual Japanese phrases have no spaces; allow an explicit correction of automatic detection.
+    // Manual Japanese phrases use automatic detection; full sentences display guidance to Sentence Analysis.
     const ichiUrl = () => renderer!.root.findAllByType('a').find(link => link.props.href.includes('ichi.moe'))!.props.href as string;
-    const submit = async (draft: string, kind: 'auto' | 'word' | 'phrase' = 'auto') => {
+    const submit = async (draft: string) => {
       await act(async () => { renderer!.update(view({ draft })); });
-      await act(async () => { renderer!.root.findByProps({ 'aria-label': '查询类型' }).props.onChange({ target: { value: kind } }); });
       await act(async () => { renderer!.root.findByType('form').props.onSubmit({ preventDefault() {} }); });
     };
     await submit('駅の前');
     assert.match(ichiUrl(), /\/cl\/qr\//, 'Japanese phrases use sentence parsing without spaces');
     await submit('駅');
     assert.match(ichiUrl(), /\/cl\/word\//, 'Single words keep the word endpoint');
-    await submit('食べた', 'word');
-    assert.match(ichiUrl(), /\/cl\/word\//, 'Manual override keeps inflected words together');
-    await submit('駅', 'phrase');
-    assert.match(ichiUrl(), /\/cl\/qr\//, 'Users can explicitly choose sentence parsing');
+    await submit('食べなかった');
+    await act(async () => { pending.at(-1)!.resolve(Response.json(response(''))); await tick(); });
+    await act(async () => { renderer!.update(view({ draft: '食べなかった', model: { endpoint: { baseUrl: 'https://model.example/v1', model: 'test' }, apiKey: 'key' } })); });
+    await act(async () => { button('AI 查找原形').props.onClick(); });
+    const inference = pending.at(-1)!;
+    assert.equal(inference.path, '/api/word-detail');
+    assert.equal(inference.body.task, 'analyze');
+    assert.equal(inference.body.kind, 'word');
+    assert.equal(inference.body.sentence, '食べなかった', 'Manual words do not borrow unrelated sentence context');
+    await act(async () => { inference.resolve(Response.json({ dictionaryForm: '食べる', explanation: '', example: '', exampleTranslation: '', pos: '動詞', furigana: '' })); await tick(); });
+    assert.equal(pending.at(-1)!.body.dictionaryForm, '食べる', 'Inference feeds the existing dictionary lookup');
+    await act(async () => { pending.at(-1)!.resolve(Response.json(response('食べる'))); await tick(); });
+    await submit('夏が来ると、');
+    assert.ok(renderer!.root.findAllByProps({ 'aria-label': '当前输入的内容可能是一个句子' }).length > 0, 'Clause with comma shows guidance to switch to sentence analysis');
+    await submit('今日はとてもいい天气ですね。');
+    assert.ok(renderer!.root.findAllByProps({ 'aria-label': '当前输入的内容可能是一个句子' }).length > 0, 'Sentences show guidance to switch to sentence analysis');
     await act(async () => { renderer!.unmount(); }); renderer = undefined;
 
     // Exercise the shared query cache independently of React state.

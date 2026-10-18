@@ -35,14 +35,6 @@ export default function ModelConfigDialog({ serviceId, serviceName, model, onSav
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model.id]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
   const handleSave = () => {
     const trimmed = modelName.trim();
     const caps: ModelCaps = { thinking, structuredOutput };
@@ -55,7 +47,7 @@ export default function ModelConfigDialog({ serviceId, serviceName, model, onSav
   };
 
   return (
-    <SettingsConfigLayer><div
+    <SettingsConfigLayer onClose={onClose}><div
       className="settings-config-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

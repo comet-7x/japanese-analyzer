@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import {
   EXTERNAL_SERVICES_KEY, ICHI_OPTIONS_KEY, readExternalServicesSettings, readIchiOptions,
+  DEFAULT_EXTERNAL_SERVICES, DEFAULT_ICHI_OPTIONS,
   type ExternalServicesSettings, type IchiMoeOptions,
 } from '../lib/dictionary';
 import { browserStorage } from '../utils/storage';
@@ -49,6 +50,13 @@ export function ExternalLookupProvider({ children }: { children: React.ReactNode
 
 export function useExternalLookupSettings() {
   const context = useContext(ExternalLookupContext);
-  if (!context) throw new Error('useExternalLookupSettings must be used inside ExternalLookupProvider');
+  if (!context) {
+    return {
+      services: DEFAULT_EXTERNAL_SERVICES,
+      ichiOptions: DEFAULT_ICHI_OPTIONS,
+      updateServices: () => {},
+      updateIchiOptions: () => {},
+    };
+  }
   return context;
 }

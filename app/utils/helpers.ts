@@ -1,12 +1,6 @@
 // 工具函数
 import { synthesizeSpeech, type TTSProvider } from '../services/api';
 
-// 检查字符串是否包含汉字
-export function containsKanji(text: string): boolean {
-  const kanjiRegex = /[\u4E00-\u9FAF\u3400-\u4DBF]/;
-  return kanjiRegex.test(text);
-}
-
 // 学校文法词性分组（十类颜色，記号/改行/未知走其他）
 export type PosGroup = 'n' | 'v' | 'adj' | 'adjv' | 'adv' | 'adn' | 'conj' | 'int' | 'p' | 'aux' | 'o';
 export const POS_LEGEND_GROUPS = ['n', 'v', 'adj', 'adjv', 'adv', 'adn', 'conj', 'int', 'p', 'aux'] as const;
@@ -97,16 +91,6 @@ export const POS_GROUP_LABELS: Record<PosGroup, string> = {
   p: '助词',
   aux: '助动词',
   o: '其他',
-};
-
-// 词性中日对照表
-export const posChineseMap: Record<string, string> = {
-  "名詞": "名词", "動詞": "动词", "形容詞": "形容词", "副詞": "副词",
-  "助詞": "助词", "助動詞": "助动词", "接続詞": "接续词", "感動詞": "感动词",
-  "連体詞": "连体词", "代名詞": "代名词", "形容動詞": "形容动词", "形状詞": "形容动词", "記号": "符号",
-  "接頭辞": "接头辞", "接尾辞": "接尾辞", "フィラー": "填充词", "その他": "其他",
-  "改行": "换行",
-  "default": "未知词性"
 };
 
 // 朗读日语文本

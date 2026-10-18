@@ -74,7 +74,7 @@ async function main() {
     await act(async () => { settings().findAllByType('label').find(label => textOf(label) === '片假名转平假名')!.findByType('input').props.onChange({ target: { checked: true } }); });
     assert.ok(cards().every(card => ichiUrl(card).includes('hira=true')), 'Shared controls preserve and apply options');
 
-    for (const name of ['ichi.moe', 'Google 翻译', '百度翻译', 'Wiktionary']) {
+    for (const name of ['ichi.moe', 'Google 翻译', '百度翻译', 'Wiktionary', 'Jisho', 'Weblio']) {
       await act(async () => { serviceCheckbox(name).props.onChange({ target: { checked: false } }); });
     }
     assert.ok(cards().every(card => card.findAllByType('a').length === 0), 'Disabling all services hides external links');

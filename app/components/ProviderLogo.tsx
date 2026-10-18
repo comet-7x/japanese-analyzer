@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { ProviderProfile } from '../services/api';
 import { PROVIDER_ICONS } from '../lib/providerIcons';
 
@@ -19,7 +20,9 @@ export function ProviderLogo({ profile, className = 'h-4 w-4' }: ProviderLogoPro
 
   if (src) {
     return (
-      <img
+      <Image
+        width={16}
+        height={16}
         src={src}
         alt=""
         aria-hidden="true"
