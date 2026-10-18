@@ -459,6 +459,7 @@ export default function Home() {
       if (!current()) return;
       editing.setVariantTokens('local', tokens, true);
       editing.updateVariant('local', { status: 'complete', validated: true, model: 'Sudachi' }); history.record(text);
+      setTranslationTrigger(value => value + 1);
     } catch (error) {
       if (current()) setAnalysisError(error instanceof Error ? error.message : '本地解析失败，请重试或切换模型解析。');
     } finally {
@@ -565,7 +566,6 @@ export default function Home() {
     setAnalysisError('');
     setDraft(text);
     setCurrentSentence(text);
-    setTranslationTrigger(value => value + 1);
     const deepseekThinkingActive = !!activeModel?.caps?.thinking && thinkingEnabled;
     reasoningTextStore.reset();
     hasDeepseekReasoningRef.current = false;
@@ -653,6 +653,7 @@ export default function Home() {
         analysisCache.set(cacheKey, result.confirmedTokens);
         metrics.succeed();
         history.record(text);
+        setTranslationTrigger(value => value + 1);
         analysisAbortControllerRef.current = null;
       } else if (result.status === 'failed') {
         editing.updateVariant('model', { status: 'failed', validated: false, progress: result });
@@ -938,8 +939,7 @@ export default function Home() {
                     userApiKey={userApiKey}
                     endpoint={endpoint}
                     useStream={useStream}
-                    trigger={translationTrigger}
-                    automatic={resultKind === 'model'}
+                    trigger={!isAnalyzing && analysisValidated ? translationTrigger : 0}
                     onConfigureModel={() => setIsSettingsModalOpen(true)}
                     analysisSignal={analysisSignal}
                     settings={translationSettings}
@@ -948,6 +948,7 @@ export default function Home() {
                       setTranslationSettings(next); browserStorage.setItem(TRANSLATION_SERVICES_KEY, JSON.stringify(next));
                     }}
                     thinkingEnabled={thinkingEnabled}
+                    active={mode === 'analyze'}
                   />
                 )}
               </div>

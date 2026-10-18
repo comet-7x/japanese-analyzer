@@ -20,7 +20,7 @@ import SpeechServices from './SpeechServices';
 import DictionarySettings from './DictionarySettings';
 import type { DictionarySettings as DictionarySettingsValue } from '../lib/dictionary';
 import { sanitizeSpeechSettings, type SpeechSettings } from '../lib/speechServices';
-import TranslationServicesSettings from './TranslationServicesSettings';
+import TranslationSettings from './TranslationSettings';
 import type { TranslationServiceSettings } from '../lib/translationServices';
 
 interface SettingsPayload {
@@ -591,7 +591,7 @@ export default function SettingsModal({
 
         {isModalOpen && <DictionarySettings value={dictionarySettings} onChange={setDictionarySettings} />}
 
-        {isModalOpen && <TranslationServicesSettings value={translationSettings} onChange={setTranslationSettings} />}
+        {isModalOpen && <TranslationSettings value={translationSettings} onChange={setTranslationSettings} />}
 
         {isModalOpen && <SpeechServices settings={speechSettings} onChange={setSpeechSettings} />}
 

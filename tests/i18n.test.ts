@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import ts from 'typescript';
 import { NextRequest } from 'next/server';
 import { createTranslator, LANGUAGE_LABELS, LOCALES, localizeError, normalizeLocale } from '../app/i18n';
 import { messages } from '../app/i18n/messages';
@@ -18,6 +21,26 @@ async function main() {
   assert.deepEqual(Object.values(LANGUAGE_LABELS), ['简体中文', '繁體中文', 'English', '한국어']);
   assert.equal(normalizeLocale('ko'), 'ko');
   assert.equal(createTranslator('ko')('中文译文'), '한국어 번역');
+  const checkUiTranslations = (path: string) => {
+    const source = ts.createSourceFile(path, readFileSync(path, 'utf8'), ts.ScriptTarget.Latest, true);
+    const checkKey = (node: ts.Node) => {
+      if (ts.isStringLiteralLike(node)) assert.ok(node.text in messages, `${path}: missing UI translation ${node.text}`);
+      else if (ts.isConditionalExpression(node)) { checkKey(node.whenTrue); checkKey(node.whenFalse); }
+    };
+    const visit = (node: ts.Node) => {
+      if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 't' && node.arguments[0]) checkKey(node.arguments[0]);
+      ts.forEachChild(node, visit);
+    };
+    visit(source);
+  };
+  const checkDirectory = (directory: string) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) checkDirectory(path);
+      else if (/\.tsx?$/.test(path)) checkUiTranslations(path);
+    }
+  };
+  checkDirectory('app/components'); checkDirectory('components'); checkUiTranslations('app/page.tsx');
   assert.equal(localizeError('查询释义失败：未知错误', 'ko'), '뜻 조회 실패: 알 수 없는 오류');
   assert.equal(createTranslator('zh-TW')('保存设置'), '儲存設定');
   assert.equal(createTranslator('en')('{0} 个模型', 2), '2 model(s)');

@@ -18,11 +18,11 @@ interface TranslationSectionProps {
   useStream?: boolean;
   trigger?: number;
   analysisSignal?: AbortSignal;
-  automatic?: boolean;
   onConfigureModel?: () => void;
   settings: TranslationServiceSettings;
   onProviderChange: (provider: TranslationProviderId) => void;
   thinkingEnabled?: boolean;
+  active?: boolean;
 }
 
 export default function TranslationSection({
@@ -32,18 +32,20 @@ export default function TranslationSection({
   useStream = true, // 默认为true，保持向后兼容
   trigger,
   analysisSignal,
-  automatic = true,
   onConfigureModel,
   settings,
   onProviderChange,
   thinkingEnabled = false,
+  active = true,
 }: TranslationSectionProps) {
   const { t, locale, errorText } = useLanguage();
   const provider = settings.preferredProvider;
+  const currentService = settings.services?.find((s) => s.id === provider);
+  const myMemoryEmail = currentService?.email ?? settings.myMemoryEmail;
   const { translation, review, displayedTranslation, showReview, setShowReview, error, reviewError,
     isLoading, isReviewing, fromCache, translate, reviewTranslation } = useSentenceTranslation({
-    text: japaneseText, endpoint, apiKey: userApiKey, locale, useStream, trigger: automatic ? trigger : 0, analysisSignal,
-    provider, settings, thinkingEnabled,
+    text: japaneseText, endpoint, apiKey: userApiKey, locale, useStream, trigger, analysisSignal,
+    provider: (currentService?.provider || provider) as TranslationProviderId, myMemoryEmail, thinkingEnabled, active,
   });
   const [isVisible, setIsVisible] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -74,19 +76,20 @@ export default function TranslationSection({
       return;
     }
 
-    if (!isLoading || displayedTranslation.length >= 16 || /[。！？.!?，,、\n]/.test(displayedTranslation)) {
+    if (!isLoading || displayedTranslation.length >= 16 || /[。！？.!?，,\n]/.test(displayedTranslation)) {
       setCanAnimateTranslation(true);
     }
   }, [isLoading, displayedTranslation]);
 
   const actions = (
     <div className="translation-actions flex items-center gap-1">
-      <label className="sr-only" htmlFor="translationProvider">{t('翻译来源')}</label>
+      <label className="sr-only" htmlFor="translationProvider">{t('翻译服务')}</label>
       <select id="translationProvider" className="translation-provider-select" value={provider}
         onChange={event => onProviderChange(event.target.value as TranslationProviderId)} disabled={isLoading || isReviewing}>
         <option value="model">{t('当前模型')}</option>
-        <option value="google">Google</option>
-        <option value="baidu">{t('百度')}</option>
+        {settings.services?.map((svc) => (
+          <option key={svc.id} value={svc.id}>{svc.name}</option>
+        )) ?? <option value="mymemory">MyMemory</option>}
       </select>
       <button
         id="translateSentenceButton"
@@ -100,7 +103,7 @@ export default function TranslationSection({
       {provider !== 'model' && translation && (
         <button className="nd-ghost-btn" disabled={isReviewing || !endpoint.model}
           onClick={() => { if (!endpoint.model) { onConfigureModel?.(); return; } void reviewTranslation(true); }}>
-          {Icon.refresh}<span>{t(isReviewing ? '复核中…' : review ? '重新用模型复核' : '用当前模型复核')}</span>
+          {Icon.refresh}<span>{t(isReviewing ? '润色中…' : review ? '重新用模型润色' : '用模型润色')}</span>
         </button>
       )}
       <button
@@ -134,8 +137,24 @@ export default function TranslationSection({
           {isVisible ? (
             <div className="translation-scroll-region flow-root" role="region" aria-label={t("中文译文正文")} tabIndex={0}>
               {review && provider !== 'model' && <div className="translation-version-tabs" role="tablist" aria-label={t('译文版本')}>
-                <button role="tab" aria-selected={!showReview} className="display-chip" onClick={() => setShowReview(false)}>{t('机器译文')}</button>
-                <button role="tab" aria-selected={showReview} className="display-chip" onClick={() => setShowReview(true)}>{t('模型复核版')}</button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!showReview}
+                  className={`display-chip${!showReview ? ' is-active' : ''}`}
+                  onClick={() => setShowReview(false)}
+                >
+                  {t('机器译文')}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={showReview}
+                  className={`display-chip${showReview ? ' is-active' : ''}`}
+                  onClick={() => setShowReview(true)}
+                >
+                  {t('模型润色版')}
+                </button>
               </div>}
               {isLoading && !displayedTranslation ? (
                 <ThinkingIndicator label={t("翻译中")} />
@@ -155,19 +174,22 @@ export default function TranslationSection({
                 </div>
               ) : (
                 <p className="translation-text mb-0 whitespace-pre-wrap">
-                  {translation || <span style={{ color: 'var(--ink-3)' }}>{t(automatic && provider === 'model'
-                    ? '解析后将自动翻译。'
-                    : provider === 'model' ? '点击翻译时将调用当前模型。' : '点击翻译以使用所选翻译来源。')}</span>}
+                  {translation || <span style={{ color: 'var(--ink-3)' }}>{t(provider === 'model'
+                    ? '点击翻译将调用当前模型。'
+                    : '点击翻译以使用所选翻译服务。')}</span>}
                 </p>
               )}
-              {showReview && review?.summary && <p className="tool-note">{t('模型复核说明：{0}', review.summary)}</p>}
+              {showReview && review?.summary && <p className="tool-note">{t('模型润色说明：{0}', review.summary)}</p>}
+              {provider === 'mymemory' && !showReview && (
+                <p className="tool-note translation-attribution">{t('MyMemory 翻译需联网，原文会发送至该服务。')}</p>
+              )}
             </div>
           ) : null}
         </AutoAnimateHeight>
       </div>
 
       {error && <p role="alert">{t("翻译时发生错误: {0}。", errorText(error))}</p>}
-      {reviewError && <p role="alert">{t('模型复核失败：{0}', errorText(reviewError))}</p>}
+      {reviewError && <p role="alert">{t('模型润色失败：{0}', errorText(reviewError))}</p>}
       {fromCache && <p className="tool-note">{t('已使用缓存')}</p>}
       {actions}
     </section>

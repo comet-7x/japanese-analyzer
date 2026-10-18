@@ -1,22 +1,15 @@
-import { createHash, randomBytes } from 'crypto';
 import type { Locale } from '../../i18n';
 import type { MachineTranslationProviderId } from '../../lib/translationServices';
 
 export class MachineTranslationError extends Error {
-  constructor(message: string, readonly status = 502) { super(message); }
+  constructor(message: string, readonly status = 502, readonly code?: string) { super(message); }
 }
 
-export interface MachineTranslationCredentials {
-  googleApiKey?: string;
-  baiduAppId?: string;
-  baiduSecret?: string;
-}
-
-const targetLanguages: Record<Locale, { google: string; baidu: string }> = {
-  'zh-CN': { google: 'zh-CN', baidu: 'zh' },
-  'zh-TW': { google: 'zh-TW', baidu: 'cht' },
-  en: { google: 'en', baidu: 'en' },
-  ko: { google: 'ko', baidu: 'kor' },
+const targetLanguages: Record<Locale, string> = {
+  'zh-CN': 'zh-CN',
+  'zh-TW': 'zh-TW',
+  en: 'en',
+  ko: 'ko',
 };
 
 function decodeHtmlEntities(value: string): string {
@@ -25,52 +18,35 @@ function decodeHtmlEntities(value: string): string {
     if (entity[0] === '#') {
       const hex = entity[1]?.toLowerCase() === 'x';
       const code = Number.parseInt(entity.slice(hex ? 2 : 1), hex ? 16 : 10);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+      return Number.isInteger(code) && code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match;
     }
     return named[entity.toLowerCase()] ?? match;
   });
 }
 
-function providerMessage(value: unknown): string {
-  if (!value || typeof value !== 'object') return '';
-  const record = value as Record<string, unknown>;
-  if (typeof record.error_msg === 'string') return record.error_msg;
-  if (typeof record.message === 'string') return record.message;
-  if (record.error && typeof record.error === 'object' && typeof (record.error as Record<string, unknown>).message === 'string') {
-    return String((record.error as Record<string, unknown>).message);
-  }
-  return '';
-}
-
-async function requestGoogle(text: string, target: string, apiKey: string, signal: AbortSignal): Promise<string> {
-  const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(apiKey)}`, {
-    method: 'POST', signal, headers: { 'Content-Type': 'application/json; charset=utf-8' },
-    body: JSON.stringify({ q: text, source: 'ja', target, format: 'text' }),
+async function requestMyMemory(text: string, target: string, signal: AbortSignal, email?: string, clientIp?: string): Promise<string> {
+  const url = new URL('https://api.mymemory.translated.net/get');
+  url.searchParams.set('q', text); url.searchParams.set('langpair', `ja|${target}`);
+  if (email) url.searchParams.set('de', email);
+  if (clientIp) url.searchParams.set('ip', clientIp);
+  const response = await fetch(url.toString(), {
+    method: 'GET', signal, cache: 'no-store',
   });
-  const body = await response.json().catch(() => null) as { data?: { translations?: { translatedText?: string }[] } } | null;
-  const translated = body?.data?.translations?.[0]?.translatedText;
-  if (!response.ok || typeof translated !== 'string') {
-    throw new MachineTranslationError(providerMessage(body) || `Google 翻译请求失败（HTTP ${response.status}）`, response.ok ? 502 : response.status);
+  const value = await response.json().catch(() => null) as { responseData?: { translatedText?: string }; responseStatus?: number | string; responseDetails?: string; quotaFinished?: boolean } | null;
+  const translated = value?.responseData?.translatedText;
+  const providerStatus = Number(value?.responseStatus);
+  if (value?.quotaFinished === true || response.status === 429 || providerStatus === 429
+    || (providerStatus !== 200 && /quota|used all available free translations|next available in/i.test(value?.responseDetails || translated || ''))) {
+    throw new MachineTranslationError('MyMemory 翻译额度已用完，请稍后重试或手动切换翻译来源。', 429, 'MYMEMORY_QUOTA_EXCEEDED');
+  }
+  if (!response.ok || providerStatus !== 200 || typeof translated !== 'string' || !translated.trim()) {
+    if (email && /(?:invalid.*e-?mail|e-?mail.*invalid)/i.test(value?.responseDetails || translated || '')) {
+      throw new MachineTranslationError('MyMemory 未接受此邮箱，请检查邮箱地址或留空使用匿名翻译。', 400, 'MYMEMORY_EMAIL_INVALID');
+    }
+    const status = !response.ok ? response.status : Number.isInteger(providerStatus) && providerStatus >= 400 && providerStatus <= 599 ? providerStatus : 502;
+    throw new MachineTranslationError(value?.responseDetails || `MyMemory 翻译请求失败（HTTP ${status}）`, status);
   }
   return decodeHtmlEntities(translated);
-}
-
-async function requestBaidu(text: string, target: string, appId: string, secret: string, signal: AbortSignal): Promise<string> {
-  const salt = randomBytes(12).toString('hex');
-  const sign = createHash('md5').update(`${appId}${text}${salt}${secret}`, 'utf8').digest('hex');
-  const body = new URLSearchParams({ q: text, from: 'jp', to: target, appid: appId, salt, sign });
-  const response = await fetch('https://fanyi-api.baidu.com/api/trans/vip/translate', {
-    method: 'POST', signal, headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8' }, body,
-  });
-  const value = await response.json().catch(() => null) as { trans_result?: { dst?: string }[]; error_code?: string; error_msg?: string } | null;
-  if (!response.ok || value?.error_code || !Array.isArray(value?.trans_result)) {
-    const code = value?.error_code;
-    const status = !response.ok ? response.status
-      : code === '52003' || code === '54001' ? 401
-      : code === '54003' || code === '54004' ? 429 : 502;
-    throw new MachineTranslationError(providerMessage(value) || `百度翻译请求失败（HTTP ${response.status}）`, status);
-  }
-  return value.trans_result.map(item => item.dst ?? '').join('\n');
 }
 
 function splitLongLine(value: string, byteLimit: number): string[] {
@@ -94,24 +70,18 @@ function splitLongLine(value: string, byteLimit: number): string[] {
 
 /** Translate non-empty line contents and preserve every original newline sequence. */
 export async function machineTranslate(text: string, provider: MachineTranslationProviderId, locale: Locale,
-  credentials: MachineTranslationCredentials, signal: AbortSignal): Promise<string> {
-  const googleKey = credentials.googleApiKey?.trim();
-  const baiduAppId = credentials.baiduAppId?.trim();
-  const baiduSecret = credentials.baiduSecret?.trim();
-  if (provider === 'google' && !googleKey) throw new MachineTranslationError('未配置 Google 翻译 API Key。', 400);
-  if (provider === 'baidu' && (!baiduAppId || !baiduSecret)) throw new MachineTranslationError('未配置百度翻译 AppID 或密钥。', 400);
-  const target = targetLanguages[locale][provider];
+  signal: AbortSignal, email?: string, clientIp?: string): Promise<string> {
+  if (provider !== 'mymemory') throw new MachineTranslationError('机器翻译参数无效。', 400);
+  const target = targetLanguages[locale];
   const parts = text.split(/(\r\n|\n|\r)/);
   const translated: string[] = [];
   for (const part of parts) {
     signal.throwIfAborted();
     if (/^(?:\r\n|\n|\r)$/.test(part) || !part.trim()) { translated.push(part); continue; }
-    const chunks = splitLongLine(part, provider === 'baidu' ? 5_000 : 20_000);
+    const chunks = splitLongLine(part, 450);
     const values: string[] = [];
     for (const chunk of chunks) {
-      values.push(provider === 'google'
-        ? await requestGoogle(chunk, target, googleKey!, signal)
-        : await requestBaidu(chunk, target, baiduAppId!, baiduSecret!, signal));
+      values.push(await requestMyMemory(chunk, target, signal, email, clientIp));
     }
     translated.push(values.join(''));
   }
