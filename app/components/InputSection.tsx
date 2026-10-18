@@ -5,10 +5,11 @@ import { browserStorage } from '../utils/storage';
 
 import { getImageExtractionPrompt } from '../lib/languagePrompts';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { extractTextFromImage, streamExtractTextFromImage } from '../services/api';
-import type { EndpointPayload, ProviderProfile, TTSProvider } from '../services/api';
-import { getJapaneseTtsAudioUrl, speakJapanese } from '../utils/helpers';
+import type { EndpointPayload, ProviderProfile, TTSProvider, TokenData } from '../services/api';
+import { getJapaneseTtsAudio, getJapaneseTtsAudioUrl, speakJapanese } from '../utils/helpers';
+import type { TokenTimeCue } from '../utils/moraTiming';
 import {
   getImageRecognitionUsage,
   getTtsUsage,
@@ -21,7 +22,7 @@ import CopyTextButton from './CopyTextButton';
 import ModelSwitcher from './ModelSwitcher';
 import AnchoredPopover from './AnchoredPopover';
 import { ProviderLogo } from './ProviderLogo';
-import type { SpeechService } from '../lib/speechServices';
+import { formatSpeechServiceName, type SpeechService } from '../lib/speechServices';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { StateMorphButton, StateMorphButtonState } from '@/components/ui/state-morph-button';
@@ -58,6 +59,12 @@ interface InputSectionProps {
   onCancelEdit?: () => void;
   /** 阅读态胶囊右侧的附加控件（假名/罗马音开关） */
   compactExtras?: React.ReactNode;
+  /** 音频播放时间更新回调，传出当前播放秒数和音频总秒数，未在播放时传出 null */
+  onAudioPlaybackUpdate?: (state: { currentTime: number; duration: number } | null) => void;
+  /** 当前句子分词列表，用于将官方 TTS 词边界精确对齐到单词节点 */
+  tokens?: TokenData[];
+  /** 接收到带真实时间戳音频时的回调 */
+  onAudioCuesReady?: (cues: TokenTimeCue[] | null) => void;
   /** 「新句子」：清空当前解析回到首页；未提供时只展开输入框 */
   onNewSentence?: () => void;
   /** 首页：输入框上方显示「今日一句」，下方显示最近记录 */
@@ -125,6 +132,9 @@ export default function InputSection({
   onExpand,
   onCancelEdit,
   compactExtras,
+  onAudioPlaybackUpdate,
+  tokens,
+  onAudioCuesReady,
   onNewSentence,
   showSuggestions = false,
 }: InputSectionProps) {
@@ -156,12 +166,39 @@ export default function InputSection({
   const reduceMotion = useReducedMotion();
   const imageRequest = useRef(new LatestRequest());
   const speechRequest = useRef(new LatestRequest());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRafIdRef = useRef<number | null>(null);
+
+  const stopAudioTracking = useCallback(() => {
+    if (audioRafIdRef.current !== null) {
+      cancelAnimationFrame(audioRafIdRef.current);
+      audioRafIdRef.current = null;
+    }
+  }, []);
+
+  const startAudioTracking = useCallback(() => {
+    stopAudioTracking();
+    const tick = () => {
+      const el = audioRef.current;
+      if (el && !el.paused && !el.ended) {
+        onAudioPlaybackUpdate?.({
+          currentTime: el.currentTime,
+          duration: el.duration || 0,
+        });
+        audioRafIdRef.current = requestAnimationFrame(tick);
+      } else {
+        stopAudioTracking();
+      }
+    };
+    audioRafIdRef.current = requestAnimationFrame(tick);
+  }, [onAudioPlaybackUpdate, stopAudioTracking]);
 
   useEffect(() => () => {
+    stopAudioTracking();
     imageRequest.current.cancel();
     speechRequest.current.cancel();
     window.speechSynthesis?.cancel();
-  }, []);
+  }, [stopAudioTracking]);
 
   useEffect(() => () => {
     if (ttsAudioUrl) URL.revokeObjectURL(ttsAudioUrl);
@@ -174,9 +211,10 @@ export default function InputSection({
     setIsSpeaking(false);
     setUploadStatus('');
     setTtsAudioUrl(null);
+    onAudioCuesReady?.(null);
     window.speechSynthesis?.cancel();
     setTtsError('');
-  }, [endpoint, locale, speechService]);
+  }, [endpoint, locale, speechService, onAudioCuesReady]);
 
   useEffect(() => { setSelectedVoice(speechService.voice); }, [speechService]);
 
@@ -187,6 +225,7 @@ export default function InputSection({
     setIsSpeaking(false);
     setUploadStatus('');
     setTtsAudioUrl(null);
+    onAudioCuesReady?.(null);
     window.speechSynthesis?.cancel();
   };
 
@@ -366,34 +405,38 @@ export default function InputSection({
 
     try {
       if (ttsProvider === 'edge') {
-        // 使用 Edge TTS
-        const url = await getJapaneseTtsAudioUrl(inputText, undefined, 'edge', {
+        // 使用 Edge TTS（直连微软 WebSocket 并提取官方精确时间戳）
+        const { url, cues } = await getJapaneseTtsAudio(inputText, undefined, 'edge', {
           gender: selectedGender,
           rate: selectedRate,
           pitch: 0,
           signal: request.signal
-        });
+        }, tokens);
         if (!request.isCurrent()) { URL.revokeObjectURL(url); return; }
         setTtsAudioUrl(url);
+        onAudioCuesReady?.(cues || null);
         markTtsUsed('edge');
       } else if (ttsProvider === 'gemini') {
         // 使用 Gemini TTS，添加风格控制
         const stylePrompt = TTS_STYLES.find(s => s.value === selectedStyle)?.prompt || '';
         const textToSpeak = stylePrompt + inputText;
-        const url = await getJapaneseTtsAudioUrl(textToSpeak, speechService.apiKey, 'gemini', { baseUrl: speechService.baseUrl, model: speechService.model, voice: selectedVoice, pitch: 0, signal: request.signal });
+        const { url, cues } = await getJapaneseTtsAudio(textToSpeak, speechService.apiKey, 'gemini', { baseUrl: speechService.baseUrl, model: speechService.model, voice: selectedVoice, pitch: 0, signal: request.signal }, tokens);
         if (!request.isCurrent()) { URL.revokeObjectURL(url); return; }
         setTtsAudioUrl(url);
+        onAudioCuesReady?.(cues || null);
         markTtsUsed('gemini');
       } else {
-        const url = await getJapaneseTtsAudioUrl(inputText, speechService.apiKey, ttsProvider, { baseUrl: speechService.baseUrl, model: speechService.model, voice: selectedVoice, speed: speechService.speed, signal: request.signal });
+        const { url, cues } = await getJapaneseTtsAudio(inputText, speechService.apiKey, ttsProvider, { baseUrl: speechService.baseUrl, model: speechService.model, voice: selectedVoice, speed: speechService.speed, signal: request.signal }, tokens);
         if (!request.isCurrent()) { URL.revokeObjectURL(url); return; }
         setTtsAudioUrl(url);
+        onAudioCuesReady?.(cues || null);
         markTtsUsed(ttsProvider);
       }
     } catch (e) {
       if (!request.isCurrent()) return;
       console.error('TTS error:', e);
       setTtsAudioUrl(null);
+      onAudioCuesReady?.(null);
       setTtsError(t('语音服务调用失败，已尝试系统朗读：{0}', errorText(e instanceof Error ? e.message : t('未知错误'))));
       // 如果失败，回退到系统 TTS
       speakJapanese(inputText);
@@ -924,7 +967,11 @@ export default function InputSection({
                         <div className="mb-3">
                           <label className="mb-2 block text-xs font-medium" style={{ color: 'var(--ink-2)' }}>{t("语音引擎")}</label>
                           <select className="nd-input text-sm" aria-label={t('语音服务')} value={speechService.id} onChange={(event) => handleTtsProviderSelect(event.target.value)}>
-                            {speechServices.map((service) => <option key={service.id} value={service.id}>{service.name} · {service.model}</option>)}
+                            {speechServices.map((service) => (
+                              <option key={service.id} value={service.id}>
+                                {formatSpeechServiceName(service, t)} · {service.model}
+                              </option>
+                            ))}
                           </select>
                         </div>
 
@@ -1073,11 +1120,41 @@ export default function InputSection({
         <div className="mt-4">
           <audio
             key={ttsAudioUrl}
+            ref={audioRef}
             src={ttsAudioUrl}
             controls
             autoPlay
             className="w-full rounded-lg"
             style={{ height: '40px' }}
+            onPlay={startAudioTracking}
+            onPlaying={startAudioTracking}
+            onSeeked={startAudioTracking}
+            onLoadedMetadata={() => {
+              if (audioRef.current && !audioRef.current.paused) {
+                startAudioTracking();
+              }
+            }}
+            onTimeUpdate={(e) => {
+              const el = e.currentTarget;
+              if (!el.paused && !el.ended && !audioRafIdRef.current) {
+                startAudioTracking();
+              } else if (!audioRafIdRef.current && onAudioPlaybackUpdate) {
+                onAudioPlaybackUpdate({
+                  currentTime: el.currentTime,
+                  duration: el.duration || 0,
+                });
+              }
+            }}
+            onEnded={() => {
+              stopAudioTracking();
+              onAudioPlaybackUpdate?.(null);
+            }}
+            onPause={(e) => {
+              stopAudioTracking();
+              if (e.currentTarget.ended || e.currentTarget.paused) {
+                onAudioPlaybackUpdate?.(null);
+              }
+            }}
           />
         </div>
       )}

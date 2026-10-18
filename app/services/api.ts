@@ -1454,13 +1454,25 @@ export async function streamExtractTextFromImage(
   }
 }
 
+export interface SpeechSynthesisCue {
+  word: string;
+  startTime: number;
+  endTime: number;
+}
+
+export interface SpeechSynthesisResult {
+  audio: string;
+  mimeType: string;
+  cues?: SpeechSynthesisCue[];
+}
+
 // 合成语音
 export async function synthesizeSpeech(
   text: string,
   provider: TTSProvider = 'edge',
   options: SpeechRequestOptions = {},
   userApiKey?: string
-): Promise<{ audio: string; mimeType: string }> {
+): Promise<SpeechSynthesisResult> {
   const { gender = 'female', voice, rate = 0, pitch = 0, model, baseUrl, speed } = options;
 
   const apiUrl = getApiEndpoint('/tts');
@@ -1536,48 +1548,5 @@ export async function streamChat(
     if (signal?.aborted) return;
     console.error('Stream Chat error:', error);
     onError(error instanceof Error ? error : new Error('聊天时出错'));
-  }
-}
-
-/**
- * @public Retained for non-streaming chat callers.
- */
-export async function sendChat(
-  messages: ChatMessage[],
-  userApiKey?: string,
-  endpoint: EndpointPayload = { baseUrl: '', model: '' }
-): Promise<string> {
-  try {
-    const apiUrl = getApiEndpoint('/chat');
-    const headers = getHeaders(userApiKey);
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        messages,
-        ...getRequestProviderPayload(endpoint),
-        useStream: false
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('API Error (Chat):', errorData);
-      throw new Error(`聊天失败：${errorData.error?.message || response.statusText || '未知错误'}`);
-    }
-
-    const result = await response.json();
-    validateCompletion(result, '聊天');
-    
-    if (result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content) {
-      return result.choices[0].message.content.trim();
-    } else {
-      console.error('Unexpected API response structure (Chat):', result);
-      throw new Error('聊天结果格式错误');
-    }
-  } catch (error) {
-    console.error('Error sending chat:', error);
-    throw error;
   }
 }

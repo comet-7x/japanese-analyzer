@@ -31,6 +31,8 @@ interface AnalysisResultProps {
   /** 圈选起点：设置后再点一个词即选中这一段 */
   pickAnchor?: number | null;
   onPickAnchorChange?: (index: number | null) => void;
+  /** 当前音频朗读正在发音的单词索引（用于词法/阅读视图联动高亮） */
+  playingTokenIndex?: number | null;
 }
 
 const noop = () => {};
@@ -213,6 +215,7 @@ export default function AnalysisResult({
   onRangeSelect,
   pickAnchor = null,
   onPickAnchorChange = noop,
+  playingTokenIndex = null,
 }: AnalysisResultProps) {
   const { t } = useLanguage();
   const selection = usePhraseSelection({
@@ -264,13 +267,19 @@ export default function AnalysisResult({
         >
           {displayGroups.map((group) => {
             if (group[0].token.pos === '改行') {
-              return <span key={group[0].index} className="reading-paragraph-break" />;
+              const inRange = !!highlightRange && group[0].index >= highlightRange.start && group[0].index <= highlightRange.end;
+              return <span key={group[0].index} data-token-index={group[0].index} className={`reading-paragraph-break${inRange ? ' in-range' : ''}`} />;
             }
             return (
               <span className="reading-word-group" key={group[0].index}>
                 {group.map(({ token, index, range }) => {
                   const isPunct = isPunctuationToken(token);
                   const isActive = selectedIndex === index;
+                  const isPlaying = playingTokenIndex !== null && (
+                    range
+                      ? playingTokenIndex >= range.start && playingTokenIndex <= range.end
+                      : playingTokenIndex === index
+                  );
                   const inRange = !!highlightRange && index >= highlightRange.start && index <= highlightRange.end;
                   const rangeClass = inRange
                     ? ` in-range${index === highlightRange.start ? ' range-start' : ''}${index === highlightRange.end ? ' range-end' : ''}`
@@ -284,7 +293,7 @@ export default function AnalysisResult({
                     <span
                       key={index}
                       data-token-index={index}
-                      className={`word-unit-wrapper ${isPunct ? 'is-punct' : ''} ${isActive ? 'active-unit' : ''}${rangeClass}${pickAnchor === index ? ' range-anchor' : ''}`}
+                      className={`word-unit-wrapper ${isPunct ? 'is-punct' : ''} ${isActive ? 'active-unit' : ''} ${isPlaying ? 'playing-cue' : ''}${rangeClass}${pickAnchor === index ? ' range-anchor' : ''}`}
                     >
                       {!isPunct && (
                         <span className="furigana-text" aria-hidden={!showFurigana || !furiganaText} style={{ opacity: showFurigana && furiganaText ? 1 : 0 }}>

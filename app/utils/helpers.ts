@@ -124,17 +124,44 @@ export function speakJapanese(text: string): void {
   }
 }
 
-// 获取 TTS 音频 URL
+import { alignWordBoundariesToTokens, type TokenTimeCue } from './moraTiming';
+import type { TokenData } from '../services/api';
+
+export interface TtsAudioPayload {
+  url: string;
+  cues?: TokenTimeCue[];
+}
+
+// 获取带精确时间戳的 TTS 音频
+export async function getJapaneseTtsAudio(
+  text: string, 
+  apiKey?: string, 
+  provider: TTSProvider = 'edge',
+  options: import('../services/api').SpeechRequestOptions = {},
+  tokens?: TokenData[]
+): Promise<TtsAudioPayload> {
+  const result = await synthesizeSpeech(text, provider, options, apiKey);
+  const url = /^audio\/(?:l16|pcm)(?:;|$)/i.test(result.mimeType)
+    ? createPlayableUrlFromPcm(result.audio, result.mimeType)
+    : createPlayableUrlFromAudio(result.audio, result.mimeType);
+
+  let cues: TokenTimeCue[] | undefined;
+  if (result.cues && result.cues.length > 0 && tokens && tokens.length > 0) {
+    cues = alignWordBoundariesToTokens(tokens, result.cues);
+  }
+
+  return { url, cues };
+}
+
+// 获取 TTS 音频 URL (向下兼容)
 export async function getJapaneseTtsAudioUrl(
   text: string, 
   apiKey?: string, 
   provider: TTSProvider = 'edge',
   options: import('../services/api').SpeechRequestOptions = {}
 ): Promise<string> {
-  const { audio, mimeType } = await synthesizeSpeech(text, provider, options, apiKey);
-  return /^audio\/(?:l16|pcm)(?:;|$)/i.test(mimeType)
-    ? createPlayableUrlFromPcm(audio, mimeType)
-    : createPlayableUrlFromAudio(audio, mimeType);
+  const res = await getJapaneseTtsAudio(text, apiKey, provider, options);
+  return res.url;
 }
 
 // 将 Base64 音频数据转换为可播放的 URL (Edge TTS用)

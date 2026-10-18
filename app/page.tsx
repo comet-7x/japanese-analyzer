@@ -33,6 +33,7 @@ import type { AnalysisEngine, LocalProgress } from './lib/localAnalyzerTypes';
 import type { AnalysisSession, AnalysisProgress } from './utils/analysisSession';
 import { selectWordDetailContext } from './utils/wordDetailContext';
 import { getPhraseReading, getPhraseText, mergePhraseTokens, normalizePhraseRange, isPunctuationToken, type PhraseRange } from './utils/phraseRange';
+import { calculateMoraTimeline, getActiveTokenIndexAtTime, type TokenTimeCue } from './utils/moraTiming';
 import { createRequestMetrics, trackAnalyzeUsage, type AnalyzeUsageMetadata } from './utils/analytics';
 import { localizeError } from './i18n';
 import {
@@ -156,6 +157,51 @@ export default function Home() {
   // 选中词汇（右侧详情面板 / 移动端模态）
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isDesktop, setIsDesktop] = useState(true);
+
+  // 语音播放与单词高亮联动状态
+  const [playingTokenIndex, setPlayingTokenIndex] = useState<number | null>(null);
+  const playingTokenIndexRef = useRef<number | null>(null);
+  const playbackCuesRef = useRef<{ sentence: string; duration: number; cues: TokenTimeCue[] } | null>(null);
+  const officialPlaybackCuesRef = useRef<{ sentence: string; cues: TokenTimeCue[] } | null>(null);
+
+  const handleAudioCuesReady = useCallback((cues: TokenTimeCue[] | null) => {
+    if (cues && cues.length > 0) {
+      officialPlaybackCuesRef.current = { sentence: currentSentence, cues };
+    } else {
+      officialPlaybackCuesRef.current = null;
+    }
+  }, [currentSentence]);
+
+  const handleAudioPlaybackUpdate = useCallback((state: { currentTime: number; duration: number } | null) => {
+    if (!state || state.currentTime <= 0 || state.duration <= 0 || !currentSentence || analyzedTokens.length === 0) {
+      if (playingTokenIndexRef.current !== null) {
+        playingTokenIndexRef.current = null;
+        setPlayingTokenIndex(null);
+      }
+      return;
+    }
+
+    let cues: TokenTimeCue[];
+    // 优先使用官方真实 WordBoundary 毫秒级时间轴（方案 B）
+    if (officialPlaybackCuesRef.current && officialPlaybackCuesRef.current.sentence === currentSentence) {
+      cues = officialPlaybackCuesRef.current.cues;
+    } else {
+      // 无官方时间戳时使用方案 A（基于日语韵律声学的动力学时间轴）
+      if (!playbackCuesRef.current || playbackCuesRef.current.sentence !== currentSentence || Math.abs(playbackCuesRef.current.duration - state.duration) > 0.05) {
+        cues = calculateMoraTimeline(analyzedTokens, state.duration);
+        playbackCuesRef.current = { sentence: currentSentence, duration: state.duration, cues };
+      } else {
+        cues = playbackCuesRef.current.cues;
+      }
+    }
+
+    const index = getActiveTokenIndexAtTime(cues, state.currentTime);
+    const target = index >= 0 ? index : null;
+    if (playingTokenIndexRef.current !== target) {
+      playingTokenIndexRef.current = target;
+      setPlayingTokenIndex(target);
+    }
+  }, [currentSentence, analyzedTokens]);
   useEffect(() => {
     analysisAbortControllerRef.current?.abort('language-change');
     const cancelled = analysisSessionRef.current?.session.getSnapshot();
@@ -171,6 +217,7 @@ export default function Home() {
     setSelectedIndex(null);
     setSelectedRange(null);
     setPickAnchor(null);
+    officialPlaybackCuesRef.current = null;
     reasoningTextStore.reset();
     hasDeepseekReasoningRef.current = false;
     setHasDeepseekReasoning(false);
@@ -841,6 +888,9 @@ export default function Home() {
               onSpeechServiceChange={handleSpeechServiceChange}
               isAnalyzing={isAnalyzing}
               analysisError={analysisError}
+              tokens={analyzedTokens}
+              onAudioCuesReady={handleAudioCuesReady}
+              onAudioPlaybackUpdate={handleAudioPlaybackUpdate}
               compactExtras={shouldShowAnalyzer() && (
                 <DisplayOptions
                   variant="chips"
@@ -929,6 +979,7 @@ export default function Home() {
                     onRangeSelect={handleRangeSelect}
                     pickAnchor={pickAnchor}
                     onPickAnchorChange={setPickAnchor}
+                    playingTokenIndex={playingTokenIndex}
                     showDisplayOptions={!isReading}
                   />
                 )}
