@@ -36,11 +36,11 @@
   --pos-aux: #a260a8;    /* 助动词 fuchsia */
   --pos-o: #6b7280;      /* 其他 gray */
 
-  /* 朗读发音专用高亮：暖阳琥珀金，与选中项的紫色系彻底分离 */
-  --playing-cue-bg: rgba(245, 158, 11, 0.18);
-  --playing-cue-border: #f59e0b;
-  --playing-cue-text: #b45309;
-  --playing-cue-glow: rgba(245, 158, 11, 0.45);
+  /* 朗读高亮：雾蓝底色与清晰文字配对；选词与圈选使用紫色。 */
+  --playing-cue-bg: #e3effa;
+  --playing-cue-border: #9bc3e4;
+  --playing-cue-text: #234e70;
+  --playing-cue-annotation: #45647e;
 
   /* 兼容旧变量 */
   --background: var(--bg);
@@ -59,10 +59,10 @@
   --primary-2: #7a5cff;
   --primary-soft: #3b305a;
   --selection-ink: #c6b5ff;
-  --playing-cue-bg: rgba(251, 191, 36, 0.22);
-  --playing-cue-border: #fbbf24;
-  --playing-cue-text: #fde68a;
-  --playing-cue-glow: rgba(251, 191, 36, 0.55);
+  --playing-cue-bg: #263c50;
+  --playing-cue-border: #4d7192;
+  --playing-cue-text: #d7e9f8;
+  --playing-cue-annotation: #aac6df;
   --pos-n: #7e9ed7;
   --pos-v: #72b6a2;
   --pos-adj: #c9a369;
@@ -848,11 +848,40 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="search"]):not(.setti
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  width: 18px;
+  height: 18px;
   line-height: 1;
 }
 
 .batch-analyze-btn .batch-icon svg {
   display: block;
+}
+
+.batch-sparkles .batch-sparkle {
+  fill: currentColor;
+  stroke-width: 0.6;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: batch-star-twinkle 2.4s ease-in-out infinite;
+}
+
+.batch-sparkles .batch-sparkle-one { animation-delay: -1.6s; }
+.batch-sparkles .batch-sparkle-two { animation-delay: -0.8s; }
+
+@keyframes batch-star-twinkle {
+  0%, 65%, 100% { opacity: 0; transform: scale(0.25); }
+  20% { opacity: 1; transform: scale(1.12); }
+  38% { opacity: 0.85; transform: scale(1); }
+  55% { opacity: 0; transform: scale(0.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .batch-sparkles .batch-sparkle {
+    animation: none;
+    opacity: 0.65;
+    transform: none;
+  }
 }
 
 .batch-analyze-btn:hover:not(:disabled) {
@@ -2965,17 +2994,6 @@ body {
 #analyzedSentenceOutput[data-furigana="false"][data-romaji="true"] .word-unit-wrapper { grid-template-rows: 4px auto 8px 15px; }
 .word-unit-wrapper:focus-within { background: var(--primary-soft); }
 .word-unit-wrapper.active-unit .word-token { color: var(--selection-ink, var(--primary)); }
-.word-unit-wrapper.playing-cue {
-  background: var(--playing-cue-bg);
-  box-shadow: 0 0 0 2px var(--playing-cue-border), 0 2px 8px -2px var(--playing-cue-glow);
-  border-radius: 8px;
-  transition: background-color 60ms ease, box-shadow 60ms ease;
-  will-change: background-color, box-shadow;
-}
-.word-unit-wrapper.playing-cue .word-token {
-  color: var(--playing-cue-text);
-  font-weight: 600;
-}
 .word-token:focus-visible { outline-offset: 2px; border-radius: 3px; }
 .dictionary-icon-btn {
   display: grid;
@@ -3010,7 +3028,7 @@ body {
 }
 .glass-toolbar > button, .glass-toolbar > a, .glass-toolbar > .relative > button { border-radius: 999px; }
 @media (hover: hover) {
-  .word-unit-wrapper:not(.is-punct):not(.active-unit):hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+  .word-unit-wrapper:not(.is-punct):not(.active-unit):not(.playing-cue):hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
   .dictionary-icon-btn:hover, .nd-ghost-btn:hover:not(:disabled), .glass-toolbar button:hover, .glass-toolbar a:hover {
     background: color-mix(in srgb, var(--ink) 5%, transparent);
   }
@@ -3187,7 +3205,7 @@ body {
 }
 .dark .reading-surface .word-unit-wrapper.active-unit { box-shadow: 0 0 0 4px #bba3ff1a; }
 @media (hover: hover) {
-  .reading-surface .word-unit-wrapper:not(.is-punct):not(.active-unit):not(.is-pending):hover {
+  .reading-surface .word-unit-wrapper:not(.is-punct):not(.active-unit):not(.is-pending):not(.playing-cue):hover {
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 4%, transparent);
   }
 }
@@ -3274,6 +3292,27 @@ body {
   animation: rangeAnchorPulse 1.4s ease-in-out infinite;
 }
 @keyframes rangeAnchorPulse { 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 10%, transparent); } }
+/* Keep the current spoken word legible while hovering or selecting text. */
+.word-unit-wrapper.playing-cue,
+.reading-surface .word-unit-wrapper.playing-cue,
+.dark .word-unit-wrapper.playing-cue,
+.dark .reading-surface .word-unit-wrapper.playing-cue {
+  background: var(--playing-cue-bg);
+  box-shadow: inset 0 0 0 1px var(--playing-cue-border);
+  border-radius: 8px;
+  transition: background-color 100ms ease, box-shadow 100ms ease;
+}
+.word-unit-wrapper.playing-cue .word-token {
+  color: var(--playing-cue-text);
+}
+.word-unit-wrapper.playing-cue :is(.furigana-text, .romaji-text) {
+  color: var(--playing-cue-annotation);
+}
+.word-unit-wrapper.playing-cue.range-anchor { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .word-unit-wrapper.playing-cue { transition: none; }
+}
+
 .range-pick-toast {
   position: fixed;
   left: 50%;

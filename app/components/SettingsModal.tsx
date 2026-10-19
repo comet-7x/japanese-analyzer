@@ -381,7 +381,7 @@ export default function SettingsModal({
     {
       id: 'analysis',
       label: t('解析与输出'),
-      icon: Icon.translate,
+      icon: Icon.analysis,
       desc: t('配置流式输出与深度推理。'),
     },
     {
