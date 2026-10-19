@@ -14,4 +14,5 @@ export const PROVIDER_ICONS: Record<string, string> = {
   gemini: '/icons/providers/gemini.svg',
   groq: '/icons/providers/groq.svg',
   mistral: '/icons/providers/mistral.svg',
+  mymemory: '/icons/providers/mymemory.svg',
 };

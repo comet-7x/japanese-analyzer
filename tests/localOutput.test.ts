@@ -49,9 +49,9 @@ assert.strictEqual(corrected.romaji,'yonda');
 assert.strictEqual(corrected.pos,'動詞（五段・他動）');
 const loose = JSON.stringify(compact).replace(compact.explanation,'对应英语"read"。');
 assert.strictEqual(parseWordDetailResponseContent(loose,context).explanation,'对应英语"read"。');
-const schema = (getStructuredResponseFormat({},'analysisTokens') as {json_schema:{schema:{properties:{tokens:{items:{properties:Record<string, unknown>}}}}}}).json_schema.schema;
+const schema = (getStructuredResponseFormat({ structuredOutput: 'json_schema' },'analysisTokens') as {json_schema:{schema:{properties:{tokens:{items:{properties:Record<string, unknown>}}}}}}).json_schema.schema;
 assert.ok(!('romaji' in schema.properties.tokens.items.properties));
-const detailSchema = (getStructuredResponseFormat({},'wordDetail') as {json_schema:{schema:{properties:Record<string, unknown>}}}).json_schema.schema;
+const detailSchema = (getStructuredResponseFormat({ structuredOutput: 'json_schema' },'wordDetail') as {json_schema:{schema:{properties:Record<string, unknown>}}}).json_schema.schema;
 assert.ok(!('originalWord' in detailSchema.properties));
 assert.ok(!('romaji' in detailSchema.properties));
 
@@ -136,7 +136,7 @@ export async function runLocalOutputTests() {
     const DONE=encoder.encode('data: [DONE]\n\n');
     const partialStreamCases: {name:string;run:(onChunk:(text:string,done:boolean)=>void,onError:(error:Error)=>void)=>Promise<void>;label:string;empty:string}[]=[
       {name:'翻译',run:(onChunk,onError)=>streamTranslateText('本を読んだ。',onChunk,onError,undefined,endpoint),label:'翻译结果',empty:'译文为空，请重试。'},
-      {name:'图片识别',run:(onChunk,onError)=>streamExtractTextFromImage('data:image/png;base64,dGVzdA==',onChunk,onError,undefined,undefined,endpoint),label:'图片文字提取',empty:'没有识别到图片中的文字，请换一张图片重试。'},
+      {name:'图片识别',run:(onChunk,onError)=>streamExtractTextFromImage('data:image/png;base64,dGVzdA==',onChunk,onError,undefined,undefined,{...endpoint,caps:{vision:true}}),label:'图片文字提取',empty:'没有识别到图片中的文字，请换一张图片重试。'},
     ];
     for(const {name,run,label,empty} of partialStreamCases){
       const collect=async ()=>{

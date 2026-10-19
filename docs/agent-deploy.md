@@ -23,8 +23,7 @@
    - C. 只在本机运行试用
 2. **说明**：解析、翻译、图片识别、单词详情、对话这些功能用的模型端点与 API Key，由用户打开网站后在右上角「设置」里自己填写（保存在浏览器本地，随请求发送），**部署时服务器不需要配置这些密钥**。
 3. **可选项**，没有就跳过：
-   - 首页「今日一句」用的 API Key（DeepSeek 或 Gemini）：服务器端自发请求，不配则「今日一句」用内置的固定句子轮换
-   - Gemini API Key：同时用于 Gemini 朗读（TTS）和「今日一句」回退
+   - Gemini API Key：用于 Gemini 朗读（TTS）；「今日一句」无需密钥
    - 访问密码 `CODE`：设置后打开网站需要先输入密码
    - 域名：需要 HTTPS 访问时提供（仅 A）
 
@@ -53,10 +52,9 @@ mkdir -p ~/japanese-analyzer && cd ~/japanese-analyzer
 curl -fsSL https://raw.githubusercontent.com/cokice/japanese-analyzer/master/docker-compose.hub.yml -o docker-compose.yml
 ```
 
-创建 `.env.production`，填入用户提供的值，没有的留空（这些密钥只服务于「今日一句」和 Gemini 朗读，解析等功能由用户在浏览器设置里自己填）：
+创建 `.env.production`，填入用户提供的值，没有的留空（密钥只服务于 Gemini 朗读，解析等功能由用户在浏览器设置里自己填）：
 
 ```env
-DEEPSEEK_API_KEY=
 GEMINI_API_KEY=
 CODE=
 ```
@@ -101,7 +99,7 @@ curl -fsS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3002
 Vercel 需要用户本人登录授权，你负责指导：
 
 1. 让用户打开 <https://vercel.com/new/clone?repository-url=https://github.com/cokice/japanese-analyzer> 并导入仓库。
-2. 在 `Settings → Environment Variables` 添加 `CODE`（以及可选的 `DEEPSEEK_API_KEY`、`GEMINI_API_KEY`，仅用于「今日一句」和 Gemini 朗读）。
+2. 在 `Settings → Environment Variables` 添加 `CODE`（以及可选的 `GEMINI_API_KEY`，仅用于 Gemini 朗读）。
 3. 重新部署，打开 Vercel 分配的域名验证。
 
 如果用户已经安装并登录了 `vercel` CLI，也可以在仓库目录执行 `vercel`，用 `vercel env add` 添加变量后 `vercel --prod`。
@@ -114,7 +112,7 @@ Vercel 需要用户本人登录授权，你负责指导：
 git clone https://github.com/cokice/japanese-analyzer.git
 cd japanese-analyzer
 npm ci
-cp .env.example .env.local   # 仅「今日一句」/Gemini 朗读需要，可留空
+cp .env.example .env.local   # 仅 Gemini 朗读等可选配置需要，可留空
 npm run build && npm start   # 只是试用也可以用 npm run dev
 ```
 
@@ -127,7 +125,7 @@ npm run build && npm start   # 只是试用也可以用 npm run dev
 - 访问地址（IP:端口，或域名）
 - 如果设置了 `CODE`，提醒首次访问需要输入密码
 - 提醒用户：解析、翻译等功能需要先点右上角「设置」，填写自己的模型服务（兼容 OpenAI 的 API 地址 + 密钥 + 模型名），填完即可使用
-- 如果服务器没配任何「今日一句」密钥：首页「今日一句」会用内置固定句轮换，属正常现象
+- 首页「今日一句」无需密钥，使用 152 条随应用发布的例句，离线即时轮换，后台可更新静态句包
 - 以后更新到最新版的命令（Docker）：
 
   ```bash
@@ -143,5 +141,5 @@ npm run build && npm start   # 只是试用也可以用 npm run dev
 | 页面能打开，但解析报「未提供 API 密钥」/「未提供模型服务地址」 | 用户在浏览器「设置」里还没填模型服务或密钥。让用户打开右上角「设置」，填写兼容 OpenAI 的 API 地址、密钥和模型名后保存 |
 | 设置里填了地址却报「出于安全考虑，暂不支持内网或保留地址」 | 该地址是内网 / localhost 等私有地址，默认被拦截。确属自托管服务时，在服务器 `.env.production` 加 `ALLOW_PRIVATE_BASE_URL=true` 后重建容器 |
 | 外网打不开，本机 `curl` 正常 | 云厂商安全组或系统防火墙没有放行对应端口 |
-| 首页「今日一句」只在内置的 7 句里轮换 | 服务器没有可用的「今日一句」密钥（`DAILY_SENTENCE_API_*` 或 `DEEPSEEK_API_KEY` / `GEMINI_API_KEY`），或出站网络访问不到模型服务商。属可选项，不影响解析功能 |
+| 「今日一句」没有当前语言的译文 | 新增静态句包保留来源提供的日英句对，缺少中文或韩文译文时隐藏译文。原有 60 条例句仍附四语言译文；可点击原句解析并使用翻译服务 |
 | 证书申请失败 | 域名尚未解析到本机，或 80 端口没有放行 |

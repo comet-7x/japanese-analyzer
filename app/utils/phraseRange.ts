@@ -1,15 +1,15 @@
 import type { TokenData } from '../services/api';
 import { getLocalRomaji } from './romaji';
 
-/** 一次最多圈选的词数（不含标点） */
-export const PHRASE_MAX_WORDS = 12;
+/** 一次最多圈选的词数（满足长句与跨行长句完整解析，避免截断漏词） */
+export const PHRASE_MAX_WORDS = 200;
 
 export interface PhraseRange {
   start: number;
   end: number;
 }
 
-const PUNCTUATION_ONLY_RE = /^[\s。、，,.!?？！:：;；「」『』（）()[\]【】〈〉《》…・･〜～\-—―]+$/;
+const PUNCTUATION_ONLY_RE = /^[\s。\u3001，,.!?！？:：;；「」『』()（）[\]【】〈〉《》…・･〜～\—\-\u2014\u2015]+$/;
 
 export function isPunctuationToken(token: TokenData): boolean {
   const pos = token.pos || '';
@@ -22,37 +22,57 @@ export function isPunctuationToken(token: TokenData): boolean {
 }
 
 /**
- * 规范化圈选范围。a 是圈选的起点（拖动起点、Shift 点击前选中的词、长按的词），b 是终点：
- * 不跨换行（保留起点所在的那一段）、去掉首尾标点、最多 PHRASE_MAX_WORDS 个词（超出时截掉远离起点的一侧）。
- * 不足两个词时返回 null。
+ * 规范化圈选范围。a 是圈选的起点，b 是终点：
+ * - 允许跨行长句勾选（不再因遇到换行符而截断）；
+ * - 支持长达 200 词的长句完整框选，避免漏词；
+ * - 智能修剪两端多余换行符及前端误蹭的孤立标点；
+ * - 完整保留长句闭合标点与句中词汇。
  */
 export function normalizePhraseRange(tokens: readonly TokenData[], a: number, b: number): PhraseRange | null {
   const last = tokens.length - 1;
-  const anchor = Math.min(last, Math.max(0, a));
+  if (last < 0) return null;
   let start = Math.max(0, Math.min(a, b));
   let end = Math.min(last, Math.max(a, b));
 
-  for (let i = anchor; i <= end; i++) {
-    if (tokens[i].pos === '改行') {
-      end = i - 1;
-      break;
-    }
-  }
-  for (let i = anchor; i >= start; i--) {
-    if (tokens[i].pos === '改行') {
-      start = i + 1;
-      break;
-    }
+  // 修剪两端纯换行符
+  while (start <= end && tokens[start].pos === '改行') start++;
+  while (end >= start && tokens[end].pos === '改行') end--;
+  if (start > end) return null;
+
+  // 修剪前端可能误触的上一句结尾标点
+  while (start < end && isPunctuationToken(tokens[start])) {
+    start++;
   }
 
   const words: number[] = [];
   for (let i = start; i <= end; i++) {
-    if (!isPunctuationToken(tokens[i])) words.push(i);
+    if (!isPunctuationToken(tokens[i]) && tokens[i].pos !== '改行') {
+      words.push(i);
+    }
   }
-  if (words.length < 2) return null;
-  // 往回选（起点在后）时保留靠后的词，否则保留靠前的词
-  const kept = a > b ? words.slice(-PHRASE_MAX_WORDS) : words.slice(0, PHRASE_MAX_WORDS);
-  return { start: kept[0], end: kept[kept.length - 1] };
+  if (words.length < 1) return null;
+  if (words.length === 1 && start === end) return null;
+
+  // 超过上限时根据拖动方向截断
+  if (words.length > PHRASE_MAX_WORDS) {
+    if (a > b) {
+      const kept = words.slice(-PHRASE_MAX_WORDS);
+      start = kept[0];
+    } else {
+      const kept = words.slice(0, PHRASE_MAX_WORDS);
+      const lastWord = kept[kept.length - 1];
+      if (lastWord + 1 <= end && isPunctuationToken(tokens[lastWord + 1])) {
+        end = lastWord + 1;
+      } else {
+        end = lastWord;
+      }
+    }
+  }
+
+  while (start <= end && tokens[start].pos === '改行') start++;
+  while (end >= start && tokens[end].pos === '改行') end--;
+
+  return start <= end ? { start, end } : null;
 }
 
 export function getPhraseText(tokens: readonly TokenData[], range: PhraseRange): string {

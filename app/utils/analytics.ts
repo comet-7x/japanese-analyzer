@@ -1,5 +1,5 @@
 import { TTSProvider, getTtsModelName } from '../services/api';
-import { ApiRequestError, InvalidResponseError } from './requestErrors';
+import { ApiRequestError, InvalidResponseError, AnalysisValidationError } from './requestErrors';
 
 type EventData = Record<string, string | number>;
 type UmamiTrack = (eventName: string, eventData?: EventData) => void;
@@ -146,11 +146,8 @@ export function trackTtsUsage(provider: TTSProvider, model?: string): void {
   trackUmamiEvent(getTtsUsageEvent(provider, model), 'tts usage');
 }
 
-export function trackWordDetailUsage(provider: string, model?: string): void {
-  trackUmamiEvent(getWordDetailUsageEvent(provider, model), 'word detail usage');
-}
-
 export function getRequestErrorCategory(error: unknown): string {
+  if (error instanceof AnalysisValidationError && error.code === 'timeout') return 'timeout';
   if (error instanceof ApiRequestError) {
     if (error.status === 408 || error.status === 504) return 'timeout';
     if (error.status === 401 || error.status === 403) return 'auth';

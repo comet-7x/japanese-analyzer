@@ -6,9 +6,11 @@ import { useSentenceTranslation } from '../hooks/useSentenceTranslation';
 import type { EndpointPayload } from '../services/api';
 import ThinkingIndicator from './ThinkingIndicator';
 import { Icon } from './Icons';
+import SparklesActivity from './SparklesActivity';
 import { AutoAnimateHeight } from '@/components/ui/auto-animate-height';
 import { FlowAnimatedMarkdown } from '@/components/ui/flow-animated-markdown';
 import { escapeHtmlForMarkdown, preserveLineBreaksForMarkdown } from '../utils/markdown';
+import type { TranslationProviderId, TranslationServiceSettings } from '../lib/translationServices';
 
 interface TranslationSectionProps {
   japaneseText: string;
@@ -17,6 +19,12 @@ interface TranslationSectionProps {
   useStream?: boolean;
   trigger?: number;
   analysisSignal?: AbortSignal;
+  onConfigureModel?: () => void;
+  settings: TranslationServiceSettings;
+  onProviderChange: (provider: TranslationProviderId) => void;
+  thinkingEnabled?: boolean;
+  active?: boolean;
+  analysisReady?: boolean;
 }
 
 export default function TranslationSection({
@@ -25,11 +33,24 @@ export default function TranslationSection({
   endpoint,
   useStream = true, // 默认为true，保持向后兼容
   trigger,
-  analysisSignal
+  analysisSignal,
+  onConfigureModel,
+  settings,
+  onProviderChange,
+  thinkingEnabled = false,
+  active = true,
+  analysisReady = true,
 }: TranslationSectionProps) {
   const { t, locale, errorText } = useLanguage();
-  const { translation, error, isLoading, fromCache, translate } = useSentenceTranslation({
-    text: japaneseText, endpoint, apiKey: userApiKey, locale, useStream, trigger, analysisSignal,
+  const provider = settings.preferredProvider;
+  const currentService = settings.services?.find((s) => s.id === provider);
+  const myMemoryEmail = currentService?.email ?? settings.myMemoryEmail;
+  const resolvedProvider = (currentService?.provider || provider) as TranslationProviderId;
+  const { translation, review, displayedTranslation, showReview, setShowReview, error, reviewError,
+    isLoading, isReviewing, fromCache, translate, reviewTranslation } = useSentenceTranslation({
+    text: japaneseText, endpoint, apiKey: userApiKey, locale, useStream, analysisSignal,
+    trigger: resolvedProvider === 'model' && !analysisReady ? 0 : trigger,
+    provider: resolvedProvider, myMemoryEmail, thinkingEnabled, active,
   });
   const [isVisible, setIsVisible] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -40,8 +61,8 @@ export default function TranslationSection({
   }, []);
 
   const handleCopy = () => {
-    if (!translation) return;
-    navigator.clipboard?.writeText(translation).catch(() => {});
+    if (!displayedTranslation) return;
+    navigator.clipboard?.writeText(displayedTranslation).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
@@ -51,36 +72,54 @@ export default function TranslationSection({
   };
 
   const animatedTranslation = useMemo(() => {
-    return preserveLineBreaksForMarkdown(escapeHtmlForMarkdown(translation));
-  }, [translation]);
+    return preserveLineBreaksForMarkdown(escapeHtmlForMarkdown(displayedTranslation));
+  }, [displayedTranslation]);
 
   useEffect(() => {
-    if (!translation) {
+    if (!displayedTranslation) {
       setCanAnimateTranslation(false);
       return;
     }
 
-    if (!isLoading || translation.length >= 16 || /[。！？.!?，,、\n]/.test(translation)) {
+    if (!isLoading || displayedTranslation.length >= 16 || /[。！？.!?，,\n]/.test(displayedTranslation)) {
       setCanAnimateTranslation(true);
     }
-  }, [isLoading, translation]);
+  }, [isLoading, displayedTranslation]);
 
   const actions = (
     <div className="translation-actions flex items-center gap-1">
+      <label className="sr-only" htmlFor="translationProvider">{t('翻译服务')}</label>
+      <select id="translationProvider" className="translation-provider-select" value={provider}
+        onChange={event => onProviderChange(event.target.value as TranslationProviderId)} disabled={isLoading || isReviewing}>
+        <option value="model">{t('当前模型')}</option>
+        {settings.services?.map((svc) => (
+          <option key={svc.id} value={svc.id}>{svc.name}</option>
+        )) ?? <option value="mymemory">MyMemory</option>}
+      </select>
       <button
         id="translateSentenceButton"
         className="nd-ghost-btn"
-        onClick={() => { setIsVisible(true); setCanAnimateTranslation(false); void translate(true); }}
+        onClick={() => { if (provider === 'model' && !endpoint.model) { onConfigureModel?.(); return; } setIsVisible(true); setCanAnimateTranslation(false); void translate(true); }}
         disabled={isLoading}
       >
         {Icon.refresh}
         <span>{isLoading ? t("翻译中") : translation ? t("重新翻译") : t("翻译")}</span>
       </button>
+      {provider !== 'model' && translation && (
+        <button className="nd-ghost-btn translation-review-button" disabled={isReviewing || !endpoint.model}
+          aria-busy={isReviewing} data-review-state={isReviewing ? 'loading' : review ? 'retry' : 'initial'}
+          onClick={() => { if (!endpoint.model) { onConfigureModel?.(); return; } setIsVisible(true); void reviewTranslation(true); }}>
+          <span className="translation-review-icon" aria-hidden="true">
+            {isReviewing ? <SparklesActivity /> : review ? Icon.refreshSparkles : Icon.sparkles}
+          </span>
+          <span>{t(isReviewing ? '润色中…' : review ? '重新用模型润色' : '用模型润色')}</span>
+        </button>
+      )}
       <button
         onClick={handleCopy}
         className="nd-ghost-btn"
         style={copied ? { color: 'var(--primary)' } : undefined}
-        disabled={!translation}
+        disabled={!displayedTranslation}
       >
         {Icon.copy}<span>{copied ? t("已复制") : t("复制")}</span>
       </button>
@@ -97,7 +136,7 @@ export default function TranslationSection({
   );
 
   return (
-    <section id="fullTranslationCard" className="translation-section" data-collapsed={!isVisible}>
+    <section id="fullTranslationCard" className="translation-section" data-provider={resolvedProvider} data-reviewing={isReviewing} data-collapsed={!isVisible}>
       {/* 译文紧跟原句，标题只留给读屏；操作按钮悬停时出现 */}
       <h2 className="sr-only">{t("中文译文")}</h2>
 
@@ -106,9 +145,29 @@ export default function TranslationSection({
         <AutoAnimateHeight duration={300} contentClassName="flow-root">
           {isVisible ? (
             <div className="translation-scroll-region flow-root" role="region" aria-label={t("中文译文正文")} tabIndex={0}>
-              {isLoading && !translation ? (
+              {review && provider !== 'model' && <div className="translation-version-tabs" role="tablist" aria-label={t('译文版本')}>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!showReview}
+                  className={`display-chip${!showReview ? ' is-active' : ''}`}
+                  onClick={() => setShowReview(false)}
+                >
+                  {t('机器译文')}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={showReview}
+                  className={`display-chip${showReview ? ' is-active' : ''}`}
+                  onClick={() => setShowReview(true)}
+                >
+                  {t('模型润色版')}
+                </button>
+              </div>}
+              {isLoading && !displayedTranslation ? (
                 <ThinkingIndicator label={t("翻译中")} />
-              ) : translation ? (
+              ) : displayedTranslation ? (
                 <div className="flow-markdown full-translation-markdown translation-text">
                   {canAnimateTranslation ? (
                     <FlowAnimatedMarkdown
@@ -119,20 +178,27 @@ export default function TranslationSection({
                       animationTimingFunction="ease-out"
                     />
                   ) : (
-                    <span className="whitespace-pre-wrap">{translation}</span>
+                    <span className="whitespace-pre-wrap">{displayedTranslation}</span>
                   )}
                 </div>
               ) : (
                 <p className="translation-text mb-0 whitespace-pre-wrap">
-                  {translation || <span style={{ color: 'var(--ink-3)' }}>{t("解析后将自动翻译。")}</span>}
+                  {translation || <span style={{ color: 'var(--ink-3)' }}>{t(provider === 'model'
+                    ? '点击翻译将调用当前模型。'
+                    : '点击翻译以使用所选翻译服务。')}</span>}
                 </p>
+              )}
+              {showReview && review?.summary && <p className="tool-note">{t('模型润色说明：{0}', review.summary)}</p>}
+              {provider === 'mymemory' && !showReview && (
+                <p className="tool-note translation-attribution">{t('MyMemory 翻译需联网，原文会发送至该服务。')}</p>
               )}
             </div>
           ) : null}
         </AutoAnimateHeight>
       </div>
 
-      {error && <p role="alert">{t("翻译时发生错误: {0}。", errorText(error))}</p>}
+      {error && <p role="alert">{errorText(error, '翻译未完成，请重试。')}</p>}
+      {reviewError && <p role="alert">{errorText(reviewError, '模型润色未完成，请重试。')}</p>}
       {fromCache && <p className="tool-note">{t('已使用缓存')}</p>}
       {actions}
     </section>

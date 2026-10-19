@@ -23,6 +23,7 @@ interface AnalysisResultProps {
   showDisplayOptions?: boolean;
   /** 解析中：原句里还没解析到的部分，接在已解析的词后面以灰字流光显示 */
   pendingText?: string;
+  pendingActive?: boolean;
   /** 当前圈选的多词短语 */
   selectedRange?: PhraseRange | null;
   /** 圈选了多个词（拖动 / Shift 点击 / 长按后再点）；未提供则不支持圈选 */
@@ -30,6 +31,8 @@ interface AnalysisResultProps {
   /** 圈选起点：设置后再点一个词即选中这一段 */
   pickAnchor?: number | null;
   onPickAnchorChange?: (index: number | null) => void;
+  /** 当前音频朗读正在发音的单词索引（用于词法/阅读视图联动高亮） */
+  playingTokenIndex?: number | null;
 }
 
 const noop = () => {};
@@ -207,10 +210,12 @@ export default function AnalysisResult({
   selectedIndex,
   showDisplayOptions = true,
   pendingText = '',
+  pendingActive = true,
   selectedRange = null,
   onRangeSelect,
   pickAnchor = null,
   onPickAnchorChange = noop,
+  playingTokenIndex = null,
 }: AnalysisResultProps) {
   const { t } = useLanguage();
   const selection = usePhraseSelection({
@@ -224,29 +229,29 @@ export default function AnalysisResult({
     return null;
   }
   const analyzedLength = tokens.reduce((length, token) => length + Array.from(token.word).length, 0);
-  const presentPosGroups = new Set(tokens
-    .filter((token) => token.pos !== '改行' && !isPunctuationToken(token))
-    .map((token) => getPosGroup(token.pos)));
-  const legendGroups = [...POS_LEGEND_GROUPS, 'o' as const].filter((group) => presentPosGroups.has(group));
   // 拖动中显示预览选区，否则显示已选中的短语
   const highlightRange = selection.preview ?? selectedRange;
   const units = readingGroups?.map(range => ({ index: range.start, range, token: range.start === range.end ? tokens[range.start] : { ...tokens[range.start], word: getPhraseText(tokens, range), furigana: getPhraseReading(tokens, range), romaji: tokens.slice(range.start, range.end + 1).map(t => t.romaji || '').join('') } }));
   const displayGroups = units ? groupReadingTokens(units.map(u => u.token)).map(g => g.map(u => units[u.index])) : groupReadingTokens(tokens).map(g => g.map(u => ({ ...u, range: { start: u.index, end: u.index } })));
+  const displayUnits = displayGroups.flat().filter(({ token }) => token.pos !== '改行' && !isPunctuationToken(token));
+  const presentPosGroups = new Set(displayUnits
+    .filter(({ range }) => range.start === range.end)
+    .map(({ token }) => getPosGroup(token.pos)));
+  const legendGroups = [...POS_LEGEND_GROUPS, 'o' as const].filter((group) => presentPosGroups.has(group));
+  const hasCombinedWords = displayUnits.some(({ range }) => range.start !== range.end);
 
   return (
     <section className="analysis-card relative">
       <h2 className="sr-only">{t("解析结果")}</h2>
 
-      {showDisplayOptions && (
-        <div className="analysis-heading mb-4 flex flex-wrap items-center justify-end gap-y-2">
-          <DisplayOptions
-            showFurigana={showFurigana}
-            onShowFuriganaChange={onShowFuriganaChange}
-            showRomaji={showRomaji}
-            onShowRomajiChange={onShowRomajiChange}
-          />
-        </div>
-      )}
+      {showDisplayOptions && <div className="analysis-heading mb-4 flex flex-wrap items-center justify-end gap-y-2">
+        <DisplayOptions
+          showFurigana={showFurigana}
+          onShowFuriganaChange={onShowFuriganaChange}
+          showRomaji={showRomaji}
+          onShowRomajiChange={onShowRomajiChange}
+        />
+      </div>}
 
       {/* 高度动画容器会裁掉溢出内容，外框多留一圈空间，选中高亮和焦点框不被切 */}
       <AutoAnimateHeight duration={300} className="analysis-output-frame" contentClassName="analysis-output-frame-content">
@@ -264,13 +269,19 @@ export default function AnalysisResult({
         >
           {displayGroups.map((group) => {
             if (group[0].token.pos === '改行') {
-              return <span key={group[0].index} className="reading-paragraph-break" />;
+              const inRange = !!highlightRange && group[0].index >= highlightRange.start && group[0].index <= highlightRange.end;
+              return <span key={group[0].index} data-token-index={group[0].index} className={`reading-paragraph-break${inRange ? ' in-range' : ''}`} />;
             }
             return (
               <span className="reading-word-group" key={group[0].index}>
                 {group.map(({ token, index, range }) => {
                   const isPunct = isPunctuationToken(token);
                   const isActive = selectedIndex === index;
+                  const isPlaying = playingTokenIndex !== null && (
+                    range
+                      ? playingTokenIndex >= range.start && playingTokenIndex <= range.end
+                      : playingTokenIndex === index
+                  );
                   const inRange = !!highlightRange && index >= highlightRange.start && index <= highlightRange.end;
                   const rangeClass = inRange
                     ? ` in-range${index === highlightRange.start ? ' range-start' : ''}${index === highlightRange.end ? ' range-end' : ''}`
@@ -284,7 +295,7 @@ export default function AnalysisResult({
                     <span
                       key={index}
                       data-token-index={index}
-                      className={`word-unit-wrapper ${isPunct ? 'is-punct' : ''} ${isActive ? 'active-unit' : ''}${rangeClass}${pickAnchor === index ? ' range-anchor' : ''}`}
+                      className={`word-unit-wrapper ${isPunct ? 'is-punct' : ''} ${isActive ? 'active-unit' : ''} ${isPlaying ? 'playing-cue' : ''}${rangeClass}${pickAnchor === index ? ' range-anchor' : ''}`}
                     >
                       {!isPunct && (
                         <span className="furigana-text" aria-hidden={!showFurigana || !furiganaText} style={{ opacity: showFurigana && furiganaText ? 1 : 0 }}>
@@ -307,7 +318,7 @@ export default function AnalysisResult({
                       )}
 
                       {/* 词性下划线 */}
-                      {!isPunct && <span className={`pos-underline ${getPosClass(token.pos)}`} />}
+                      {!isPunct && <span className={`pos-underline ${range.start !== range.end ? 'reading-group-underline' : getPosClass(token.pos)}`} />}
 
                       {/* 罗马音 */}
                       {!isPunct && (
@@ -322,21 +333,25 @@ export default function AnalysisResult({
               </span>
             );
           })}
-          {pendingText && <PendingText text={pendingText} offset={analyzedLength} />}
+          {pendingText && (pendingActive ? <PendingText text={pendingText} offset={analyzedLength} /> : <span className="pending-rest">{pendingText}</span>)}
         </div>
-        {pendingText && <span className="sr-only" role="status">{t("思考中")}</span>}
+        {pendingText && pendingActive && <span className="sr-only" role="status">{t("思考中")}</span>}
         {pickAnchor !== null && <PickHint onCancel={selection.cancelPick} />}
       </AutoAnimateHeight>
 
       {/* 词性图例：放在正文下方作注脚 */}
       {/* 始终渲染以预留高度：解析中还没有词性时为空，避免第一个词出来时把译文往下推 */}
-      <div className="pos-legend" aria-hidden={legendGroups.length === 0}>
+      <div className="pos-legend" aria-hidden={legendGroups.length === 0 && !hasCombinedWords}>
         {legendGroups.map((g) => (
           <span key={g} className="legend-item">
             <span className="legend-swatch" style={{ background: POS_GROUP_COLORS[g] }} />
             {t(POS_GROUP_LABELS[g])}
           </span>
         ))}
+        {hasCombinedWords && <span className="legend-item">
+          <span className="legend-swatch" style={{ background: 'var(--reading-group)' }} />
+          {t('组合词')}
+        </span>}
       </div>
     </section>
   );

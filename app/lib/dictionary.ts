@@ -28,12 +28,8 @@ export interface DictionaryEntry {
   source: DictionarySource;
   localizations?: DictionaryLocalization[];
 }
-export interface DictionaryProvider { id: string; name: string; adapter: 'builtin' | 'http-v1'; lookupUrl?: string; apiKey?: string; }
-export interface DictionarySettings { providers: DictionaryProvider[]; activeId: string; }
 export interface DictionaryQuery { query: string; dictionaryForm?: string; reading?: string; offset?: number; locale?: Locale; }
-export interface DictionaryResult { entries: DictionaryEntry[]; total: number; offset: number; hasMore: boolean; source: DictionarySource; fallback?: 'empty' | 'timeout' | 'unavailable'; tags?: Record<string, string>; localizationStatus?: LocalizationStatus; datasets?: DictionaryLocalizationInfo[]; }
-export const BUILTIN_DICTIONARY: DictionaryProvider = { id: 'builtin', name: 'JMdict', adapter: 'builtin' };
-export const DICTIONARY_SETTINGS_KEY = 'japaneseAnalyzer:dictionary:v1';
+export interface DictionaryResult { entries: DictionaryEntry[]; total: number; offset: number; hasMore: boolean; source: DictionarySource; tags?: Record<string, string>; localizationStatus?: LocalizationStatus; datasets?: DictionaryLocalizationInfo[]; }
 export const normalizeDictionaryKey = (value: string) => toHiragana(value).trim();
 export type DictionaryMatch = 'surface' | 'lemma' | 'reading' | 'other';
 export function dictionaryMatch(entry: DictionaryEntry, word: string, lemma = '', reading = ''): DictionaryMatch {
@@ -43,14 +39,119 @@ export function dictionaryMatch(entry: DictionaryEntry, word: string, lemma = ''
   if (reading && entry.readings.some(value => normalizeDictionaryKey(value.text) === normalizeDictionaryKey(reading))) return 'reading';
   return 'other';
 }
-export function readDictionarySettings(raw: string | null): DictionarySettings {
+export type ExternalServiceId = 'ichi' | 'google' | 'baidu' | 'wiktionary' | 'jisho' | 'weblio';
+export interface ExternalServicesSettings {
+  enabled: Record<ExternalServiceId, boolean>;
+}
+export const DEFAULT_EXTERNAL_SERVICES: ExternalServicesSettings = {
+  enabled: {
+    ichi: true,
+    google: true,
+    baidu: true,
+    wiktionary: true,
+    jisho: true,
+    weblio: true,
+  },
+};
+export const EXTERNAL_SERVICES_KEY = 'japaneseAnalyzer:externalServices:v1';
+export function readExternalServicesSettings(raw: string | null): ExternalServicesSettings {
   try {
     const data = JSON.parse(raw || '{}');
-    const providers: DictionaryProvider[] = [BUILTIN_DICTIONARY, ...(Array.isArray(data.providers) ? data.providers.filter((p: DictionaryProvider) => p && p.id !== 'builtin' && typeof p.id === 'string' && typeof p.name === 'string' && p.adapter === 'http-v1' && typeof p.lookupUrl === 'string').map((p: DictionaryProvider) => ({ id: p.id, name: p.name, adapter: 'http-v1' as const, lookupUrl: p.lookupUrl, apiKey: typeof p.apiKey === 'string' ? p.apiKey : '' })) : [])];
-    return { providers, activeId: providers.some(p => p.id === data.activeId) ? data.activeId : 'builtin' };
-  } catch { return { providers: [BUILTIN_DICTIONARY], activeId: 'builtin' }; }
+    const enabled = { ...DEFAULT_EXTERNAL_SERVICES.enabled };
+    if (data?.enabled && typeof data.enabled === 'object') {
+      for (const key of ['ichi', 'google', 'baidu', 'wiktionary', 'jisho', 'weblio'] as const) {
+        if (typeof data.enabled[key] === 'boolean') {
+          enabled[key] = data.enabled[key];
+        }
+      }
+    }
+    return { enabled };
+  } catch { return { enabled: { ...DEFAULT_EXTERNAL_SERVICES.enabled } }; }
 }
-export function externalDictionaryLinks(word: string, lemma?: string) {
-  const key = lemma?.trim() || word;
-  return { ichi: `https://ichi.moe/cl/word/?q=${encodeURIComponent(key)}`, wiktionary: `https://en.wiktionary.org/wiki/${encodeURIComponent(key)}` };
+export type IchiRomanizationMethod = 'htr' | 'kana' | 'text' | 'hb' | 'hm' | 'ks';
+export interface IchiMoeOptions {
+  r?: IchiRomanizationMethod;
+  hira?: boolean;
+  noseg?: boolean;
+}
+export const DEFAULT_ICHI_OPTIONS: IchiMoeOptions = { r: 'htr', hira: false, noseg: false };
+export const ICHI_OPTIONS_KEY = 'japaneseAnalyzer:ichimoe:v1';
+export function readIchiOptions(raw: string | null): IchiMoeOptions {
+  try {
+    const data = JSON.parse(raw || '{}');
+    const validR: IchiRomanizationMethod[] = ['htr', 'kana', 'text', 'hb', 'hm', 'ks'];
+    return {
+      r: validR.includes(data?.r) ? data.r : 'htr',
+      hira: data?.hira === true,
+      noseg: data?.noseg === true,
+    };
+  } catch { return { ...DEFAULT_ICHI_OPTIONS }; }
+}
+export function buildIchiMoeUrl(text: string, isMultiWord: boolean, options?: IchiMoeOptions, lemma?: string): string {
+  const cleanWord = text.trim();
+  if (!isMultiWord) {
+    const key = lemma?.trim() || cleanWord;
+    return `https://ichi.moe/cl/word/?q=${encodeURIComponent(key)}`;
+  }
+  const params = new URLSearchParams();
+  params.set('q', cleanWord);
+  if (options?.r && options.r !== 'htr') {
+    params.set('r', options.r);
+  }
+  if (options?.hira) {
+    params.set('hira', 'true');
+  }
+  if (options?.noseg) {
+    params.set('noseg', 'true');
+  }
+  return `https://ichi.moe/cl/qr/?${params.toString()}`;
+}
+export interface ExternalLookupOptions {
+  multiWord?: boolean;
+  ichiOptions?: IchiMoeOptions;
+  locale?: Locale;
+}
+
+const SENTENCE_PUNCTUATION_REGEX = /[。、，,\.！？!?…~〜;:；：\n\r\t]/;
+const SENTENCE_PARTICLES = new Set(['が', 'は', 'を', 'に', 'で', 'と', 'から', 'ので', 'たら', 'なら', 'ば', 'けど', 'のに']);
+
+function lookupFeatures(text: string): { sentenceLike: boolean; multiWord: boolean } {
+  const clean = text.trim();
+  if (!clean) return { sentenceLike: false, multiWord: false };
+  if (SENTENCE_PUNCTUATION_REGEX.test(clean) || /\s/.test(clean) || Array.from(clean).length >= 14) {
+    return { sentenceLike: true, multiWord: true };
+  }
+  if (typeof Intl.Segmenter !== 'function') return { sentenceLike: false, multiWord: true };
+  const words = Array.from(new Intl.Segmenter('ja', { granularity: 'word' }).segment(clean))
+    .filter(segment => segment.isWordLike).map(segment => segment.segment);
+  return {
+    sentenceLike: words.length >= 4 || (words.length >= 3 && words.some(word => SENTENCE_PARTICLES.has(word))),
+    multiWord: words.length > 1,
+  };
+}
+
+/** Sentence warnings are stricter than the multi-word routing used by dictionaries. */
+export function isSentenceLike(text: string): boolean {
+  return lookupFeatures(text).sentenceLike;
+}
+
+/** Prefer analyzed selection metadata; segmentation is only a heuristic for manual input. */
+export function isMultiWordLookup(text: string, selection?: { kind: 'word' | 'phrase'; tokenCount: number }): boolean {
+  return selection ? selection.kind !== 'word' || selection.tokenCount !== 1 : lookupFeatures(text).multiWord;
+}
+export function externalDictionaryLinks(word: string, lemma = '', options: ExternalLookupOptions = {}) {
+  const isMulti = Boolean(options.multiWord);
+  const cleanWord = word.trim();
+  const key = (!isMulti && lemma?.trim()) ? lemma.trim() : cleanWord;
+  const locale = options.locale || 'zh-CN';
+  const targetGoogle = locale === 'zh-TW' ? 'zh-TW' : locale === 'en' ? 'en' : locale === 'ko' ? 'ko' : 'zh-CN';
+  const targetBaidu = locale === 'zh-TW' ? 'cht' : locale === 'en' ? 'en' : locale === 'ko' ? 'kor' : 'zh';
+  return {
+    ichi: buildIchiMoeUrl(cleanWord, isMulti, options.ichiOptions, lemma),
+    google: `https://translate.google.com/?sl=ja&tl=${targetGoogle}&text=${encodeURIComponent(cleanWord)}&op=translate`,
+    baidu: `https://fanyi.baidu.com/mtpe-individual/multimodal?query=${encodeURIComponent(cleanWord)}&lang=jp2${targetBaidu}`,
+    wiktionary: `https://en.wiktionary.org/wiki/${encodeURIComponent(key)}`,
+    jisho: `https://jisho.org/search/${encodeURIComponent(key)}`,
+    weblio: `https://www.weblio.jp/content/${encodeURIComponent(key)}`,
+  };
 }

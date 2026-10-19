@@ -62,3 +62,4 @@ next-env.d.ts
 
 /.dictionary-cache/
 /data/dictionary/
+/data/local-analyzer/

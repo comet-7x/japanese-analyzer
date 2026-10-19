@@ -32,3 +32,4 @@ tests
 
 .dictionary-cache
 data/dictionary
+data/local-analyzer

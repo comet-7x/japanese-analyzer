@@ -1,0 +1,39 @@
+{
+  "measuredAt": "2026-10-17T08:23:40.254Z",
+  "results": [
+    {
+      "browser": "chrome",
+      "version": "155.0.8059.80",
+      "firstMs": 6852,
+      "cachedMs": 1919,
+      "reusedMs": 68,
+      "dictionaryChunks": 20,
+      "cacheNetworkRequestsAfterReload": 0,
+      "corruptCacheRepairRequests": 1,
+      "clearCacheRemaining": 0,
+      "noImplicitModelRequests": true,
+      "failedCorrectionPreservesDraft": true,
+      "malformedCorrectionPreservesDraft": true,
+      "correctionRetriesFailedChunkOnly": true,
+      "correctionCancelPreservesDraft": true,
+      "mobileOverflow": false
+    },
+    {
+      "browser": "webkit",
+      "version": "27.2",
+      "firstMs": 16930,
+      "cachedMs": 2958,
+      "reusedMs": 54,
+      "dictionaryChunks": 20,
+      "cacheNetworkRequestsAfterReload": 0,
+      "corruptCacheRepairRequests": 1,
+      "clearCacheRemaining": 0,
+      "noImplicitModelRequests": true,
+      "failedCorrectionPreservesDraft": true,
+      "malformedCorrectionPreservesDraft": true,
+      "correctionRetriesFailedChunkOnly": true,
+      "correctionCancelPreservesDraft": true,
+      "mobileOverflow": false
+    }
+  ]
+}

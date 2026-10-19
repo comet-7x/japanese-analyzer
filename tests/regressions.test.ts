@@ -15,9 +15,10 @@ import { browserStorage } from '../app/utils/storage';
 import { getPhraseReading } from '../app/utils/phraseRange';
 import { getLocalRomaji } from '../app/utils/romaji';
 import { secondsUntilJstMidnight } from '../app/utils/dailySentences';
-import { extractTextFromImage, translateText, loadAISettingsFromStorage, saveAISettingsToStorage } from '../app/services/api';
-import { sanitizeProfiles, resolveModelSelection, type ProviderProfile } from '../app/lib/aiModels';
+import { extractTextFromImage, streamExtractTextFromImage, translateText, loadAISettingsFromStorage, saveAISettingsToStorage } from '../app/services/api';
+import { effectiveCaps, supportsImageInput, sanitizeProfiles, resolveModelSelection, type ProviderProfile } from '../app/lib/aiModels';
 import { testProviderConnection } from '../app/lib/providerConnection';
+import { canRecoverAnalysis } from '../app/utils/requestErrors';
 
 const request = (body: string, url = 'http://localhost/api/auth', headers: Record<string, string> = {}) =>
   new NextRequest(url, { method: 'POST', body, headers: { 'Content-Type': 'application/json', ...headers } });
@@ -25,11 +26,67 @@ const completion = (reason = 'stop') => ({ choices: [{ message: { content: '読�
 const endpointBody = { baseUrl: 'https://api.test.example', model: 'test-model' };
 
 async function run() {
+  assert.equal(canRecoverAnalysis(new TypeError('Cannot read properties of undefined')), false);
+  assert.equal(canRecoverAnalysis(new TypeError('Failed to fetch')), true);
   const env = { CODE: process.env.CODE, AUTH_COOKIE_SECURE: process.env.AUTH_COOKIE_SECURE };
   const originalFetch = globalThis.fetch;
   try {
     delete process.env.CODE;
     delete process.env.AUTH_COOKIE_SECURE;
+    const unsupported = '当前模型不支持图片解析，请切换到支持图片输入的多模态模型。';
+    let imageCalls = 0;
+    globalThis.fetch = async () => { imageCalls++; return Response.json(completion()); };
+    assert.equal(supportsImageInput('deepseek-chat'), false);
+    assert.equal(supportsImageInput('custom-text-model'), false);
+    assert.equal(supportsImageInput('gemini-2.5-flash'), true);
+    assert.equal(supportsImageInput('gpt-4o-mini', { vision: false }), false, 'Explicit disable overrides a preset');
+    for (const stream of [true, false]) for (const caps of [undefined, { vision: false }, { vision: 'true' }]) {
+      const response = await imageToText(request(JSON.stringify({ ...endpointBody, imageData: 'image', stream, caps }), undefined, { Authorization: 'Bearer key' }));
+      assert.equal(response.status, 400);
+      assert.equal((await response.json()).error.message, unsupported);
+    }
+    await assert.rejects(extractTextFromImage('image', undefined, 'key', endpointBody), { message: unsupported });
+    let imageError = '';
+    await streamExtractTextFromImage('image', () => { throw Error('No image results expected'); }, error => { imageError = error.message; }, undefined, 'key', endpointBody);
+    assert.equal(imageError, unsupported);
+    assert.equal(imageCalls, 0, 'Unsupported models never send image data to the application or the upstream');
+    const visionService = sanitizeProfiles([{ id: 'vision', name: 'Vision', baseUrl: 'https://model.example', apiKey: 'key', models: [
+      { id: 'image', model: 'custom-vl', caps: { vision: true } }, { id: 'text', model: 'gpt-4o-mini', caps: { vision: false } },
+    ] }])[0];
+    assert.equal(effectiveCaps(visionService, visionService.models[0]).vision, true);
+    assert.equal(effectiveCaps(visionService, visionService.models[1]).vision, false);
+    for (const stream of [false, true]) {
+      globalThis.fetch = async (_url, init) => {
+        imageCalls++;
+        const payload = JSON.parse(String(init?.body));
+        assert.equal(payload.vision, undefined, 'Capability metadata is not an upstream API parameter');
+        assert.equal(payload.messages[0].content[1].type, 'image_url');
+        return stream ? new Response('data: [DONE]\n\n') : Response.json(completion());
+      };
+      const response = await imageToText(request(JSON.stringify({ ...endpointBody, imageData: 'image', stream, caps: { vision: true } }), undefined, { Authorization: 'Bearer key' }));
+      assert.equal(response.status, 200);
+      await response.text();
+    }
+    assert.equal(imageCalls, 2, 'Explicitly image-capable custom models can use both modes');
+    // A supported model's disabled thinking state must reach the upstream API;
+    // analysis also needs enough output room for a chunk's expanded token objects.
+    for (const stream of [false, true]) {
+      globalThis.fetch = async (_url, init) => {
+        const payload = JSON.parse(String(init?.body));
+        assert.deepEqual(payload.thinking, { type: 'disabled' });
+        assert.ok(payload.max_tokens >= 8192);
+        assert.equal(payload.reasoning_effort, undefined);
+        return stream
+          ? new Response('data: [DONE]\n\n')
+          : Response.json(completion());
+      };
+      const response = await analyze(request(JSON.stringify({
+        ...endpointBody, prompt: 'test-analysis', stream,
+        caps: { thinking: true, reasoningEffort: 'high' }, thinkingEnabled: false,
+      }), undefined, { Authorization: 'Bearer test-key' }));
+      assert.equal(response.status, 200);
+      await response.text();
+    }
     const testService = { id: 'test', name: 'Test', baseUrl: ' https://api.test.example/v1 ', apiKey: ' test-key ', models: [] };
     const testController = new AbortController();
     globalThis.fetch = async (url, init) => {
@@ -38,13 +95,54 @@ async function run() {
       assert.equal(payload.model, 'chosen-model');
       assert.equal(payload.baseUrl, 'https://api.test.example/v1');
       assert.equal(payload.useStream, false);
-      assert.equal(payload.caps, undefined, 'Connection testing does not require structured output support');
+      if (payload.connectionProbe === undefined) assert.equal(payload.caps, undefined);
+      else assert.deepEqual(payload.caps, { structuredOutput: payload.connectionProbe });
       assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer test-key');
       assert.equal(new Headers(init?.headers).get('X-App-Locale'), 'en');
       assert.ok(init?.signal);
-      return Response.json(completion());
+      return payload.connectionProbe === 'json_schema'
+        ? Response.json({ choices: [{ message: { content: '{"verdict":"schema_enforced"}' }, finish_reason: 'stop' }] })
+        : Response.json(completion());
     };
-    await testProviderConnection(testService, ' chosen-model ', 'en', testController.signal);
+    assert.deepEqual(await testProviderConnection(testService, ' chosen-model ', 'en', testController.signal), { structuredOutput: 'json_schema' });
+    const limitedService = { ...testService, models: [{ id: 'limited', name: 'Limited', model: 'chosen-model', caps: { contextWindow: 10, maxOutputTokens: 1, thinking: true } }] };
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      assert.equal(payload.caps.contextWindow, undefined, 'Analysis context budgets do not distort capability detection');
+      assert.equal(payload.caps.maxOutputTokens, undefined);
+      assert.equal(payload.caps.thinking, true);
+      return Response.json({ choices: [{ message: { content: payload.connectionProbe ? '{"verdict":"schema_enforced"}' : 'OK' } }] });
+    };
+    assert.deepEqual(await testProviderConnection(limitedService, 'chosen-model', 'en', testController.signal), { structuredOutput: 'json_schema' });
+    assert.equal(limitedService.models[0].caps.maxOutputTokens, 1, 'Testing cannot mutate the saved model budget');
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      if (!payload.connectionProbe) return Response.json(completion());
+      if (payload.connectionProbe === 'json_schema') return Response.json({ choices: [{ message: { content: '{"verdict":"schema_ignored","extra":true}' } }] });
+      return Response.json({ choices: [{ message: { content: '{"verdict":"json_ok"}' } }] });
+    };
+    assert.deepEqual(await testProviderConnection(testService, 'chosen-model', 'en', testController.signal), { structuredOutput: 'json_object' });
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      return payload.connectionProbe ? Response.json({ error: { message: 'unsupported' } }, { status: 400 }) : Response.json(completion());
+    };
+    assert.deepEqual(await testProviderConnection(testService, 'chosen-model', 'en', testController.signal), { structuredOutput: 'unsupported' });
+    for (const status of [401, 403, 429, 500]) {
+      let attempts = 0;
+      globalThis.fetch = async (_url, init) => {
+        attempts++;
+        const payload = JSON.parse(String(init?.body));
+        return payload.connectionProbe ? Response.json({ error: { message: 'Temporary failure' } }, { status }) : Response.json(completion());
+      };
+      await assert.rejects(testProviderConnection(testService, 'chosen-model', 'en', testController.signal), /Temporary failure/);
+      assert.equal(attempts, 2, 'Transient/auth errors must not trigger another format or be saved as unsupported');
+    }
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      if (!payload.connectionProbe) return Response.json(completion());
+      throw new DOMException('probe timed out', 'TimeoutError');
+    };
+    await assert.rejects(testProviderConnection(testService, 'chosen-model', 'en', testController.signal), { name: 'TimeoutError' });
     for (const result of [Response.json({}), new Response('<html>gateway</html>'), Response.json({ choices: [{ message: { content: '' } }] })]) {
       globalThis.fetch = async () => result;
       await assert.rejects(testProviderConnection(testService, 'chosen-model', 'en', testController.signal), /未返回有效/);
@@ -123,13 +221,13 @@ async function run() {
     for (const handler of [translate, imageToText]) {
       for (const reason of ['length', 'content_filter']) {
         globalThis.fetch = async () => Response.json(completion(reason));
-        const result = await handler(request(JSON.stringify({ text: '日本語', imageData: 'data:image/png;base64,AA==', ...endpointBody }), undefined, { Authorization: 'Bearer test-key' }));
+        const result = await handler(request(JSON.stringify({ text: '日本語', imageData: 'data:image/png;base64,AA==', ...endpointBody, caps: { vision: true } }), undefined, { Authorization: 'Bearer test-key' }));
         assert.equal(result.status, 502);
       }
       globalThis.fetch = async () => Response.json(completion());
-      assert.equal((await handler(request(JSON.stringify({ text: '日本語', imageData: 'data:image/png;base64,AA==', ...endpointBody }), undefined, { Authorization: 'Bearer test-key' }))).status, 200);
+      assert.equal((await handler(request(JSON.stringify({ text: '日本語', imageData: 'data:image/png;base64,AA==', ...endpointBody, caps: { vision: true } }), undefined, { Authorization: 'Bearer test-key' }))).status, 200);
     }
-    for (const call of [() => translateText('日本語'), () => extractTextFromImage('data:image/png;base64,AA==')]) {
+    for (const call of [() => translateText('日本語'), () => extractTextFromImage('data:image/png;base64,AA==', undefined, undefined, { ...endpointBody, caps: { vision: true } })]) {
       globalThis.fetch = async () => Response.json(completion('length'));
       await assert.rejects(call(), /截断/);
       globalThis.fetch = async () => Response.json(completion());
@@ -141,7 +239,7 @@ async function run() {
       assert.equal(init?.signal, controller.signal);
       return Response.json(completion());
     };
-    await extractTextFromImage('image', undefined, undefined, endpointBody, controller.signal);
+    await extractTextFromImage('image', undefined, undefined, { ...endpointBody, caps: { vision: true } }, controller.signal);
     let upstreamSignal: AbortSignal | null | undefined;
     globalThis.fetch = async (_url, init) => {
       upstreamSignal = init?.signal;
@@ -151,7 +249,7 @@ async function run() {
     };
     const upstreamRequest = new NextRequest('http://localhost/api/image-to-text', {
       method: 'POST', signal: controller.signal,
-      headers: { Authorization: 'Bearer test-key' }, body: JSON.stringify({ imageData: 'image', ...endpointBody }),
+      headers: { Authorization: 'Bearer test-key' }, body: JSON.stringify({ imageData: 'image', ...endpointBody, caps: { vision: true } }),
     });
     assert.equal((await imageToText(upstreamRequest)).status, 499);
 

@@ -1,14 +1,16 @@
 import { NextRequest } from 'next/server';
 import {
   normalizeEndpointUrl,
+  isTokenLimit,
   type ModelEndpoint,
   type ProviderCaps,
 } from '../../lib/aiModels';
 import { BaseUrlError, validateBaseUrl } from './validateBaseUrl';
+import { SCHOOL_POS } from '../../lib/learningTools';
 
 export type { ProviderCaps, ModelEndpoint } from '../../lib/aiModels';
 
-export type StructuredOutputKind = 'analysisTokens' | 'wordDetail' | 'phraseDetail' | 'dailySentence' | 'resegment' | 'conjugation' | 'dictionaryTranslation';
+export type StructuredOutputKind = 'analysisTokens' | 'wordDetail' | 'phraseDetail' | 'selectionTranslation' | 'selectionAnalysisWord' | 'selectionAnalysisPhrase' | 'resegment' | 'conjugation' | 'dictionaryTranslation' | 'translationReview' | 'localCorrection' | 'connectionProbe';
 
 /** 解析后的上游调用配置：端点 + 密钥 + 能力位 */
 export interface ResolvedProviderConfig extends ModelEndpoint {
@@ -31,50 +33,17 @@ function getBearerToken(req: NextRequest): string {
   return authHeader ? authHeader.replace('Bearer ', '').trim() : '';
 }
 
-/** 服务端自发请求（如今日一句）使用的固定端点配置 */
-export interface ServerProviderConfig {
-  name: string;
-  apiUrl: string;
-  apiKey: string;
-  model: string;
-  caps: ProviderCaps;
-}
-
-/** 仅供服务端自发的请求（无用户上下文）使用：按环境变量探测可用的模型服务 */
-export function resolveServerProviderConfig(): ServerProviderConfig | null {
-  const candidates: ServerProviderConfig[] = [];
-
-  // 显式覆盖：今日一句专用端点
-  const dsUrl = process.env.DAILY_SENTENCE_API_URL?.trim();
-  const dsKey = process.env.DAILY_SENTENCE_API_KEY?.trim();
-  const dsModel = process.env.DAILY_SENTENCE_API_MODEL?.trim();
-  if (dsKey && dsModel && dsUrl) {
-    candidates.push({ name: 'daily-sentence', apiUrl: normalizeEndpointUrl(dsUrl), apiKey: dsKey, model: dsModel, caps: { jsonSchema: false } });
-  }
-
-  // 复用既有 DeepSeek 端点（结构化输出用 json_object 降级，兼容性最好）
-  const deepseekKey = process.env.DEEPSEEK_API_KEY?.trim();
-  if (deepseekKey) {
-    const deepseekUrl = process.env.DEEPSEEK_API_URL?.trim() || 'https://api.deepseek.com';
-    candidates.push({ name: 'deepseek', apiUrl: normalizeEndpointUrl(deepseekUrl), apiKey: deepseekKey, model: process.env.DEEPSEEK_MODEL_NAME?.trim() || 'deepseek-chat', caps: { jsonSchema: false } });
-  }
-
-  // 复用既有 Gemini 端点
-  const geminiKey = process.env.GEMINI_API_KEY?.trim();
-  if (geminiKey) {
-    const geminiUrl = process.env.GEMINI_API_URL?.trim() || 'https://generativelanguage.googleapis.com/v1beta/openai';
-    candidates.push({ name: 'gemini', apiUrl: normalizeEndpointUrl(geminiUrl), apiKey: geminiKey, model: process.env.GEMINI_MODEL_NAME?.trim() || 'gemini-flash-latest', caps: {} });
-  }
-
-  return candidates[0] ?? null;
-}
-
 function normalizeCaps(value: unknown): ProviderCaps {
   if (!value || typeof value !== 'object') return {};
   const item = value as Record<string, unknown>;
   const caps: ProviderCaps = {};
-  if (typeof item.jsonSchema === 'boolean') caps.jsonSchema = item.jsonSchema;
+  if (item.structuredOutput === 'json_schema' || item.structuredOutput === 'json_object') caps.structuredOutput = item.structuredOutput;
+  else if (typeof item.jsonSchema === 'boolean') caps.structuredOutput = item.jsonSchema ? 'json_schema' : 'json_object';
   if (typeof item.thinking === 'boolean') caps.thinking = item.thinking;
+  if (typeof item.vision === 'boolean') caps.vision = item.vision;
+  if (isTokenLimit(item.contextWindow)) caps.contextWindow = item.contextWindow;
+  if (isTokenLimit(item.maxOutputTokens)) caps.maxOutputTokens = item.maxOutputTokens;
+  if (typeof item.reasoningEffort === 'string' && item.reasoningEffort.trim()) caps.reasoningEffort = item.reasoningEffort.trim();
   return caps;
 }
 
@@ -172,26 +141,6 @@ const phraseDetailSchema = {
   additionalProperties: false,
 } as const;
 
-const dailySentenceSchema = {
-  type: 'object',
-  properties: {
-    text: { type: 'string' },
-    translations: {
-      type: 'object',
-      properties: {
-        'zh-CN': { type: 'string' },
-        'zh-TW': { type: 'string' },
-        en: { type: 'string' },
-        ko: { type: 'string' },
-      },
-      required: ['zh-CN', 'zh-TW', 'en', 'ko'],
-      additionalProperties: false,
-    },
-  },
-  required: ['text', 'translations'],
-  additionalProperties: false,
-} as const;
-
 const textSchema = { type: 'string' } as const;
 const objectSchema = (properties: Record<string, unknown>) => ({ type: 'object', properties, required: Object.keys(properties), additionalProperties: false });
 const arraySchema = (items: unknown) => ({ type: 'array', items });
@@ -202,9 +151,24 @@ const toolSchemas = {
 };
 
 const structuredOutputSchemas = {
+  connectionProbe: { name: 'structured_output_probe', schema: objectSchema({ verdict: { type: 'string', enum: ['schema_enforced'] } }) },
+  localCorrection: { name: 'japanese_local_corrections', schema: objectSchema({ edits: arraySchema(objectSchema({
+    sourceIds: { ...arraySchema({ type: 'integer' }), minItems: 1, description: 'Non-empty ascending consecutive 0-based IDs from targetTokens. Use [5] for one token and [5,6] to merge adjacent tokens.' },
+    pos: { type: 'string', enum: [...SCHOOL_POS, '固有名詞', '普通名詞', '数詞', '助数詞', '補助動詞', '句点', '読点', '補助記号'] },
+    furigana: { type: 'string', description: 'Reading in kana. Must be empty for punctuation or line breaks.' },
+  })) }) },
   resegment: { name: 'japanese_resegmentation', schema: toolSchemas.resegment },
   conjugation: { name: 'japanese_conjugation', schema: toolSchemas.conjugation },
   dictionaryTranslation: { name: 'dictionary_sense_translation', schema: toolSchemas.dictionaryTranslation },
+  translationReview: { name: 'translation_review', schema: objectSchema({ translation: textSchema, summary: textSchema }) },
+  selectionTranslation: { name: 'selection_translation', schema: objectSchema({ translation: textSchema }) },
+  selectionAnalysisWord: { name: 'selection_word_analysis', schema: objectSchema({
+    dictionaryForm: textSchema, explanation: textSchema, example: textSchema, exampleTranslation: textSchema, pos: textSchema, furigana: textSchema,
+  }) },
+  selectionAnalysisPhrase: { name: 'selection_phrase_analysis', schema: objectSchema({
+    dictionaryForm: textSchema, explanation: textSchema, category: { type: 'string', enum: ['単語', '文法形式', '慣用表現', '連語'] },
+    breakdown: textSchema, example: textSchema, exampleTranslation: textSchema, pos: textSchema, furigana: textSchema,
+  }) },
   analysisTokens: {
     name: 'japanese_sentence_analysis',
     schema: analysisTokensSchema,
@@ -217,18 +181,16 @@ const structuredOutputSchemas = {
     name: 'japanese_phrase_detail',
     schema: phraseDetailSchema,
   },
-  dailySentence: {
-    name: 'japanese_daily_sentence',
-    schema: dailySentenceSchema,
-  },
 } as const;
 
-/** 按能力位选择结构化输出方式：默认 json_schema strict，降级时只用 json_object */
+export const LOCAL_CORRECTION_SCHEMA_FINGERPRINT = 'local-correction-source-ids-v2';
+
+/** 按模型能力选择结构化输出方式；未声明时使用兼容性更好的 json_object。 */
 export function getStructuredResponseFormat(
   caps: ProviderCaps,
   kind: StructuredOutputKind
 ): Record<string, unknown> {
-  if (caps.jsonSchema === false) {
+  if (caps.structuredOutput !== 'json_schema') {
     return { type: 'json_object' };
   }
 
@@ -263,12 +225,28 @@ export function buildCompletionPayload(
   const reasoningFormat = typeof payload.model === 'string' && /(?:^|\/)MiniMax-M[23]/i.test(payload.model)
     ? { reasoning_split: true } : {};
 
+  let maxTokens = isTokenLimit(payload.max_tokens) ? payload.max_tokens : undefined;
+  if (isTokenLimit(caps.maxOutputTokens)) maxTokens = Math.min(maxTokens ?? caps.maxOutputTokens, caps.maxOutputTokens);
+  if (isTokenLimit(caps.contextWindow)) {
+    // Conservative text budget: UTF-8 bytes plus schema and message framing.
+    // Image tokenization varies by provider, so image requests only cap output.
+    const messages = Array.isArray(payload.messages) ? payload.messages : [];
+    const hasImages = messages.some(message => Array.isArray(message?.content)
+      && message.content.some((part: { type?: string }) => part.type === 'image_url'));
+    const inputBudget = hasImages ? 0 : new TextEncoder().encode(JSON.stringify({ messages, ...responseFormat })).length + 256;
+    const available = caps.contextWindow - inputBudget;
+    if (available <= 0) throw new ProviderConfigError('内容超过当前模型的上下文窗口，请缩短内容或调大模型配置。');
+    maxTokens = Math.min(maxTokens ?? 8192, available);
+  }
+  const outputLimit = maxTokens === undefined ? {} : { max_tokens: maxTokens };
+
   if (caps.thinking === true) {
     const thinkingEnabled = options.enableThinking === true;
     return {
       ...payload,
       ...responseFormat,
       ...reasoningFormat,
+      ...outputLimit,
       thinking: { type: thinkingEnabled ? 'enabled' : 'disabled' },
       // reasoning_effort 的合法取值因厂商而异，只发送用户为该服务声明的值，
       // 未声明时省略、由服务商使用自身默认值。
@@ -282,5 +260,6 @@ export function buildCompletionPayload(
     ...payload,
     ...responseFormat,
     ...reasoningFormat,
+    ...outputLimit,
   };
 }

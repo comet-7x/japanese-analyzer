@@ -6,22 +6,26 @@ import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { NextRequest } from 'next/server';
 import { DictionaryStore, DictionaryUnavailableError } from '../app/api/_utils/dictionaryStore';
-import { dictionaryAdapters, lookupDictionary, validateDictionaryResult } from '../app/api/_utils/dictionaryProvider';
 import { POST as lookup } from '../app/api/dictionary/lookup/route';
 import { POST as resegment } from '../app/api/resegment/route';
 import { POST as conjugation } from '../app/api/conjugation/route';
 import { POST as translate } from '../app/api/dictionary/translate/route';
 import { POST as detail } from '../app/api/word-detail/route';
 import { applyTokenEdit, buildReadingGroups, type EditState } from '../app/utils/analysisEditing';
-import { parseReadingPreferences, makeShareLink, parseSharedText } from '../app/utils/readingPreferences';
-import { externalDictionaryLinks, normalizeDictionaryKey, readDictionarySettings, type DictionaryEntry, type DictionaryResult } from '../app/lib/dictionary';
+import { parseReadingPreferences } from '../app/utils/readingPreferences';
+import {
+  externalDictionaryLinks,
+  normalizeDictionaryKey,
+  readExternalServicesSettings,
+  readIchiOptions,
+  type DictionaryEntry,
+} from '../app/lib/dictionary';
 import { validateCandidates, validateConjugation, validateTranslations } from '../app/lib/learningTools';
 import { convertWord } from '../scripts/dictionary/format.mjs';
 
 const digest = (data: Uint8Array) => createHash('sha256').update(data).digest('hex');
 const source = { id: 'fixture', name: 'Fixture JMdict', version: '1', date: '2026-10-05', url: 'https://example.com/dict', license: 'CC BY-SA 4.0', licenseUrl: 'https://example.com/license' };
 const word = (id: string, text: string, reading: string, common = false): DictionaryEntry => ({ id, common, spellings: [{ text, common, tags: [] }], readings: [{ text: reading, common, appliesTo: [text], tags: [] }], senses: [{ id: `${id}:0`, pos: ['n'], glosses: ['front'], appliesToSpellings: [text], appliesToReadings: [reading], tags: [], notes: [] }], source });
-const response = (entries: DictionaryEntry[] = []): DictionaryResult => ({ entries, total: entries.length, offset: 0, hasMore: false, source });
 const request = (data: unknown, headers = {}) => new NextRequest('http://localhost/api/test', { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(data) });
 const token = (word: string, pos = '動詞') => ({ word, pos, furigana: word });
 const completion = (data: unknown, finish_reason = 'stop') => Response.json({ choices: [{ message: { content: JSON.stringify(data) }, finish_reason }] });
@@ -30,7 +34,6 @@ async function main() {
   const directory = await mkdtemp(join(tmpdir(), 'ja-dictionary-'));
   const originalFetch = globalThis.fetch;
   const originalCode = process.env.CODE;
-  const originalBuiltin = dictionaryAdapters.builtin;
   try {
     const indices: Record<string, string[]> = { '前': ['2','1'], 'まえ': ['1','2'], 'ぜん': ['3','2'], '善': ['3'] };
     const entries: Record<string, DictionaryEntry> = { '1': word('1','前','まえ', true), '2': word('2','前','ぜん'), '3': word('3','善','ぜん', true) };
@@ -63,9 +66,30 @@ async function main() {
     await assert.rejects(new DictionaryStore(directory).lookup({ query: '前' }), DictionaryUnavailableError);
     await assert.rejects(new DictionaryStore(join(directory, 'missing')).lookup({ query: '前' }), DictionaryUnavailableError);
     assert.equal(normalizeDictionaryKey(' ｶﾀｶﾅ '), 'かたかな');
-    assert.equal(readDictionarySettings('{').activeId, 'builtin');
-    assert.equal(readDictionarySettings(JSON.stringify({ activeId: 'secret', providers: [{ id: 'bad', adapter: 'script' }] })).providers.length, 1);
     assert.ok(externalDictionaryLinks('表面', '食べる').ichi.endsWith(encodeURIComponent('食べる')));
+    assert.match(externalDictionaryLinks('表面', '食べる').ichi, /^https:\/\/ichi\.moe\/cl\/word\/\?q=/);
+    assert.match(externalDictionaryLinks('表面', '食べる').google, /^https:\/\/translate\.google\.com\/\?sl=ja&tl=zh-CN&text=%E8%A1%A8%E9%9D%A2&op=translate$/);
+    assert.match(externalDictionaryLinks('表面', '食べる').baidu, /^https:\/\/fanyi\.baidu\.com\/mtpe-individual\/multimodal\?query=%E8%A1%A8%E9%9D%A2&lang=jp2zh$/);
+    const multiLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'zh-TW', ichiOptions: { r: 'kana', hira: true, noseg: true } });
+    assert.match(multiLookup.ichi, /^https:\/\/ichi\.moe\/cl\/qr\/\?q=%E9%A7%85%E3%81%AE%E5%89%8D&r=kana&hira=true&noseg=true$/);
+    assert.match(multiLookup.google, /tl=zh-TW/);
+    assert.match(multiLookup.baidu, /lang=jp2cht/);
+    const enLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'en' });
+    assert.match(enLookup.google, /tl=en/);
+    assert.match(enLookup.baidu, /lang=jp2en/);
+    const koLookup = externalDictionaryLinks('駅の前', '', { multiWord: true, locale: 'ko' });
+    assert.match(koLookup.google, /tl=ko/);
+    assert.match(koLookup.baidu, /lang=jp2kor/);
+    assert.equal(readExternalServicesSettings(null).enabled.google, true);
+    assert.equal(readExternalServicesSettings('{"enabled":{"google":false}}').enabled.google, false);
+    assert.equal(readExternalServicesSettings('{"enabled":{"google":false}}').enabled.baidu, true);
+    assert.equal(readIchiOptions(null).r, 'htr');
+    assert.equal(readIchiOptions(null).noseg, false, 'Keep segmented definitions by default');
+    assert.equal(readIchiOptions('{"noseg":"false","hira":"false"}').noseg, false, 'String values cannot accidentally enable no segmentation');
+    assert.equal(readIchiOptions('{"noseg":true}').noseg, true, 'Explicit user preference is preserved');
+    assert.equal(new URL(externalDictionaryLinks('猫が窓の外を見ている。', '', { multiWord: true }).ichi).searchParams.has('noseg'), false, 'Off means omit noseg: even noseg=false enables it on ichi.moe');
+    assert.equal(readIchiOptions('{"r":"kana","hira":true}').r, 'kana');
+    assert.equal(readIchiOptions('{"r":"kana","hira":true}').hira, true);
     // Conversion preserves restrictions instead of attributing every sense to every spelling.
     const converted = convertWord({ id: '3', kanji: [{ text: '前', common: true, tags: [] }], kana: [{ text: 'ぜん', common: false, appliesToKanji: ['前'], tags: [] }], sense: [{ partOfSpeech: ['n-pref'], gloss: [{ lang: 'eng', text: 'previous' }], appliesToKanji: ['前'], appliesToKana: ['ぜん'], field: [], dialect: [], misc: [], info: ['note'] }] });
     assert.deepEqual(converted.senses[0].appliesToReadings, ['ぜん']);
@@ -89,12 +113,6 @@ async function main() {
     assert.throws(() => validateCandidates({ candidates: [candidate.candidates[0], candidate.candidates[0]] }, '答えにくい'));
     assert.throws(() => validateTranslations({ translations: [{ id: 'wrong', text: 'wrong' }] }, [{ id: '1' }]));
     assert.throws(() => validateConjugation({ analyses: [{ dictionaryForm: '食べる', steps: [{ form: '食べる', label: '原形' }], note: '' }], insufficient: false }, '食べた'));
-    const preferences = parseReadingPreferences(null);
-    const share = makeShareLink('https://example.com/', '駅の前\n𠮷 & # ? =', { ...preferences, viewMode: 'reading' });
-    assert.equal(parseSharedText(new URL(share).hash)?.text, '駅の前\n𠮷 & # ? =');
-    assert.equal(parseSharedText('#v=2&q=test'), null);
-    for (const address of ['http://localhost:49152', 'http://127.0.0.1:3000', 'tauri://localhost', 'javascript:alert(1)']) assert.throws(() => makeShareLink(address, '駅', preferences));
-    assert.throws(() => makeShareLink('https://example.com', '駅'.repeat(1000), preferences), /8 KiB/);
     assert.equal(parseReadingPreferences('invalid').showFurigana, true);
 
     delete process.env.CODE;
@@ -105,7 +123,7 @@ async function main() {
     assert.equal((await lookup(request({ query: 1 }))).status, 400);
     assert.equal((await lookup(request({ query: '駅', offset: -1 }))).status, 400);
     assert.equal((await lookup(request({ query: '駅', provider: null }))).status, 400);
-    const endpoint = { baseUrl: 'https://ai.example/v1', model: 'chosen' };
+    const endpoint = { baseUrl: 'https://ai.example/v1', model: 'chosen', caps: { structuredOutput: 'json_schema' } };
     const headers = { Authorization: 'Bearer model-key' };
     globalThis.fetch = async (_url, init) => {
       const payload = JSON.parse(String(init?.body)); assert.equal(payload.stream, false); assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer model-key');
@@ -122,36 +140,41 @@ async function main() {
     assert.equal((await conjugation(request({ ...endpoint, surface: '食べ', context: '食べた' }, headers))).status, 200);
     globalThis.fetch = async () => completion({}, 'length');
     assert.equal((await conjugation(request({ ...endpoint, surface: '食べ', context: '食べた' }, headers))).status, 502);
-    globalThis.fetch = async (_url, init) => { const content = JSON.parse(String(init?.body)).messages[0].content; assert.match(content, /standalone lookup/); return completion({ dictionaryForm: '食べる' }); };
-    assert.equal((await detail(request({ ...endpoint, word: '食べられなかった', kind: 'lookup' }, headers))).status, 200);
-
-    const provider = { id: 'remote', name: 'Remote', adapter: 'http-v1' as const, lookupUrl: 'https://dict.example/lookup', apiKey: 'dictionary-key' };
-    globalThis.fetch = async (url, init) => {
-      assert.equal(url, provider.lookupUrl); assert.equal(init?.redirect, 'error');
-      assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer dictionary-key');
-      const data = JSON.parse(String(init?.body)); assert.equal(data.query, '前'); assert.equal(data.sentence, undefined); assert.equal(data.model, undefined);
-      return Response.json(response([entries['1']]));
+    globalThis.fetch = async (_url, init) => {
+      const payload = JSON.parse(String(init?.body));
+      assert.match(payload.messages[0].content, /selected Japanese word/);
+      assert.equal(JSON.parse(payload.messages[1].content).selection, '食べられなかった');
+      return completion({ dictionaryForm: '食べる', explanation: '受身・可能の形。', example: '魚を食べられた。', exampleTranslation: '吃到了鱼。', pos: '', furigana: '' });
     };
-    assert.equal((await lookupDictionary({ query: '前' }, provider, new AbortController().signal)).entries.length, 1);
-    assert.throws(() => validateDictionaryResult({ ...response(), source: { ...source, url: 'javascript:alert(1)' } }));
-    assert.throws(() => validateDictionaryResult({ ...response(), entries: [{}] }));
-    const fallbackResponse = response([entries['1']]);
-    // Fallback uses the real bundled dictionary in integration; a temporary singleton lookup is isolated here.
+    assert.equal((await detail(request({ ...endpoint, task: 'analyze', word: '食べられなかった', pos: '動詞', furigana: 'たべられなかった', sentence: '魚を食べられなかった。', kind: 'word' }, headers))).status, 200);
+    globalThis.fetch = async () => completion({ dictionaryForm: '', explanation: '长句解析', example: '', exampleTranslation: '', pos: '', furigana: '', category: '連語', breakdown: '' });
+    const longSelection = { ...endpoint, task: 'analyze', word: 'あ'.repeat(600), pos: '', furigana: '', sentence: 'あ'.repeat(600), kind: 'phrase' };
+    assert.equal((await detail(request(longSelection, headers))).status, 200, 'Long phrase selections are not limited to the word lookup length');
+    assert.equal((await detail(request({ ...longSelection, word: 'あ'.repeat(12_001) }, headers))).status, 400);
+    assert.equal((await detail(request({ ...longSelection, kind: 'word' }, headers))).status, 400, 'Standalone word lookup retains its smaller bound');
+
     const { dictionaryStore } = await import('../app/api/_utils/dictionaryStore');
-    const builtinLookup = dictionaryStore.lookup; dictionaryStore.lookup = async () => fallbackResponse;
+    const builtinLookup = dictionaryStore.lookup;
+    let builtinCalls = 0;
+    dictionaryStore.lookup = async query => { builtinCalls++; return store.lookup(query); };
+    let outboundCalls = 0;
+    globalThis.fetch = async () => { outboundCalls++; throw new Error('Dictionary lookup must never contact an external service'); };
     try {
-      globalThis.fetch = async () => Response.json(response());
-      assert.equal((await lookupDictionary({ query: '前' }, provider, new AbortController().signal)).fallback, 'empty');
-      globalThis.fetch = async () => { throw new DOMException('timeout', 'TimeoutError'); };
-      assert.equal((await lookupDictionary({ query: '前' }, provider, new AbortController().signal)).fallback, 'timeout');
-      globalThis.fetch = async () => Response.json({ malformed: true });
-      assert.equal((await lookupDictionary({ query: '前' }, provider, new AbortController().signal)).fallback, 'unavailable');
-      await assert.rejects(lookupDictionary({ query: '前' }, provider, new AbortController().signal, true), /连接失败/);
-      const controller = new AbortController(); controller.abort();
-      await assert.rejects(lookupDictionary({ query: '前' }, provider, controller.signal));
+      for (const extra of [
+        { provider: { id: 'remote', name: 'Remote', adapter: 'http-v1', lookupUrl: 'https://dict.example/lookup', apiKey: 'removed-key' } },
+        { test: true },
+      ]) {
+        assert.equal((await lookup(request({ query: '善', ...extra }))).status, 400);
+      }
+      assert.equal(builtinCalls, 0, 'Removed provider and connection-test requests are rejected before lookup');
+      const local = await lookup(request({ query: '善' }));
+      assert.equal(local.status, 200);
+      assert.equal((await local.json()).entries[0].id, '3');
+      assert.equal(builtinCalls, 1);
+      assert.equal(outboundCalls, 0);
     } finally { dictionaryStore.lookup = builtinLookup; }
     assert.equal((await readFile(join(directory, 'manifest.json'), 'utf8')).includes('fixture'), true);
-    console.log('Learning tools passed: dictionary fixtures, adapters/fallback, protected APIs, segmentation invariants, reading groups, translations, conjugation and sharing.');
-  } finally { globalThis.fetch = originalFetch; dictionaryAdapters.builtin = originalBuiltin; if (originalCode === undefined) delete process.env.CODE; else process.env.CODE = originalCode; await rm(directory, { recursive: true, force: true }); }
+    console.log('Learning tools passed: dictionary fixtures, built-in-only lookup, protected APIs, segmentation invariants, reading groups, translations and conjugation.');
+  } finally { globalThis.fetch = originalFetch; if (originalCode === undefined) delete process.env.CODE; else process.env.CODE = originalCode; await rm(directory, { recursive: true, force: true }); }
 }
 void main().catch(error => { console.error(error); process.exitCode = 1; });

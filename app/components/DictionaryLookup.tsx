@@ -2,33 +2,34 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import type { DictionaryProvider } from '../lib/dictionary';
-import { getWordDetails, type TokenData } from '../services/api';
-import type { LearningModel } from '../services/learning';
+import { isMultiWordLookup, isSentenceLike } from '../lib/dictionary';
+import type { TokenData } from '../services/api';
+import { postLearning, type LearningModel } from '../services/learning';
 import { LatestRequest } from '../utils/latestRequest';
 import { collectSentenceVocabulary, vocabularyContext, type SentenceVocabularyItem } from '../utils/sentenceVocabulary';
 import { getPosGroup, POS_GROUP_COLORS, POS_GROUP_LABELS } from '../utils/helpers';
 import DictionaryPanel from './DictionaryPanel';
 import ExternalDictionaryLookup from './ExternalDictionaryLookup';
 import { credentialScope } from '../utils/sentenceCache';
+import { Icon } from './Icons';
 
 interface Props {
   draft: string;
   onDraftChange: (value: string) => void;
-  provider: DictionaryProvider;
   model: LearningModel;
   active?: boolean;
   sentence?: string;
   tokens?: TokenData[];
   analysisId?: number;
   dictionaryForms?: Record<string, string>;
+  onGoToAnalyze?: (text: string) => void;
 }
-type Selection = { scope: string; kind: 'sentence'; key: string } | { scope: string; kind: 'manual'; word: string };
+type Selection = { scope: string; kind: 'sentence'; key: string } | { scope: string; kind: 'manual'; word: string; multiWord: boolean };
 const NO_TOKENS: TokenData[] = [];
 const NO_FORMS: Record<string, string> = {};
 const canQuery = (word: string) => !!word.trim() && Array.from(word).length <= 120;
 
-export default function DictionaryLookup({ draft, onDraftChange, provider, model, active = true, sentence = '', tokens = NO_TOKENS, analysisId = 0, dictionaryForms = NO_FORMS }: Props) {
+export default function DictionaryLookup({ draft, onDraftChange, model, active = true, sentence = '', tokens = NO_TOKENS, analysisId = 0, dictionaryForms = NO_FORMS, onGoToAnalyze }: Props) {
   const { t, locale, errorText } = useLanguage();
   const vocabulary = useMemo(() => collectSentenceVocabulary(sentence, tokens, dictionaryForms), [sentence, tokens, dictionaryForms]);
   const scope = JSON.stringify([analysisId, sentence]);
@@ -52,8 +53,8 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
   const query = currentSelection?.kind === 'manual' ? currentSelection.word : selectedItem?.token.word || '';
   const reading = selectedItem?.token.furigana || '';
   const identity = JSON.stringify([scope, currentSelection?.kind ?? 'sentence', selectedItem?.key ?? query, lookupId]);
-  // AI guesses are local to a word, provider, language and model; they never initiate on selection.
-  const inferenceIdentity = JSON.stringify([identity, provider.adapter, provider.id, provider.lookupUrl, credentialScope(provider.apiKey), locale, model.endpoint, credentialScope(model.apiKey)]);
+  // AI guesses are local to a word, language and model; they never initiate on selection.
+  const inferenceIdentity = JSON.stringify([identity, locale, model.endpoint, credentialScope(model.apiKey)]);
   const lemma = inferred.identity === inferenceIdentity ? inferred.lemma : selectedItem?.lemma || '';
   const onEmptyChange = useCallback((empty: boolean) => setEmptyFor(empty ? identity : ''), [identity]);
   useEffect(() => {
@@ -67,7 +68,9 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
     if (!query) return;
     const ticket = request.current.start(); setLoading(true); setError('');
     try {
-      const detail = await getWordDetails(query, '', '', reading, model.apiKey, model.endpoint, ticket.signal, 'lookup');
+      const detail = await postLearning<{ dictionaryForm: string }>('/api/word-detail', {
+        word: query, pos: '', sentence: selectedItem ? sentence : query, furigana: reading, kind: 'word', task: 'analyze',
+      }, ticket.signal, model);
       if (!ticket.isCurrent()) return;
       setInferred({ identity: inferenceIdentity, lemma: detail.dictionaryForm || '' });
       if (!detail.dictionaryForm) setError('AI 未找到可靠的原形');
@@ -86,14 +89,14 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
   const context = selectedItem ? vocabularyContext(sentence, selectedItem.occurrences[occurrenceIndex]) : null;
 
   return <section className="dictionary-lookup">
-    <form className="nd-card learning-actions" onSubmit={event => {
+    <form className="nd-card dictionary-lookup-form" onSubmit={event => {
       event.preventDefault();
       const word = draft.trim();
       if (!canQuery(word)) return;
       setLookupId(id => id + 1); setEmptyFor('');
-      setSelection({ scope, kind: 'manual', word });
+      setSelection({ scope, kind: 'manual', word, multiWord: isMultiWordLookup(word) });
     }}>
-      <label className="flex-1">{t('查词')}<input className="learning-input" aria-label={t('查词输入')} placeholder={t('输入其他词语')} lang="ja" value={draft} onChange={event => onDraftChange(event.target.value)} maxLength={240} /></label>
+      <label className="dictionary-lookup-field">{t('查词')}<input className="learning-input" aria-label={t('查词输入')} placeholder={t('输入日文单词或惯用语（如：桜、食べる、気がする）')} lang="ja" value={draft} onChange={event => onDraftChange(event.target.value)} maxLength={240} /></label>
       <button className="nd-soft-btn" disabled={!canQuery(draft.trim())}>{t('查询')}</button>
     </form>
 
@@ -134,13 +137,33 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
             <button className="nd-ghost-btn" onClick={() => setOccurrence({ identity, index: occurrenceIndex + 1 })}>{t('下一处')}</button>
           </div>}
         </div>}
+        {currentSelection?.kind === 'manual' && isSentenceLike(query) && (
+          <aside className="dictionary-sentence-notice nd-card" aria-label={t('当前输入的内容可能是一个句子')}>
+            <div className="dictionary-sentence-notice-content">
+              <span className="dictionary-sentence-notice-icon" aria-hidden="true">{Icon.bulb}</span>
+              <div className="dictionary-sentence-notice-text">
+                <strong>{t('当前输入的内容可能是一个句子')}</strong>
+                <p>{t('词典查询适合单词或固定惯用语。如需进行全文分词、音调与语法深度分析，建议使用「句子解析」。')}</p>
+              </div>
+            </div>
+            {onGoToAnalyze && (
+              <button
+                type="button"
+                className="nd-primary-btn"
+                onClick={() => onGoToAnalyze(query)}
+              >
+                {t('前往句子解析')}
+              </button>
+            )}
+          </aside>
+        )}
         {active && query && <>
           <div className="learning-actions dictionary-lemma-actions">
             {emptyFor === identity && <button className="nd-ghost-btn" disabled={loading || !model.endpoint.model} onClick={findLemma}>{t(loading ? '查找中…' : 'AI 查找原形')}</button>}
             {lemma && lemma !== query && <span>{t('AI 推断原形')}：<span lang="ja">{lemma}</span></span>}
           </div>
-          <DictionaryPanel key={identity} word={query} lemma={lemma} reading={reading} provider={provider} model={model} standalone onEmptyChange={onEmptyChange} />
-          <ExternalDictionaryLookup key={`external:${identity}`} word={query} lemma={lemma} />
+          <DictionaryPanel key={identity} word={query} lemma={lemma} reading={reading} model={model} standalone onEmptyChange={onEmptyChange} />
+          <ExternalDictionaryLookup key={`external:${identity}`} word={query} lemma={lemma} multiWord={currentSelection?.kind === 'manual' ? currentSelection.multiWord : false} />
         </>}
         {error && <p role="alert">{errorText(error)}</p>}
       </section>

@@ -43,7 +43,7 @@ export default function AnalysisHistory({
         )}
       </div>
       {storageUnavailable && (
-        <p role="status" className="mb-2 text-xs" style={{ color: 'var(--ink-2)' }}>
+        <p role="status" className="mb-2 text-xs status-error">
           {t("历史记录暂时无法保存到浏览器，刷新后可能丢失。")}
         </p>
       )}

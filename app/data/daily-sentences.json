@@ -1,0 +1,7051 @@
+{
+  "schemaVersion": 3,
+  "version": "2026-10-19-bedc2613003b",
+  "publishedAt": "2026-10-19",
+  "sha256": "bedc2613003bde1024641ca2f05276b67e7c11af8870bda19ccc397eb451aa85",
+  "source": {
+    "url": "https://www.manythings.org/anki/jpn-eng.zip",
+    "sha256": "af9e98121df9ce9c8a258bf81033905cb38f31bbc26432f3354d8ace316f20ee",
+    "license": "CC BY 2.0 FR"
+  },
+  "sentences": [
+    {
+      "text": "誰にも分からないよ。",
+      "tokens": [
+        {
+          "word": "誰",
+          "pos": "代名詞",
+          "furigana": "だれ",
+          "romaji": "dare"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "も",
+          "pos": "助詞",
+          "furigana": "も",
+          "romaji": "mo"
+        },
+        {
+          "word": "分から",
+          "pos": "動詞",
+          "furigana": "わから",
+          "romaji": "wakara"
+        },
+        {
+          "word": "ない",
+          "pos": "助動詞",
+          "furigana": "ない",
+          "romaji": "nai"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Who knows?",
+        "zh-CN": "谁也不知道。",
+        "zh-TW": "誰也不知道。",
+        "ko": "아무도 몰라요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 4839,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 276369,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "有難うございました。",
+      "tokens": [
+        {
+          "word": "有難う",
+          "pos": "感動詞",
+          "furigana": "ありがとう",
+          "romaji": "arigatou"
+        },
+        {
+          "word": "ござい",
+          "pos": "助動詞",
+          "furigana": "ござい",
+          "romaji": "gozai"
+        },
+        {
+          "word": "まし",
+          "pos": "助動詞",
+          "furigana": "まし",
+          "romaji": "mashi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Thank you.",
+        "zh-CN": "非常感谢。",
+        "zh-TW": "非常感謝。",
+        "ko": "감사했습니다."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 79262,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1876041,
+            "owner": "Asma",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "満タンにしてください。",
+      "tokens": [
+        {
+          "word": "満",
+          "pos": "名詞",
+          "furigana": "まん",
+          "romaji": "man"
+        },
+        {
+          "word": "タン",
+          "pos": "名詞",
+          "furigana": "たん",
+          "romaji": "tan"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Fill it up.",
+        "zh-CN": "请把油加满。",
+        "zh-TW": "請把油加滿。",
+        "ko": "가득 넣어 주세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 81084,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 322631,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "満タンでお願いします。",
+      "tokens": [
+        {
+          "word": "満",
+          "pos": "名詞",
+          "furigana": "まん",
+          "romaji": "man"
+        },
+        {
+          "word": "タン",
+          "pos": "名詞",
+          "furigana": "たん",
+          "romaji": "tan"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "お願い",
+          "pos": "名詞",
+          "furigana": "おねがい",
+          "romaji": "onegai"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Fill her up.",
+        "zh-CN": "麻烦加满油。",
+        "zh-TW": "麻煩加滿油。",
+        "ko": "가득 부탁합니다."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 81085,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2245491,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "万事上手くいってます。",
+      "tokens": [
+        {
+          "word": "万事",
+          "pos": "名詞",
+          "furigana": "ばんじ",
+          "romaji": "banji"
+        },
+        {
+          "word": "上手く",
+          "pos": "形容詞",
+          "furigana": "うまく",
+          "romaji": "umaku"
+        },
+        {
+          "word": "いっ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "All is well.",
+        "zh-CN": "一切都很顺利。",
+        "zh-TW": "一切都很順利。",
+        "ko": "모든 일이 잘되고 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 81097,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 322610,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "僕はジャズが好きだ。",
+      "tokens": [
+        {
+          "word": "僕",
+          "pos": "代名詞",
+          "furigana": "ぼく",
+          "romaji": "boku"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "ジャズ",
+          "pos": "名詞",
+          "furigana": "じゃず",
+          "romaji": "jazu"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好きだ",
+          "pos": "形容動詞",
+          "furigana": "すきだ",
+          "romaji": "sukida"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I like jazz.",
+        "zh-CN": "我喜欢爵士乐。",
+        "zh-TW": "我喜歡爵士樂。",
+        "ko": "나는 재즈를 좋아해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 82084,
+        "owner": "tommy_san",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 321631,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼女はにっこり笑った。",
+      "tokens": [
+        {
+          "word": "彼女",
+          "pos": "代名詞",
+          "furigana": "かのじょ",
+          "romaji": "kanojo"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "にっこり",
+          "pos": "副詞",
+          "furigana": "にっこり",
+          "romaji": "nikkori"
+        },
+        {
+          "word": "笑っ",
+          "pos": "動詞",
+          "furigana": "わらっ",
+          "romaji": "warat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "She smiled.",
+        "zh-CN": "她微微一笑。",
+        "zh-TW": "她微微一笑。",
+        "ko": "그녀는 방긋 웃었어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 91814,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 311898,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は立ち上がりました。",
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "立ち上がり",
+          "pos": "動詞",
+          "furigana": "たちあがり",
+          "romaji": "tachiagari"
+        },
+        {
+          "word": "まし",
+          "pos": "助動詞",
+          "furigana": "まし",
+          "romaji": "mashi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "He stood up.",
+        "zh-CN": "他站了起来。",
+        "zh-TW": "他站了起來。",
+        "ko": "그는 자리에서 일어났어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 99044,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 517531,
+            "owner": "blay_paul",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は来る事が出来る。",
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "来る",
+          "pos": "動詞",
+          "furigana": "くる",
+          "romaji": "kuru"
+        },
+        {
+          "word": "事",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "出来る",
+          "pos": "動詞",
+          "furigana": "できる",
+          "romaji": "dekiru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "He can come.",
+        "zh-CN": "他能来。",
+        "zh-TW": "他能來。",
+        "ko": "그는 올 수 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 99136,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 289971,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は背が高いですか。",
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "背",
+          "pos": "名詞",
+          "furigana": "せ",
+          "romaji": "se"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "高い",
+          "pos": "形容詞",
+          "furigana": "たかい",
+          "romaji": "takai"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "か",
+          "pos": "助詞",
+          "furigana": "か",
+          "romaji": "ka"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Is he tall?",
+        "zh-CN": "他个子高吗？",
+        "zh-TW": "他個子高嗎？",
+        "ko": "그는 키가 큰가요?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 101290,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 302406,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は私と同い年です。",
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "と",
+          "pos": "助詞",
+          "furigana": "と",
+          "romaji": "to"
+        },
+        {
+          "word": "同い年",
+          "pos": "名詞",
+          "furigana": "おないどし",
+          "romaji": "onaidoshi"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "He's my age.",
+        "zh-CN": "他和我同岁。",
+        "zh-TW": "他和我同歲。",
+        "ko": "그는 나와 동갑이에요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 106257,
+        "owner": "KK_kaku_",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 674278,
+            "owner": "yessoos",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は外出しています。",
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "外出",
+          "pos": "名詞",
+          "furigana": "がいしゅつ",
+          "romaji": "gaishutsu"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "He's not in.",
+        "zh-CN": "他出门了。",
+        "zh-TW": "他出門了。",
+        "ko": "그는 외출 중이에요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 108940,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1300772,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "道に迷ってしまいました。",
+      "tokens": [
+        {
+          "word": "道",
+          "pos": "名詞",
+          "furigana": "みち",
+          "romaji": "michi"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "迷っ",
+          "pos": "動詞",
+          "furigana": "まよっ",
+          "romaji": "mayot"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "しまい",
+          "pos": "動詞",
+          "furigana": "しまい",
+          "romaji": "shimai"
+        },
+        {
+          "word": "まし",
+          "pos": "助動詞",
+          "furigana": "まし",
+          "romaji": "mashi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I'm lost.",
+        "zh-CN": "我迷路了。",
+        "zh-TW": "我迷路了。",
+        "ko": "길을 잃었어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 123603,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 455833,
+            "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "精一杯やってみなさい。",
+      "tokens": [
+        {
+          "word": "精一杯",
+          "pos": "副詞",
+          "furigana": "せいいっぱい",
+          "romaji": "seiippai"
+        },
+        {
+          "word": "やっ",
+          "pos": "動詞",
+          "furigana": "やっ",
+          "romaji": "yat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Try hard.",
+        "zh-CN": "尽全力试试看吧。",
+        "zh-TW": "盡全力試試看吧。",
+        "ko": "최선을 다해 보세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 142669,
+        "owner": "mookeee",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 271901,
+            "owner": "Zifre",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "心配しなくていいよ。",
+      "tokens": [
+        {
+          "word": "心配",
+          "pos": "名詞",
+          "furigana": "しんぱい",
+          "romaji": "shinpai"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "なく",
+          "pos": "助動詞",
+          "furigana": "なく",
+          "romaji": "naku"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いい",
+          "pos": "形容詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Don't worry.",
+        "zh-CN": "不用担心。",
+        "zh-TW": "不用擔心。",
+        "ko": "걱정하지 않아도 돼요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 145543,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 506446,
+            "owner": "rtomharper",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "時のたつのは早いものだ。",
+      "tokens": [
+        {
+          "word": "時",
+          "pos": "名詞",
+          "furigana": "とき",
+          "romaji": "toki"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "たつ",
+          "pos": "動詞",
+          "furigana": "たつ",
+          "romaji": "tatsu"
+        },
+        {
+          "word": "の",
+          "pos": "名詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "早い",
+          "pos": "形容詞",
+          "furigana": "はやい",
+          "romaji": "hayai"
+        },
+        {
+          "word": "もの",
+          "pos": "名詞",
+          "furigana": "もの",
+          "romaji": "mono"
+        },
+        {
+          "word": "だ",
+          "pos": "助動詞",
+          "furigana": "だ",
+          "romaji": "da"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Time flies.",
+        "zh-CN": "时间过得真快啊。",
+        "zh-TW": "時間過得真快啊。",
+        "ko": "시간은 참 빨리 가네요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 150671,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 263886,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は走ることができる。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "走る",
+          "pos": "動詞",
+          "furigana": "はしる",
+          "romaji": "hashiru"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "できる",
+          "pos": "動詞",
+          "furigana": "できる",
+          "romaji": "dekiru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I can run.",
+        "zh-CN": "我会跑步。",
+        "zh-TW": "我會跑步。",
+        "ko": "나는 달릴 수 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 155347,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1173661,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は笑ってしまった。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "笑っ",
+          "pos": "動詞",
+          "furigana": "わらっ",
+          "romaji": "warat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "しまっ",
+          "pos": "動詞",
+          "furigana": "しまっ",
+          "romaji": "shimat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I laughed.",
+        "zh-CN": "我忍不住笑了。",
+        "zh-TW": "我忍不住笑了。",
+        "ko": "나는 그만 웃고 말았어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 155824,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 258713,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は覚悟ができている。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "覚悟",
+          "pos": "名詞",
+          "furigana": "かくご",
+          "romaji": "kakugo"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "でき",
+          "pos": "動詞",
+          "furigana": "でき",
+          "romaji": "deki"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いる",
+          "pos": "動詞",
+          "furigana": "いる",
+          "romaji": "iru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I am ready.",
+        "zh-CN": "我已经做好心理准备了。",
+        "zh-TW": "我已經做好心理準備了。",
+        "ko": "나는 마음의 준비가 되어 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 157889,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 436423,
+            "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は泳ぐことが出来ます。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "泳ぐ",
+          "pos": "動詞",
+          "furigana": "およぐ",
+          "romaji": "oyogu"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "出来",
+          "pos": "動詞",
+          "furigana": "でき",
+          "romaji": "deki"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I can swim.",
+        "zh-CN": "我会游泳。",
+        "zh-TW": "我會游泳。",
+        "ko": "나는 수영할 수 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 158353,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 256178,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はどちらも好きです。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "どちら",
+          "pos": "代名詞",
+          "furigana": "どちら",
+          "romaji": "dochira"
+        },
+        {
+          "word": "も",
+          "pos": "助詞",
+          "furigana": "も",
+          "romaji": "mo"
+        },
+        {
+          "word": "好き",
+          "pos": "名詞",
+          "furigana": "すき",
+          "romaji": "suki"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I like both.",
+        "zh-CN": "两个我都喜欢。",
+        "zh-TW": "兩個我都喜歡。",
+        "ko": "나는 둘 다 좋아해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 159295,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 255228,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はそう言いました。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "そう",
+          "pos": "副詞",
+          "furigana": "そう",
+          "romaji": "sou"
+        },
+        {
+          "word": "言い",
+          "pos": "動詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "まし",
+          "pos": "助動詞",
+          "furigana": "まし",
+          "romaji": "mashi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I said so.",
+        "zh-CN": "我是那么说的。",
+        "zh-TW": "我是那麼說的。",
+        "ko": "나는 그렇게 말했어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 160452,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 254069,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はそうは思いません。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "そう",
+          "pos": "副詞",
+          "furigana": "そう",
+          "romaji": "sou"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "思い",
+          "pos": "動詞",
+          "furigana": "おもい",
+          "romaji": "omoi"
+        },
+        {
+          "word": "ませ",
+          "pos": "助動詞",
+          "furigana": "ませ",
+          "romaji": "mase"
+        },
+        {
+          "word": "ん",
+          "pos": "助動詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I disagree.",
+        "zh-CN": "我不这么认为。",
+        "zh-TW": "我不這麼認為。",
+        "ko": "나는 그렇게 생각하지 않아요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 160455,
+        "owner": "tommy_san",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111806,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はケーキが好きだ。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "ケーキ",
+          "pos": "名詞",
+          "furigana": "けーき",
+          "romaji": "keeki"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好きだ",
+          "pos": "形容動詞",
+          "furigana": "すきだ",
+          "romaji": "sukida"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I like cake.",
+        "zh-CN": "我喜欢蛋糕。",
+        "zh-TW": "我喜歡蛋糕。",
+        "ko": "나는 케이크를 좋아해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 161101,
+        "owner": "tommy_san",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 253417,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はお茶が好きです。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "お茶",
+          "pos": "名詞",
+          "furigana": "おちゃ",
+          "romaji": "ocha"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好き",
+          "pos": "名詞",
+          "furigana": "すき",
+          "romaji": "suki"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I like tea.",
+        "zh-CN": "我喜欢喝茶。",
+        "zh-TW": "我喜歡喝茶。",
+        "ko": "나는 차를 좋아해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 161224,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 253293,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私の質問に答えなさい。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "質問",
+          "pos": "名詞",
+          "furigana": "しつもん",
+          "romaji": "shitsumon"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "答え",
+          "pos": "動詞",
+          "furigana": "こたえ",
+          "romaji": "kotae"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Answer me.",
+        "zh-CN": "请回答我的问题。",
+        "zh-TW": "請回答我的問題。",
+        "ko": "내 질문에 대답하세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 163451,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 251060,
+            "owner": "Eldad",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "本気で言ってるんです。",
+      "tokens": [
+        {
+          "word": "本気",
+          "pos": "名詞",
+          "furigana": "ほんき",
+          "romaji": "honki"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "言っ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "てる",
+          "pos": "動詞",
+          "furigana": "てる",
+          "romaji": "teru"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I mean it.",
+        "zh-CN": "我是认真的。",
+        "zh-TW": "我是認真的。",
+        "ko": "진심으로 하는 말이에요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 163707,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 250804,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私に行かせてください。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "行か",
+          "pos": "動詞",
+          "furigana": "いか",
+          "romaji": "ika"
+        },
+        {
+          "word": "せ",
+          "pos": "動詞",
+          "furigana": "せ",
+          "romaji": "se"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Let me go!",
+        "zh-CN": "请让我去吧。",
+        "zh-TW": "請讓我去吧。",
+        "ko": "내가 가게 해 주세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 164396,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 250112,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私がちゃんとやりますから。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "ちゃんと",
+          "pos": "副詞",
+          "furigana": "ちゃんと",
+          "romaji": "chanto"
+        },
+        {
+          "word": "やり",
+          "pos": "動詞",
+          "furigana": "やり",
+          "romaji": "yari"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "から",
+          "pos": "助詞",
+          "furigana": "から",
+          "romaji": "kara"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I'll do it.",
+        "zh-CN": "我会好好做的。",
+        "zh-TW": "我會好好做的。",
+        "ko": "내가 제대로 할 테니까요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 167956,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 433474,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "今すぐそれをやりなさい。",
+      "tokens": [
+        {
+          "word": "今",
+          "pos": "名詞",
+          "furigana": "いま",
+          "romaji": "ima"
+        },
+        {
+          "word": "すぐ",
+          "pos": "副詞",
+          "furigana": "すぐ",
+          "romaji": "sugu"
+        },
+        {
+          "word": "それ",
+          "pos": "代名詞",
+          "furigana": "それ",
+          "romaji": "sore"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "やり",
+          "pos": "動詞",
+          "furigana": "やり",
+          "romaji": "yari"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Do it now.",
+        "zh-CN": "现在马上做。",
+        "zh-TW": "現在馬上做。",
+        "ko": "지금 당장 그것을 하세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 172831,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 435763,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "君のことが好きなんだ。",
+      "tokens": [
+        {
+          "word": "君",
+          "pos": "代名詞",
+          "furigana": "きみ",
+          "romaji": "kimi"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好き",
+          "pos": "名詞",
+          "furigana": "すき",
+          "romaji": "suki"
+        },
+        {
+          "word": "な",
+          "pos": "助動詞",
+          "furigana": "な",
+          "romaji": "na"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "だ",
+          "pos": "助動詞",
+          "furigana": "だ",
+          "romaji": "da"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I like you.",
+        "zh-CN": "我喜欢你。",
+        "zh-TW": "我喜歡你。",
+        "ko": "너를 좋아해."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 178541,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 410751,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "君がいなくて寂しいよ。",
+      "tokens": [
+        {
+          "word": "君",
+          "pos": "代名詞",
+          "furigana": "きみ",
+          "romaji": "kimi"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "なく",
+          "pos": "助動詞",
+          "furigana": "なく",
+          "romaji": "naku"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "寂しい",
+          "pos": "形容詞",
+          "furigana": "さびしい",
+          "romaji": "sabishii"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I miss you.",
+        "zh-CN": "你不在，我很寂寞。",
+        "zh-TW": "你不在，我很寂寞。",
+        "ko": "네가 없어서 쓸쓸해."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 179195,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1308,
+            "owner": "brauliobezerra",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "顔と手を洗いなさい。",
+      "tokens": [
+        {
+          "word": "顔",
+          "pos": "名詞",
+          "furigana": "かお",
+          "romaji": "kao"
+        },
+        {
+          "word": "と",
+          "pos": "助詞",
+          "furigana": "と",
+          "romaji": "to"
+        },
+        {
+          "word": "手",
+          "pos": "名詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "洗い",
+          "pos": "動詞",
+          "furigana": "あらい",
+          "romaji": "arai"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Wash up.",
+        "zh-CN": "去洗脸和洗手。",
+        "zh-TW": "去洗臉和洗手。",
+        "ko": "얼굴과 손을 씻으세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 183641,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 20763,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "楽しんでいってください。",
+      "tokens": [
+        {
+          "word": "楽しん",
+          "pos": "動詞",
+          "furigana": "たのしん",
+          "romaji": "tanoshin"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "いっ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Have fun.",
+        "zh-CN": "请玩得开心。",
+        "zh-TW": "請玩得開心。",
+        "ko": "즐겁게 보내고 가세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 184146,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 21267,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "皆さんお乗りください。",
+      "tokens": [
+        {
+          "word": "皆さん",
+          "pos": "名詞",
+          "furigana": "みなさん",
+          "romaji": "minasan"
+        },
+        {
+          "word": "お",
+          "pos": "名詞",
+          "furigana": "お",
+          "romaji": "o"
+        },
+        {
+          "word": "乗り",
+          "pos": "動詞",
+          "furigana": "のり",
+          "romaji": "nori"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "All aboard!",
+        "zh-CN": "请大家上车。",
+        "zh-TW": "請大家上車。",
+        "ko": "모두 탑승해 주세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 184989,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 22121,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "何ていったんですか。",
+      "tokens": [
+        {
+          "word": "何",
+          "pos": "代名詞",
+          "furigana": "なん",
+          "romaji": "nan"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いっ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "か",
+          "pos": "助詞",
+          "furigana": "か",
+          "romaji": "ka"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Pardon me?",
+        "zh-CN": "你刚才说什么？",
+        "zh-TW": "你剛才說什麼？",
+        "ko": "뭐라고 하셨나요?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 187853,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 31477,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "意見が一致している。",
+      "tokens": [
+        {
+          "word": "意見",
+          "pos": "名詞",
+          "furigana": "いけん",
+          "romaji": "iken"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "一致",
+          "pos": "名詞",
+          "furigana": "いっち",
+          "romaji": "itchi"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いる",
+          "pos": "動詞",
+          "furigana": "いる",
+          "romaji": "iru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "We agree.",
+        "zh-CN": "意见一致。",
+        "zh-TW": "意見一致。",
+        "ko": "의견이 일치해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 191067,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 628230,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "はっきり言いなさい。",
+      "tokens": [
+        {
+          "word": "はっきり",
+          "pos": "副詞",
+          "furigana": "はっきり",
+          "romaji": "hakkiri"
+        },
+        {
+          "word": "言い",
+          "pos": "動詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Speak up!",
+        "zh-CN": "请说清楚。",
+        "zh-TW": "請說清楚。",
+        "ko": "분명하게 말하세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 197986,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 35175,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "なんて可愛いんでしょう。",
+      "tokens": [
+        {
+          "word": "なんて",
+          "pos": "助詞",
+          "furigana": "なんて",
+          "romaji": "nante"
+        },
+        {
+          "word": "可愛い",
+          "pos": "形容詞",
+          "furigana": "かわいい",
+          "romaji": "kawaii"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "でしょ",
+          "pos": "助動詞",
+          "furigana": "でしょ",
+          "romaji": "desho"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "How cute!",
+        "zh-CN": "真可爱啊！",
+        "zh-TW": "真可愛啊！",
+        "ko": "정말 귀엽네요!"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 198901,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 36097,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "どうぞお話し下さい。",
+      "tokens": [
+        {
+          "word": "どうぞ",
+          "pos": "副詞",
+          "furigana": "どうぞ",
+          "romaji": "douzo"
+        },
+        {
+          "word": "お話",
+          "pos": "名詞",
+          "furigana": "おはなし",
+          "romaji": "ohanashi"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "下さい",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Go ahead.",
+        "zh-CN": "请说吧。",
+        "zh-TW": "請說吧。",
+        "ko": "말씀해 주세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 201339,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 38546,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "もう一度お願いします。",
+      "tokens": [
+        {
+          "word": "もう一度",
+          "pos": "副詞",
+          "furigana": "もういちど",
+          "romaji": "mouichido"
+        },
+        {
+          "word": "お願い",
+          "pos": "名詞",
+          "furigana": "おねがい",
+          "romaji": "onegai"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Excuse me?",
+        "zh-CN": "请再说一遍。",
+        "zh-TW": "請再說一遍。",
+        "ko": "한 번 더 부탁합니다."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 214165,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 434704,
+            "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "しっかり勉強しなさい。",
+      "tokens": [
+        {
+          "word": "しっかり",
+          "pos": "副詞",
+          "furigana": "しっかり",
+          "romaji": "shikkari"
+        },
+        {
+          "word": "勉強",
+          "pos": "名詞",
+          "furigana": "べんきょう",
+          "romaji": "benkyou"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Study hard.",
+        "zh-CN": "要好好学习。",
+        "zh-TW": "要好好學習。",
+        "ko": "열심히 공부하세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 216163,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 53465,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "さあどうぞお入りください。",
+      "tokens": [
+        {
+          "word": "さあ",
+          "pos": "感動詞",
+          "furigana": "さあ",
+          "romaji": "saa"
+        },
+        {
+          "word": "どうぞ",
+          "pos": "副詞",
+          "furigana": "どうぞ",
+          "romaji": "douzo"
+        },
+        {
+          "word": "お",
+          "pos": "名詞",
+          "furigana": "お",
+          "romaji": "o"
+        },
+        {
+          "word": "入り",
+          "pos": "動詞",
+          "furigana": "はいり",
+          "romaji": "hairi"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Do come in.",
+        "zh-CN": "来，请进。",
+        "zh-TW": "來，請進。",
+        "ko": "자, 어서 들어오세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 216899,
+        "owner": "wakatyann630",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2245265,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "さあ、入って入って。",
+      "tokens": [
+        {
+          "word": "さあ",
+          "pos": "感動詞",
+          "furigana": "さあ",
+          "romaji": "saa"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "入っ",
+          "pos": "動詞",
+          "furigana": "はいっ",
+          "romaji": "hait"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "入っ",
+          "pos": "動詞",
+          "furigana": "はいっ",
+          "romaji": "hait"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Come on in!",
+        "zh-CN": "来，进来吧，进来吧。",
+        "zh-TW": "來，進來吧，進來吧。",
+        "ko": "자, 들어와, 들어와."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 216921,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 54229,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "お話ししたいことがあります。",
+      "tokens": [
+        {
+          "word": "お話し",
+          "pos": "名詞",
+          "furigana": "おはなし",
+          "romaji": "ohanashi"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "たい",
+          "pos": "助動詞",
+          "furigana": "たい",
+          "romaji": "tai"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "あり",
+          "pos": "動詞",
+          "furigana": "あり",
+          "romaji": "ari"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Can we talk?",
+        "zh-CN": "我有话想跟你说。",
+        "zh-TW": "我有話想跟你說。",
+        "ko": "드리고 싶은 말씀이 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 226514,
+        "owner": "KK_kaku_",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 63859,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "お腹がいっぱいです。",
+      "tokens": [
+        {
+          "word": "お腹",
+          "pos": "名詞",
+          "furigana": "おなか",
+          "romaji": "onaka"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "いっぱい",
+          "pos": "副詞",
+          "furigana": "いっぱい",
+          "romaji": "ippai"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I'm full.",
+        "zh-CN": "我吃饱了。",
+        "zh-TW": "我吃飽了。",
+        "ko": "배가 불러요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 226693,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 433863,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ああ、お腹が空いた。",
+      "tokens": [
+        {
+          "word": "ああ",
+          "pos": "感動詞",
+          "furigana": "ああ",
+          "romaji": "aa"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "お腹",
+          "pos": "名詞",
+          "furigana": "おなか",
+          "romaji": "onaka"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "空い",
+          "pos": "動詞",
+          "furigana": "すい",
+          "romaji": "sui"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I'm hungry!",
+        "zh-CN": "啊，肚子饿了。",
+        "zh-TW": "啊，肚子餓了。",
+        "ko": "아, 배고파."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 234717,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 404096,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はここで食べます。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "ここ",
+          "pos": "代名詞",
+          "furigana": "ここ",
+          "romaji": "koko"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "食べ",
+          "pos": "動詞",
+          "furigana": "たべ",
+          "romaji": "tabe"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I eat here.",
+        "zh-CN": "我在这里吃。",
+        "zh-TW": "我在這裡吃。",
+        "ko": "나는 여기서 먹어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 546095,
+        "owner": "qahwa",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 449105,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はあなたを愛しています。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "あなた",
+          "pos": "代名詞",
+          "furigana": "あなた",
+          "romaji": "anata"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "愛し",
+          "pos": "動詞",
+          "furigana": "あいし",
+          "romaji": "aishi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I love you.",
+        "zh-CN": "我爱你。",
+        "zh-TW": "我愛你。",
+        "ko": "나는 당신을 사랑해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 630415,
+        "owner": "arihato",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1434,
+            "owner": "awael58",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "少し静かにしていなさい。",
+      "tokens": [
+        {
+          "word": "少し",
+          "pos": "副詞",
+          "furigana": "すこし",
+          "romaji": "sukoshi"
+        },
+        {
+          "word": "静か",
+          "pos": "名詞",
+          "furigana": "しずか",
+          "romaji": "shizuka"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Be quiet.",
+        "zh-CN": "请安静一点。",
+        "zh-TW": "請安靜一點。",
+        "ko": "조금 조용히 하고 있으세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 714252,
+        "owner": "arihato",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1275396,
+            "owner": "jakov",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "もう一度やってみて。",
+      "tokens": [
+        {
+          "word": "もう一度",
+          "pos": "副詞",
+          "furigana": "もういちど",
+          "romaji": "mouichido"
+        },
+        {
+          "word": "やっ",
+          "pos": "動詞",
+          "furigana": "やっ",
+          "romaji": "yat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Try again.",
+        "zh-CN": "再试一次吧。",
+        "zh-TW": "再試一次吧。",
+        "ko": "한 번 더 해 봐."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1034968,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 31723,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "そのことを確信している。",
+      "tokens": [
+        {
+          "word": "その",
+          "pos": "連体詞",
+          "furigana": "その",
+          "romaji": "sono"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "確信",
+          "pos": "名詞",
+          "furigana": "かくしん",
+          "romaji": "kakushin"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いる",
+          "pos": "動詞",
+          "furigana": "いる",
+          "romaji": "iru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I am sure.",
+        "zh-CN": "我对此确信不疑。",
+        "zh-TW": "我對此確信不疑。",
+        "ko": "그 일을 확신하고 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1179922,
+        "owner": "mookeee",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 436433,
+            "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私も参加させてください。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "も",
+          "pos": "助詞",
+          "furigana": "も",
+          "romaji": "mo"
+        },
+        {
+          "word": "参加",
+          "pos": "名詞",
+          "furigana": "さんか",
+          "romaji": "sanka"
+        },
+        {
+          "word": "さ",
+          "pos": "動詞",
+          "furigana": "さ",
+          "romaji": "sa"
+        },
+        {
+          "word": "せ",
+          "pos": "動詞",
+          "furigana": "せ",
+          "romaji": "se"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Let me in.",
+        "zh-CN": "请让我也参加。",
+        "zh-TW": "請讓我也參加。",
+        "ko": "나도 참가하게 해 주세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1284070,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 277466,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私たちは努力しております。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "たち",
+          "pos": "名詞",
+          "furigana": "たち",
+          "romaji": "tachi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "努力",
+          "pos": "名詞",
+          "furigana": "どりょく",
+          "romaji": "doryoku"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "おり",
+          "pos": "動詞",
+          "furigana": "おり",
+          "romaji": "ori"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "We try.",
+        "zh-CN": "我们正在努力。",
+        "zh-TW": "我們正在努力。",
+        "ko": "저희는 노력하고 있습니다."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1293333,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 247763,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "手は空いていますよ。",
+      "tokens": [
+        {
+          "word": "手",
+          "pos": "名詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "空い",
+          "pos": "動詞",
+          "furigana": "あい",
+          "romaji": "ai"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I'm free.",
+        "zh-CN": "我现在有空。",
+        "zh-TW": "我現在有空。",
+        "ko": "지금 한가해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1302432,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 23959,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "家に戻ってきなさい。",
+      "tokens": [
+        {
+          "word": "家",
+          "pos": "名詞",
+          "furigana": "いえ",
+          "romaji": "ie"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "戻っ",
+          "pos": "動詞",
+          "furigana": "もどっ",
+          "romaji": "modot"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "き",
+          "pos": "動詞",
+          "furigana": "き",
+          "romaji": "ki"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Come home.",
+        "zh-CN": "回家来吧。",
+        "zh-TW": "回家來吧。",
+        "ko": "집으로 돌아오세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1516322,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 413767,
+            "owner": "Scott",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "優しくしてあげなさい。",
+      "tokens": [
+        {
+          "word": "優しく",
+          "pos": "形容詞",
+          "furigana": "やさしく",
+          "romaji": "yasashiku"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "あげ",
+          "pos": "動詞",
+          "furigana": "あげ",
+          "romaji": "age"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Be nice.",
+        "zh-CN": "要温柔地对待对方。",
+        "zh-TW": "要溫柔地對待對方。",
+        "ko": "친절하게 대해 주세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 2038458,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1916314,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "誰にでもいいから訊いてみてください。",
+      "tokens": [
+        {
+          "word": "誰",
+          "pos": "代名詞",
+          "furigana": "だれ",
+          "romaji": "dare"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "でも",
+          "pos": "助詞",
+          "furigana": "でも",
+          "romaji": "demo"
+        },
+        {
+          "word": "いい",
+          "pos": "形容詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "から",
+          "pos": "助詞",
+          "furigana": "から",
+          "romaji": "kara"
+        },
+        {
+          "word": "訊い",
+          "pos": "動詞",
+          "furigana": "きい",
+          "romaji": "kii"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Ask anybody.",
+        "zh-CN": "问谁都行，去问问看吧。",
+        "zh-TW": "問誰都行，去問問看吧。",
+        "ko": "누구라도 좋으니 물어보세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 2179177,
+        "owner": "tommy_san",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111968,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "起き上がるの手伝って。",
+      "tokens": [
+        {
+          "word": "起き上がる",
+          "pos": "動詞",
+          "furigana": "おきあがる",
+          "romaji": "okiagaru"
+        },
+        {
+          "word": "の",
+          "pos": "名詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "手伝っ",
+          "pos": "動詞",
+          "furigana": "てつだっ",
+          "romaji": "tetsudat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Help me up.",
+        "zh-CN": "帮我起来一下。",
+        "zh-TW": "幫我起來一下。",
+        "ko": "일어나는 것 좀 도와줘."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 2562528,
+        "owner": "OrangeTart",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2245555,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は単刀直入なんです。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "単刀直入",
+          "pos": "名詞",
+          "furigana": "たんとうちょくにゅう",
+          "romaji": "tantouchokunyuu"
+        },
+        {
+          "word": "な",
+          "pos": "助動詞",
+          "furigana": "な",
+          "romaji": "na"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I'm direct.",
+        "zh-CN": "我说话很直。",
+        "zh-TW": "我說話很直。",
+        "ko": "나는 돌려 말하지 않아요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 2579328,
+        "owner": "OrangeTart",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2202768,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は読むことができます。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "読む",
+          "pos": "動詞",
+          "furigana": "よむ",
+          "romaji": "yomu"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "でき",
+          "pos": "動詞",
+          "furigana": "でき",
+          "romaji": "deki"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I can read.",
+        "zh-CN": "我会阅读。",
+        "zh-TW": "我會閱讀。",
+        "ko": "나는 글을 읽을 수 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3220575,
+        "owner": "e4zh1nmcz",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 3220342,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は引っ込み思案です。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "引っ込み思案",
+          "pos": "名詞",
+          "furigana": "ひっこみじあん",
+          "romaji": "hikkomijian"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I'm shy.",
+        "zh-CN": "我比较内向。",
+        "zh-TW": "我比較內向。",
+        "ko": "나는 내성적이에요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3480374,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2203346,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "あったかくしてなさい。",
+      "tokens": [
+        {
+          "word": "あったかく",
+          "pos": "形容詞",
+          "furigana": "あったかく",
+          "romaji": "attakaku"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Keep warm.",
+        "zh-CN": "注意保暖。",
+        "zh-TW": "注意保暖。",
+        "ko": "따뜻하게 하고 있으세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488153,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111630,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "どなたさまでしょうか。",
+      "tokens": [
+        {
+          "word": "どなた",
+          "pos": "代名詞",
+          "furigana": "どなた",
+          "romaji": "donata"
+        },
+        {
+          "word": "さま",
+          "pos": "名詞",
+          "furigana": "さま",
+          "romaji": "sama"
+        },
+        {
+          "word": "でしょ",
+          "pos": "助動詞",
+          "furigana": "でしょ",
+          "romaji": "desho"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "か",
+          "pos": "助詞",
+          "furigana": "か",
+          "romaji": "ka"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Who is it?",
+        "zh-CN": "请问您是哪位？",
+        "zh-TW": "請問您是哪位？",
+        "ko": "누구신가요?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488193,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 428379,
+            "owner": "witbrock",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ほら、ここにあるよ。",
+      "tokens": [
+        {
+          "word": "ほら",
+          "pos": "感動詞",
+          "furigana": "ほら",
+          "romaji": "hora"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "ここ",
+          "pos": "代名詞",
+          "furigana": "ここ",
+          "romaji": "koko"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "ある",
+          "pos": "動詞",
+          "furigana": "ある",
+          "romaji": "aru"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Here it is.",
+        "zh-CN": "看，就在这里。",
+        "zh-TW": "看，就在這裡。",
+        "ko": "봐, 여기 있어."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488304,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 35529,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私も年をとったなあ。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "も",
+          "pos": "助詞",
+          "furigana": "も",
+          "romaji": "mo"
+        },
+        {
+          "word": "年",
+          "pos": "名詞",
+          "furigana": "とし",
+          "romaji": "toshi"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "とっ",
+          "pos": "動詞",
+          "furigana": "とっ",
+          "romaji": "tot"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "なあ",
+          "pos": "助詞",
+          "furigana": "なあ",
+          "romaji": "naa"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I feel old.",
+        "zh-CN": "我也上年纪了啊。",
+        "zh-TW": "我也上年紀了啊。",
+        "ko": "나도 나이가 들었구나."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488345,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1430734,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "あなたが必要なんです。",
+      "tokens": [
+        {
+          "word": "あなた",
+          "pos": "代名詞",
+          "furigana": "あなた",
+          "romaji": "anata"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "必要",
+          "pos": "名詞",
+          "furigana": "ひつよう",
+          "romaji": "hitsuyou"
+        },
+        {
+          "word": "な",
+          "pos": "助動詞",
+          "furigana": "な",
+          "romaji": "na"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I need you.",
+        "zh-CN": "我需要你。",
+        "zh-TW": "我需要你。",
+        "ko": "당신이 필요해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488368,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 17735,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "とにかく落ち着いて。",
+      "tokens": [
+        {
+          "word": "とにかく",
+          "pos": "副詞",
+          "furigana": "とにかく",
+          "romaji": "tonikaku"
+        },
+        {
+          "word": "落ち着い",
+          "pos": "動詞",
+          "furigana": "おちつい",
+          "romaji": "ochitsui"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Just relax.",
+        "zh-CN": "总之，先冷静下来。",
+        "zh-TW": "總之，先冷靜下來。",
+        "ko": "일단 진정해."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488541,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1555685,
+            "owner": "Spamster",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "寄りかかっていいよ。",
+      "tokens": [
+        {
+          "word": "寄りかかっ",
+          "pos": "動詞",
+          "furigana": "よりかかっ",
+          "romaji": "yorikakat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いい",
+          "pos": "形容詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Lean on me.",
+        "zh-CN": "可以靠过来哦。",
+        "zh-TW": "可以靠過來喔。",
+        "ko": "기대도 돼."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488564,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2249515,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "さあ、みんなで歌いましょう。",
+      "tokens": [
+        {
+          "word": "さあ",
+          "pos": "感動詞",
+          "furigana": "さあ",
+          "romaji": "saa"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "みんな",
+          "pos": "代名詞",
+          "furigana": "みんな",
+          "romaji": "minna"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "歌い",
+          "pos": "動詞",
+          "furigana": "うたい",
+          "romaji": "utai"
+        },
+        {
+          "word": "ましょ",
+          "pos": "助動詞",
+          "furigana": "ましょ",
+          "romaji": "masho"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Sing along.",
+        "zh-CN": "来，大家一起唱吧。",
+        "zh-TW": "來，大家一起唱吧。",
+        "ko": "자, 다 같이 노래합시다."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488728,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111554,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は青色が好きです。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "青色",
+          "pos": "名詞",
+          "furigana": "あおいろ",
+          "romaji": "aoiro"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好き",
+          "pos": "名詞",
+          "furigana": "すき",
+          "romaji": "suki"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I like blue.",
+        "zh-CN": "我喜欢蓝色。",
+        "zh-TW": "我喜歡藍色。",
+        "ko": "나는 파란색을 좋아해요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 6537581,
+        "owner": "nihonjin",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2245933,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "僕はリラックスした。",
+      "tokens": [
+        {
+          "word": "僕",
+          "pos": "代名詞",
+          "furigana": "ぼく",
+          "romaji": "boku"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "リラックス",
+          "pos": "名詞",
+          "furigana": "りらっくす",
+          "romaji": "rirakkusu"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I relaxed.",
+        "zh-CN": "我放松下来了。",
+        "zh-TW": "我放鬆下來了。",
+        "ko": "나는 긴장을 풀었어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 7554267,
+        "owner": "Ninja",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 5828674,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "上記をご覧ください。",
+      "tokens": [
+        {
+          "word": "上記",
+          "pos": "名詞",
+          "furigana": "じょうき",
+          "romaji": "jouki"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "ご覧",
+          "pos": "名詞",
+          "furigana": "ごらん",
+          "romaji": "goran"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "See above.",
+        "zh-CN": "请看上面的内容。",
+        "zh-TW": "請看上面的內容。",
+        "ko": "위의 내용을 봐 주세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8617728,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 273621,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私って、運が良かったのよ。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "って",
+          "pos": "助詞",
+          "furigana": "って",
+          "romaji": "tte"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "運",
+          "pos": "名詞",
+          "furigana": "うん",
+          "romaji": "un"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "良かっ",
+          "pos": "形容詞",
+          "furigana": "よかっ",
+          "romaji": "yokat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I got lucky.",
+        "zh-CN": "我那时运气很好。",
+        "zh-TW": "我那時運氣很好。",
+        "ko": "나는 운이 좋았어."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8714160,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2199425,
+            "owner": "Hybrid",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "少しお待ちください。",
+      "tokens": [
+        {
+          "word": "少し",
+          "pos": "副詞",
+          "furigana": "すこし",
+          "romaji": "sukoshi"
+        },
+        {
+          "word": "お待ち",
+          "pos": "名詞",
+          "furigana": "おまち",
+          "romaji": "omachi"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Wait a bit.",
+        "zh-CN": "请稍等一下。",
+        "zh-TW": "請稍等一下。",
+        "ko": "잠시만 기다려 주세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8886169,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 3696774,
+            "owner": "Lindoula",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "たくさん食べちゃった。",
+      "tokens": [
+        {
+          "word": "たくさん",
+          "pos": "名詞",
+          "furigana": "たくさん",
+          "romaji": "takusan"
+        },
+        {
+          "word": "食べ",
+          "pos": "動詞",
+          "furigana": "たべ",
+          "romaji": "tabe"
+        },
+        {
+          "word": "ちゃっ",
+          "pos": "動詞",
+          "furigana": "ちゃっ",
+          "romaji": "chat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I ate a lot.",
+        "zh-CN": "不知不觉吃了好多。",
+        "zh-TW": "不知不覺吃了好多。",
+        "ko": "그만 많이 먹어 버렸어."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8933304,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 8933302,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "僕らは恥ずかしがり屋です。",
+      "tokens": [
+        {
+          "word": "僕ら",
+          "pos": "代名詞",
+          "furigana": "ぼくら",
+          "romaji": "bokura"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "恥ずかし",
+          "pos": "形容詞",
+          "furigana": "はずかし",
+          "romaji": "hazukashi"
+        },
+        {
+          "word": "がり",
+          "pos": "動詞",
+          "furigana": "がり",
+          "romaji": "gari"
+        },
+        {
+          "word": "屋",
+          "pos": "名詞",
+          "furigana": "や",
+          "romaji": "ya"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "We're shy.",
+        "zh-CN": "我们都很害羞。",
+        "zh-TW": "我們都很害羞。",
+        "ko": "우리는 부끄러움을 많이 타요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8967779,
+        "owner": "Ninja",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2203343,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は運転することができます。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "運転",
+          "pos": "名詞",
+          "furigana": "うんてん",
+          "romaji": "unten"
+        },
+        {
+          "word": "する",
+          "pos": "動詞",
+          "furigana": "する",
+          "romaji": "suru"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "でき",
+          "pos": "動詞",
+          "furigana": "でき",
+          "romaji": "deki"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I can drive.",
+        "zh-CN": "我会开车。",
+        "zh-TW": "我會開車。",
+        "ko": "나는 운전할 수 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 9008559,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 744722,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "どうぞお召し上がりください。",
+      "tokens": [
+        {
+          "word": "どうぞ",
+          "pos": "副詞",
+          "furigana": "どうぞ",
+          "romaji": "douzo"
+        },
+        {
+          "word": "お",
+          "pos": "名詞",
+          "furigana": "お",
+          "romaji": "o"
+        },
+        {
+          "word": "召し上がり",
+          "pos": "動詞",
+          "furigana": "めしあがり",
+          "romaji": "meshiagari"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Please eat.",
+        "zh-CN": "请用餐。",
+        "zh-TW": "請用餐。",
+        "ko": "맛있게 드세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 9511216,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 6358715,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ありがとうございます。",
+      "tokens": [
+        {
+          "word": "ありがとう",
+          "pos": "感動詞",
+          "furigana": "ありがとう",
+          "romaji": "arigatou"
+        },
+        {
+          "word": "ござい",
+          "pos": "助動詞",
+          "furigana": "ござい",
+          "romaji": "gozai"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Thank you.",
+        "zh-CN": "谢谢您。",
+        "zh-TW": "謝謝您。",
+        "ko": "감사합니다."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 9559301,
+        "owner": "Sim5634",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1876041,
+            "owner": "Asma",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "そうでなきゃいいけど。",
+      "tokens": [
+        {
+          "word": "そう",
+          "pos": "副詞",
+          "furigana": "そう",
+          "romaji": "sou"
+        },
+        {
+          "word": "で",
+          "pos": "助動詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "なきゃ",
+          "pos": "助動詞",
+          "furigana": "なきゃ",
+          "romaji": "nakya"
+        },
+        {
+          "word": "いい",
+          "pos": "形容詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "けど",
+          "pos": "助詞",
+          "furigana": "けど",
+          "romaji": "kedo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I hope not.",
+        "zh-CN": "希望不是那样。",
+        "zh-TW": "希望不是那樣。",
+        "ko": "그렇지 않으면 좋겠는데."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10012775,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 51119,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "あくびが出ちゃった。",
+      "tokens": [
+        {
+          "word": "あくび",
+          "pos": "名詞",
+          "furigana": "あくび",
+          "romaji": "akubi"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "出",
+          "pos": "動詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "ちゃっ",
+          "pos": "動詞",
+          "furigana": "ちゃっ",
+          "romaji": "chat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I yawned.",
+        "zh-CN": "我忍不住打了个哈欠。",
+        "zh-TW": "我忍不住打了個哈欠。",
+        "ko": "그만 하품이 나왔어."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10230418,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 5828642,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ストップって言ってね。",
+      "tokens": [
+        {
+          "word": "ストップ",
+          "pos": "名詞",
+          "furigana": "すとっぷ",
+          "romaji": "sutoppu"
+        },
+        {
+          "word": "って",
+          "pos": "助詞",
+          "furigana": "って",
+          "romaji": "tte"
+        },
+        {
+          "word": "言っ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ね",
+          "pos": "助詞",
+          "furigana": "ね",
+          "romaji": "ne"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Say when.",
+        "zh-CN": "要停的时候说一声哦。",
+        "zh-TW": "要停的時候說一聲喔。",
+        "ko": "멈출 때 말해 줘."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10309140,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 10309145,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "周りの人に聞いてみて。",
+      "tokens": [
+        {
+          "word": "周り",
+          "pos": "名詞",
+          "furigana": "まわり",
+          "romaji": "mawari"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "人",
+          "pos": "名詞",
+          "furigana": "ひと",
+          "romaji": "hito"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "聞い",
+          "pos": "動詞",
+          "furigana": "きい",
+          "romaji": "kii"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Ask around.",
+        "zh-CN": "问问周围的人吧。",
+        "zh-TW": "問問周圍的人吧。",
+        "ko": "주변 사람들에게 물어봐."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10329999,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111967,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "僕、ジャンプできるよ。",
+      "tokens": [
+        {
+          "word": "僕",
+          "pos": "代名詞",
+          "furigana": "ぼく",
+          "romaji": "boku"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "ジャンプ",
+          "pos": "名詞",
+          "furigana": "じゃんぷ",
+          "romaji": "janpu"
+        },
+        {
+          "word": "できる",
+          "pos": "動詞",
+          "furigana": "できる",
+          "romaji": "dekiru"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I can jump.",
+        "zh-CN": "我会跳哦。",
+        "zh-TW": "我會跳喔。",
+        "ko": "나 점프할 수 있어."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10557602,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 261421,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼のことは知ってますよ。",
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "知っ",
+          "pos": "動詞",
+          "furigana": "しっ",
+          "romaji": "shit"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I know him.",
+        "zh-CN": "我认识他。",
+        "zh-TW": "我認識他。",
+        "ko": "그 사람은 알고 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10692082,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 71751,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "お米を栽培しています。",
+      "tokens": [
+        {
+          "word": "お米",
+          "pos": "名詞",
+          "furigana": "おこめ",
+          "romaji": "okome"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "栽培",
+          "pos": "名詞",
+          "furigana": "さいばい",
+          "romaji": "saibai"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I grow rice.",
+        "zh-CN": "我在种水稻。",
+        "zh-TW": "我在種水稻。",
+        "ko": "쌀을 재배하고 있어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10833268,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 5828944,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私たちは仲直りした。",
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "たち",
+          "pos": "名詞",
+          "furigana": "たち",
+          "romaji": "tachi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "仲直り",
+          "pos": "名詞",
+          "furigana": "なかなおり",
+          "romaji": "nakanaori"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "We made up.",
+        "zh-CN": "我们和好了。",
+        "zh-TW": "我們和好了。",
+        "ko": "우리는 화해했어요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10910960,
+        "owner": "SomeHungryBois",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 11766461,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ちょっとすみません。",
+      "tokens": [
+        {
+          "word": "ちょっと",
+          "pos": "副詞",
+          "furigana": "ちょっと",
+          "romaji": "chotto"
+        },
+        {
+          "word": "すみません",
+          "pos": "感動詞",
+          "furigana": "すみません",
+          "romaji": "sumimasen"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Excuse me.",
+        "zh-CN": "不好意思，打扰一下。",
+        "zh-TW": "不好意思，打擾一下。",
+        "ko": "잠깐 실례합니다."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10985082,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 433504,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "そりゃそうだろうな。",
+      "tokens": [
+        {
+          "word": "そりゃ",
+          "pos": "接続詞",
+          "furigana": "そりゃ",
+          "romaji": "sorya"
+        },
+        {
+          "word": "そう",
+          "pos": "名詞",
+          "furigana": "そう",
+          "romaji": "sou"
+        },
+        {
+          "word": "だろ",
+          "pos": "助動詞",
+          "furigana": "だろ",
+          "romaji": "daro"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "な",
+          "pos": "助詞",
+          "furigana": "な",
+          "romaji": "na"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "I guess so.",
+        "zh-CN": "那倒也是啊。",
+        "zh-TW": "那倒也是啊。",
+        "ko": "그야 그렇겠지."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10987698,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 3820733,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "さ、話してみなさい。",
+      "tokens": [
+        {
+          "word": "さ",
+          "pos": "助詞",
+          "furigana": "さ",
+          "romaji": "sa"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "話し",
+          "pos": "動詞",
+          "furigana": "はなし",
+          "romaji": "hanashi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Let's talk.",
+        "zh-CN": "来，说说看吧。",
+        "zh-TW": "來，說說看吧。",
+        "ko": "자, 이야기해 보세요."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 11005195,
+        "owner": "KK_kaku_",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2007936,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "勉強を頑張りましょう。",
+      "tokens": [
+        {
+          "word": "勉強",
+          "pos": "名詞",
+          "furigana": "べんきょう",
+          "romaji": "benkyou"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "頑張り",
+          "pos": "動詞",
+          "furigana": "がんばり",
+          "romaji": "ganbari"
+        },
+        {
+          "word": "ましょ",
+          "pos": "助動詞",
+          "furigana": "ましょ",
+          "romaji": "masho"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
+      "translation": {
+        "en": "Study hard.",
+        "zh-CN": "一起努力学习吧。",
+        "zh-TW": "一起努力學習吧。",
+        "ko": "열심히 공부합시다."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 11256195,
+        "owner": "sh5555",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 53465,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,12 +1,6 @@
 // 工具函数
 import { synthesizeSpeech, type TTSProvider } from '../services/api';
 
-// 检查字符串是否包含汉字
-export function containsKanji(text: string): boolean {
-  const kanjiRegex = /[\u4E00-\u9FAF\u3400-\u4DBF]/;
-  return kanjiRegex.test(text);
-}
-
 // 学校文法词性分组（十类颜色，記号/改行/未知走其他）
 export type PosGroup = 'n' | 'v' | 'adj' | 'adjv' | 'adv' | 'adn' | 'conj' | 'int' | 'p' | 'aux' | 'o';
 export const POS_LEGEND_GROUPS = ['n', 'v', 'adj', 'adjv', 'adv', 'adn', 'conj', 'int', 'p', 'aux'] as const;
@@ -99,16 +93,6 @@ export const POS_GROUP_LABELS: Record<PosGroup, string> = {
   o: '其他',
 };
 
-// 词性中日对照表
-export const posChineseMap: Record<string, string> = {
-  "名詞": "名词", "動詞": "动词", "形容詞": "形容词", "副詞": "副词",
-  "助詞": "助词", "助動詞": "助动词", "接続詞": "接续词", "感動詞": "感动词",
-  "連体詞": "连体词", "代名詞": "代名词", "形容動詞": "形容动词", "形状詞": "形容动词", "記号": "符号",
-  "接頭辞": "接头辞", "接尾辞": "接尾辞", "フィラー": "填充词", "その他": "其他",
-  "改行": "换行",
-  "default": "未知词性"
-};
-
 // 朗读日语文本
 export function speakJapanese(text: string): void {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -124,17 +108,44 @@ export function speakJapanese(text: string): void {
   }
 }
 
-// 获取 TTS 音频 URL
+import { alignWordBoundariesToTokens, type TokenTimeCue } from './moraTiming';
+import type { TokenData } from '../services/api';
+
+export interface TtsAudioPayload {
+  url: string;
+  cues?: TokenTimeCue[];
+}
+
+// 获取带精确时间戳的 TTS 音频
+export async function getJapaneseTtsAudio(
+  text: string, 
+  apiKey?: string, 
+  provider: TTSProvider = 'edge',
+  options: import('../services/api').SpeechRequestOptions = {},
+  tokens?: TokenData[]
+): Promise<TtsAudioPayload> {
+  const result = await synthesizeSpeech(text, provider, options, apiKey);
+  const url = /^audio\/(?:l16|pcm)(?:;|$)/i.test(result.mimeType)
+    ? createPlayableUrlFromPcm(result.audio, result.mimeType)
+    : createPlayableUrlFromAudio(result.audio, result.mimeType);
+
+  let cues: TokenTimeCue[] | undefined;
+  if (result.cues && result.cues.length > 0 && tokens && tokens.length > 0) {
+    cues = alignWordBoundariesToTokens(tokens, result.cues);
+  }
+
+  return { url, cues };
+}
+
+// 获取 TTS 音频 URL (向下兼容)
 export async function getJapaneseTtsAudioUrl(
   text: string, 
   apiKey?: string, 
   provider: TTSProvider = 'edge',
   options: import('../services/api').SpeechRequestOptions = {}
 ): Promise<string> {
-  const { audio, mimeType } = await synthesizeSpeech(text, provider, options, apiKey);
-  return /^audio\/(?:l16|pcm)(?:;|$)/i.test(mimeType)
-    ? createPlayableUrlFromPcm(audio, mimeType)
-    : createPlayableUrlFromAudio(audio, mimeType);
+  const res = await getJapaneseTtsAudio(text, apiKey, provider, options);
+  return res.url;
 }
 
 // 将 Base64 音频数据转换为可播放的 URL (Edge TTS用)

@@ -5,7 +5,6 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { DictionaryStore } from '../app/api/_utils/dictionaryStore';
-import { validateDictionaryResult } from '../app/api/_utils/dictionaryProvider';
 import type { DictionaryEntry } from '../app/lib/dictionary';
 import { NextRequest } from 'next/server';
 import { GET as imageRoute } from '../app/api/dictionary/assets/[id]/route';
@@ -69,9 +68,7 @@ async function main() {
     assert.equal(corrupt.entries[0].localizations, undefined, 'Corruption is never reported as missing definitions');
     await writeFile(join(directory, 'locales/manifest.json'), JSON.stringify({ ...manifest, englishArchiveSha256: 'newer-english' }));
     assert.equal((await new DictionaryStore(directory).lookup({ query: '駅', locale: 'zh-CN' })).localizationStatus?.status, 'unavailable');
-    const untrusted = validateDictionaryResult({ ...localized, entries: [{ ...localized.entries[0] }] });
-    assert.equal(untrusted.entries[0].localizations, undefined); assert.equal(untrusted.datasets, undefined); assert.equal(untrusted.localizationStatus, undefined);
-    console.log('Localized dictionary passed: independent senses, missing/corrupt states, shared bounded cache, images and untrusted external IDs.');
+    console.log('Localized dictionary passed: independent senses, missing/corrupt states, shared bounded cache, images.');
   } finally { if (previousCode === undefined) delete process.env.CODE; else process.env.CODE = previousCode; await rm(directory, { recursive: true, force: true }); }
 }
 void main().catch(error => { console.error(error); process.exitCode = 1; });

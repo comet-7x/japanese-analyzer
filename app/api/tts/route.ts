@@ -6,6 +6,8 @@ import { BaseUrlError, validateBaseUrl } from '../_utils/validateBaseUrl';
 import { normalizeSpeechEndpoint, SPEECH_PRESETS, type SpeechProtocol } from '../../lib/speechServices';
 import { readVolcengineAudio } from '../_utils/volcengineSpeech';
 
+import { synthesizeEdgeTtsWithBoundaries } from '../_utils/edgeTtsNative';
+
 const EDGE_TTS_URL = 'https://api.howen.ink/api/tts';
 const EDGE_VOICES = { male: 'ja-JP-KeitaNeural', female: 'ja-JP-NanamiNeural' };
 const failure = (message: string, status = 400) => NextResponse.json({ error: { message } }, { status });
@@ -16,7 +18,7 @@ export async function POST(req: NextRequest) {
     if (authError) return authError;
     const body = await readJsonBody(req);
     const { text, provider = 'edge', gender = 'female', rate = 0, pitch = 0 } = body;
-    if (typeof text !== 'string' || !text.trim()) return failure('缺少必要的文本内容');
+    if (typeof text !== 'string' || !text.trim()) return failure('缺少必要的内容');
     if (text.length > 50_000) return failure('朗读文本过长，请分段朗读');
     if (typeof provider !== 'string' || !['edge', 'gemini', 'openai', 'minimax', 'volcengine'].includes(provider)) return failure('不支持的TTS提供商');
     if (typeof rate !== 'number' || !Number.isFinite(rate) || typeof pitch !== 'number' || !Number.isFinite(pitch)) return failure('语音参数无效');
@@ -26,14 +28,51 @@ export async function POST(req: NextRequest) {
     const voice = typeof body.voice === 'string' ? body.voice.trim() : preset.voice;
     const speed = body.speed ?? 1;
     if (!model || !voice || typeof speed !== 'number' || !Number.isFinite(speed) || speed < 0.5 || speed > 2) return failure('语音参数无效');
+    const signal = AbortSignal.any([req.signal, createUpstreamSignal()!]);
+    signal.throwIfAborted();
+
+    // 优先使用直连 Edge TTS 获取毫秒级 WordBoundary 时间戳
+    if (provider === 'edge') {
+      const edgeVoice = voice === 'ja-JP-KeitaNeural' || gender === 'male'
+        ? EDGE_VOICES.male
+        : EDGE_VOICES.female;
+      if (typeof gender !== 'string' || !Object.hasOwn(EDGE_VOICES, gender)) {
+        if (!['ja-JP-NanamiNeural', 'ja-JP-KeitaNeural'].includes(voice)) {
+          return failure('不支持的声音类型，请使用 male 或 female');
+        }
+      }
+      if (rate < -100 || rate > 100 || pitch < -100 || pitch > 100) return failure('语音参数无效');
+
+      try {
+        const edgeRes = await synthesizeEdgeTtsWithBoundaries(text, {
+          voice: edgeVoice,
+          gender: gender as string,
+          rate,
+          pitch,
+          signal,
+        });
+        return NextResponse.json({
+          audio: edgeRes.audio.toString('base64'),
+          mimeType: edgeRes.mimeType,
+          cues: edgeRes.cues,
+        });
+      } catch (err) {
+        if (signal.aborted) throw signal.reason;
+        if (isUpstreamTimeoutError(err)) throw err;
+        console.warn('Native Edge TTS failed, falling back to proxy:', err);
+        // Fallback to proxy if native websocket fails
+      }
+    }
+
     let url: string;
     let payload: Record<string, unknown>;
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (provider === 'edge') {
-      if (typeof gender !== 'string' || !Object.hasOwn(EDGE_VOICES, gender)) return failure('不支持的声音类型，请使用 male 或 female');
-      if (rate < -100 || rate > 100 || pitch < -100 || pitch > 100) return failure('语音参数无效');
+      const edgeVoice = voice === 'ja-JP-KeitaNeural' || gender === 'male'
+        ? EDGE_VOICES.male
+        : EDGE_VOICES.female;
       url = EDGE_TTS_URL;
-      payload = { text, voice: EDGE_VOICES[gender as keyof typeof EDGE_VOICES], rate, pitch };
+      payload = { text, voice: edgeVoice, rate, pitch };
     } else {
       const baseUrl = validateBaseUrl(body.baseUrl ?? preset.baseUrl);
       const parsedUrl = new URL(baseUrl);
@@ -62,7 +101,7 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), redirect: 'error', signal: AbortSignal.any([req.signal, createUpstreamSignal()!]) });
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), redirect: 'error', signal });
     if (!response.ok) {
       const data = await response.json().catch(() => null);
       return failure(typeof data?.error === 'string' ? data.error : data?.error?.message || (typeof data?.message === 'string' ? data.message : '') || `TTS 请求失败（HTTP ${response.status}）`, response.status);

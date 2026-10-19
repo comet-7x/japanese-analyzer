@@ -3,108 +3,61 @@ import { normalizeLocale } from '../../i18n';
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyOpenAICompatibleRequest } from '../_utils/openaiProxy';
 import { ProviderConfigError, resolveProviderConfig, buildCompletionPayload } from '../_utils/providerConfig';
-import { isUpstreamTimeoutError } from '../_utils/requestTimeout';
 import { requireApiSession } from '../_utils/sessionAuth';
-import { getWordDetailSystemPrompt } from '../../lib/wordDetailPrompt';
-import { getPhraseDetailSystemPrompt } from '../../lib/phraseDetailPrompt';
+import { getSelectionAnalysisPrompt, getSelectionTranslationPrompt } from '../../lib/selectionToolPrompts';
+import { validateCompletion } from '../../services/api';
+
+const wordFields = ['dictionaryForm', 'explanation', 'example', 'exampleTranslation', 'pos', 'furigana'] as const;
+const phraseFields = [...wordFields, 'category', 'breakdown'] as const;
+
+function validateStrings(value: unknown, fields: readonly string[]): Record<string, string> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('词语工具结果格式错误');
+  const record = value as Record<string, unknown>;
+  if (Object.keys(record).some(key => !fields.includes(key)) || fields.some(field => typeof record[field] !== 'string')) {
+    throw new Error('词语工具结果字段无效');
+  }
+  return record as Record<string, string>;
+}
 
 export async function POST(req: NextRequest) {
+  const denied = requireApiSession(req); if (denied) return denied;
   try {
+    const body = await readJsonBody(req);
+    const { word, pos, sentence, furigana, model, baseUrl, caps, kind, task } = body;
+    const phrase = kind === 'phrase';
+    if ((task !== 'translate' && task !== 'analyze') || (kind !== 'word' && kind !== 'phrase') || typeof word !== 'string' || !word.trim() || word.length > (phrase ? 12_000 : 240)
+      || typeof sentence !== 'string' || !sentence || sentence.length > 12_000 || typeof pos !== 'string' || typeof furigana !== 'string') {
+      return NextResponse.json({ error: { message: '词语工具参数无效。' } }, { status: 400 });
+    }
+    const config = resolveProviderConfig(req, { baseUrl, model, caps });
+    if (!config.apiKey) return NextResponse.json({ error: { message: '未提供API密钥，请在设置中配置API密钥' } }, { status: 400 });
     const locale = normalizeLocale(req.headers.get('X-App-Locale'));
-    const authError = requireApiSession(req);
-    if (authError) return authError;
-
-    // 解析请求体
-    const { word, pos, sentence, furigana, model, baseUrl, caps, useStream = false, kind } = await readJsonBody(req);
-    // kind: 'phrase' 为用户圈选的多词短语，不需要词性
-    const isPhrase = kind === 'phrase';
-    const providerConfig = resolveProviderConfig(req, { baseUrl, model, caps });
-
-    if (!providerConfig.apiKey) {
-      return NextResponse.json(
-        { error: { message: '未提供API密钥，请在设置中配置API密钥' } },
-        { status: 500 }
-      );
-    }
-
-    if (typeof word !== 'string' || !word.trim() || (kind !== 'lookup' && ((!pos && !isPhrase) || !sentence))) {
-      return NextResponse.json(
-        { error: { message: '缺少必要的参数' } },
-        { status: 400 }
-      );
-    }
-
-    const payload = buildCompletionPayload(providerConfig.caps, {
-      model: providerConfig.model,
+    const structuredOutput = task === 'translate' ? 'selectionTranslation'
+      : phrase ? 'selectionAnalysisPhrase' : 'selectionAnalysisWord';
+    const payload = buildCompletionPayload(config.caps, {
+      model: config.model,
       messages: [
-        { role: "system", content: isPhrase ? getPhraseDetailSystemPrompt(locale) : getWordDetailSystemPrompt(locale) + (kind === 'lookup' ? '\nThis is a standalone lookup without sentence context. Find a reliable dictionary form. Do not invent a sentence-specific sense; acknowledge ambiguity. Return an empty explanation when context is insufficient.' : '') },
-        {
-          role: "user",
-          content: JSON.stringify(isPhrase
-            ? { selection: word, sentence, furigana: furigana || "" }
-            : { word, pos, sentence, furigana: furigana || "" }),
-        },
-      ],
-      stream: useStream,
-    }, { structuredOutput: isPhrase ? 'phraseDetail' : 'wordDetail' });
-
-    const proxied = await proxyOpenAICompatibleRequest({
-      url: providerConfig.baseUrl,
-      apiKey: providerConfig.apiKey,
-      payload,
-      signal: req.signal,
-    });
-
-    if (!proxied.ok) {
-      console.error('AI API error (Word Detail):', proxied.error.raw ?? proxied.error.message);
-      return NextResponse.json(
-        { error: { message: proxied.error.message } },
-        { status: proxied.status }
-      );
+        { role: 'system', content: task === 'translate' ? getSelectionTranslationPrompt(locale) : getSelectionAnalysisPrompt(locale, phrase) },
+        { role: 'user', content: JSON.stringify({ selection: word, sentence, pos, furigana }) },
+      ], stream: false,
+    }, { structuredOutput });
+    const proxied = await proxyOpenAICompatibleRequest({ url: config.baseUrl, apiKey: config.apiKey, payload, signal: req.signal, requestTimeoutMs: 120_000 });
+    if (!proxied.ok) return NextResponse.json({ error: { message: proxied.error.message } }, { status: proxied.status });
+    const response = await proxied.response.json(); validateCompletion(response, task === 'translate' ? '词语翻译' : '用法解析');
+    const parsed = JSON.parse(response.choices[0].message.content) as unknown;
+    if (task === 'translate') {
+      const result = validateStrings(parsed, ['translation']);
+      if (!result.translation.trim()) throw new Error('词语翻译结果为空');
+      return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store' } });
     }
-
-    const response = proxied.response;
-
-    // 如果是流式请求，直接返回流式响应
-    if (useStream && response.body) {
-      return new NextResponse(response.body, {
-        headers: {
-          'Content-Type': 'text/event-stream; charset=utf-8',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
-      });
-    }
-
-    // 非流式请求，返回完整响应
-    const data = await response.json();
-    return NextResponse.json(data);
+    const fields = phrase ? phraseFields : wordFields;
+    const result = validateStrings(parsed, fields);
+    if (phrase && !['単語', '文法形式', '慣用表現', '連語'].includes(result.category)) throw new Error('短语类别无效');
+    return NextResponse.json(result, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    const bodyError = requestBodyErrorResponse(error);
-    if (bodyError) return bodyError;
-    if (error instanceof ProviderConfigError) {
-      return NextResponse.json(
-        { error: { message: error.message } },
-        { status: error.status }
-      );
-    }
-
-    if (req.signal.aborted || (error instanceof Error && error.name === 'AbortError')) {
-      return new Response(null, { status: 499 });
-    }
-
-    // 非流式请求在读取上游响应时整体超时，避免把英文 TimeoutError 原文透传给界面。
-    if (isUpstreamTimeoutError(error)) {
-      return NextResponse.json(
-        { error: { message: '上游接口请求超时，请稍后重试。' } },
-        { status: 504 }
-      );
-    }
-
-    console.error('Server error (Word Detail):', error);
-    return NextResponse.json(
-      { error: { message: error instanceof Error ? error.message : '服务器错误' } },
-      { status: 500 }
-    );
+    const bodyError = requestBodyErrorResponse(error); if (bodyError) return bodyError;
+    if (error instanceof ProviderConfigError) return NextResponse.json({ error: { message: error.message } }, { status: error.status });
+    if (req.signal.aborted) return new Response(null, { status: 499 });
+    return NextResponse.json({ error: { message: error instanceof Error ? error.message : '词语工具请求失败。' } }, { status: 502 });
   }
 }

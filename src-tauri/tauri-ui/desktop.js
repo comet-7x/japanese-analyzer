@@ -34,7 +34,7 @@ function getAppLocale() {
     if (saved && ['zh-CN', 'zh-TW', 'en', 'ko'].includes(saved)) {
       return saved;
     }
-  } catch (_) {}
+  } catch {}
 
   const sysLang = (navigator.language || '').toLowerCase();
   if (sysLang.startsWith('zh-tw') || sysLang.startsWith('zh-hk')) return 'zh-TW';
@@ -330,7 +330,7 @@ try {
     // 真正的 Tauri 桌面客户端中：严格遵循持久化存储
     isFirstLaunch = !localStorage.getItem(HAS_LAUNCHED_KEY);
   }
-} catch (_) {}
+} catch {}
 
 // 选取文句（首次启动固定使用 index 0，老用户随机抽取）
 const selectedQuote = isFirstLaunch
@@ -513,7 +513,6 @@ function setupAmbientCursor() {
   let mouseY = window.innerHeight / 2;
   let currentX = mouseX;
   let currentY = mouseY;
-  let rafId = null;
 
   function renderCursor() {
     // 弹性插值，带来丝滑滞后跟随感
@@ -523,7 +522,7 @@ function setupAmbientCursor() {
       cursor.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
     }
     if (isCeremonyActive) {
-      rafId = requestAnimationFrame(renderCursor);
+      requestAnimationFrame(renderCursor);
     }
   }
 
@@ -533,7 +532,7 @@ function setupAmbientCursor() {
   };
 
   window.addEventListener('mousemove', ambientCursorMoveHandler);
-  rafId = requestAnimationFrame(renderCursor);
+  requestAnimationFrame(renderCursor);
 }
 
 // 点击屏幕任意位置触发的华丽水墨涟漪炸开特效
@@ -568,6 +567,10 @@ function activateFirstLaunchCeremony(targetUrl) {
     if (triggered) return;
     triggered = true;
     isCeremonyActive = false;
+    if (ambientCursorMoveHandler) {
+      window.removeEventListener('mousemove', ambientCursorMoveHandler);
+      ambientCursorMoveHandler = null;
+    }
     stopShortcutTypewriter();
 
     // 如果是通过鼠标点击触发，在点击位置炸开一圈紫色同心水波
@@ -580,7 +583,7 @@ function activateFirstLaunchCeremony(targetUrl) {
 
     try {
       localStorage.setItem(HAS_LAUNCHED_KEY, 'true');
-    } catch (_) {}
+    } catch {}
 
     // 触发解构文字舒展散开
     stageBox.classList.add('stage-unravel');
@@ -689,7 +692,7 @@ async function poll() {
         statusText.textContent = t('ready');
         try {
           localStorage.setItem(HAS_LAUNCHED_KEY, 'true');
-        } catch (_) {}
+        } catch {}
 
         const elapsed = Date.now() - launchStartTime;
         const delay = Math.max(250, 800 - elapsed);

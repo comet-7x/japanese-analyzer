@@ -8,6 +8,7 @@ import { proxyOpenAICompatibleRequest } from '../_utils/openaiProxy';
 import { ProviderConfigError, resolveProviderConfig, buildCompletionPayload } from '../_utils/providerConfig';
 import { isUpstreamTimeoutError } from '../_utils/requestTimeout';
 import { requireApiSession } from '../_utils/sessionAuth';
+import { supportsImageInput } from '../../lib/aiModels';
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,6 +41,10 @@ export async function POST(req: NextRequest) {
         { error: { message: '缺少必要的图片数据' } },
         { status: 400 }
       );
+    }
+
+    if (!supportsImageInput(providerConfig.model, providerConfig.caps)) {
+      return NextResponse.json({ error: { code: 'IMAGE_INPUT_UNSUPPORTED', message: '当前模型不支持图片解析，请切换到支持图片输入的多模态模型。' } }, { status: 400 });
     }
 
     // 优化提示词，避免换行符

@@ -4,10 +4,9 @@ import SettingsConfigLayer from './SettingsConfigLayer';
 
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { createCustomModelId, type ProviderProfile } from '../lib/aiModels';
+import { createCustomModelId, type ProviderProfile, type StructuredOutputMode } from '../lib/aiModels';
 import { testProviderConnection } from '../lib/providerConnection';
 import { Icon } from './Icons';
-import { Switch } from '@/components/ui/switch';
 
 export type TestState = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -30,43 +29,38 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
   const [name, setName] = useState(service.name);
   const [baseUrl, setBaseUrl] = useState(service.baseUrl);
   const [apiKey, setApiKey] = useState(service.apiKey);
-  const [jsonSchema, setJsonSchema] = useState(service.jsonSchema !== false);
   const [testModel, setTestModel] = useState(service.models.find((model) => model.model.trim())?.model ?? '');
   const [testResult, setTestResult] = useState<TestResult>();
+  const [detectedFormat, setDetectedFormat] = useState<StructuredOutputMode | 'unsupported' | null>(null);
   const testController = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setTestResult(undefined);
+    setDetectedFormat(null);
     return () => {
       testController.current?.abort();
       testController.current = null;
     };
-  }, [baseUrl, apiKey, testModel, jsonSchema, locale]);
+  }, [baseUrl, apiKey, testModel, locale]);
 
   // 打开的是另一个服务商时同步表单
   useEffect(() => {
     setName(service.name);
     setBaseUrl(service.baseUrl);
     setApiKey(service.apiKey);
-    setJsonSchema(service.jsonSchema !== false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service.id]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
   const handleSave = () => {
-    const models = service.models.filter((model) => model.model.trim());
+    if (testResult?.state === 'loading' || detectedFormat === 'unsupported') return;
+    const models = service.models.filter((model) => model.model.trim()).map(model =>
+      model.model.trim() === testModel.trim() && detectedFormat
+        ? { ...model, caps: { ...model.caps, structuredOutput: detectedFormat } } : model);
     const modelName = testModel.trim();
     if (modelName && !models.some((model) => model.model === modelName)) {
-      models.push({ id: createCustomModelId(), name: modelName, model: modelName });
+      models.push({ id: createCustomModelId(), name: modelName, model: modelName, caps: { structuredOutput: detectedFormat ? detectedFormat : 'json_object' } });
     }
-    onSave(service.id, { name: name.trim(), baseUrl: baseUrl.trim(), apiKey: apiKey.trim(), jsonSchema, models });
+    onSave(service.id, { name: name.trim(), baseUrl: baseUrl.trim(), apiKey: apiKey.trim(), models });
     onClose();
   };
 
@@ -75,9 +69,15 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
     const controller = new AbortController();
     testController.current = controller;
     setTestResult({ state: 'loading', message: '' });
+    setDetectedFormat(null);
     try {
-      await testProviderConnection({ ...service, baseUrl, apiKey }, testModel, locale, controller.signal);
-      if (!controller.signal.aborted) setTestResult({ state: 'ok', message: t('连接成功') });
+      const result = await testProviderConnection({ ...service, baseUrl, apiKey }, testModel, locale, controller.signal);
+      if (!controller.signal.aborted) {
+        setDetectedFormat(result.structuredOutput);
+        setTestResult(result.structuredOutput === 'unsupported'
+          ? { state: 'error', message: t('此接口未检测到结构化输出支持，请更换模型或接口。') }
+          : { state: 'ok', message: t('连接成功，已采用{0}。', result.structuredOutput === 'json_schema' ? t('严格格式') : t('兼容格式')) });
+      }
     } catch (error) {
       if (controller.signal.aborted) return;
       const message = error instanceof Error && error.name === 'TimeoutError'
@@ -89,7 +89,7 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
   };
 
   return (
-    <SettingsConfigLayer><div
+    <SettingsConfigLayer onClose={onClose}><div
       className="settings-config-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -164,21 +164,8 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
             </datalist>
             <p id="providerCfgTestHint" className="m-0 mt-1 text-xs leading-5" style={{ color: 'var(--ink-3)' }}>
               {t('选择已有模型或输入模型名称；新模型会在保存时添加。')}
-              {t('测试会发送一条简短消息，可能产生少量费用。')}
+              {t('检测会发送少量测试请求，可能产生少量费用。')}
             </p>
-          </div>
-          <div className="settings-option-row" style={{ borderTop: '1px solid var(--line)', padding: '12px 0' }}>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <label className="block text-sm font-semibold" style={{ color: 'var(--ink)' }}>{t('使用严格结构化输出（json_schema）')}</label>
-                <p className="m-0 mt-1 text-xs leading-5" style={{ color: 'var(--ink-3)' }}>{t('部分网关只接受 json_object，可关闭此项。')}</p>
-              </div>
-              <Switch
-                aria-label={t('使用严格结构化输出（json_schema）')}
-                checked={jsonSchema}
-                onCheckedChange={setJsonSchema}
-              />
-            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -193,7 +180,7 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
               <span role="status" className="text-xs" style={{ color: 'var(--primary)' }}>{testResult.message}</span>
             )}
             {testResult?.state === 'error' && (
-              <span role="alert" className="text-xs" style={{ color: 'var(--pos-p)' }}>{testResult.message}</span>
+              <span role="alert" className="text-xs" style={{ color: 'var(--error-text)' }}>{testResult.message}</span>
             )}
           </div>
           {(!baseUrl.trim() || !apiKey.trim() || !testModel.trim()) && (
@@ -205,7 +192,7 @@ export default function ProviderConfigDialog({ service, mode, onSave, onClose }:
           <button type="button" className="nd-ghost-btn" onClick={onClose}>
             {t('取消')}
           </button>
-          <button type="button" className="nd-primary-btn" onClick={handleSave} disabled={!baseUrl.trim()}>
+          <button type="button" className="nd-primary-btn" onClick={handleSave} disabled={!baseUrl.trim() || testResult?.state === 'loading' || detectedFormat === 'unsupported'}>
             {t('保存')}
           </button>
         </div>
