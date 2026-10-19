@@ -1,7 +1,7 @@
 import { LOCALES, type Locale } from '../i18n';
 import { DAILY_SENTENCES, getDayNumber, getFallbackDailySentence, isCompleteDailySentence, isOnlineDailySentence, type DailySentence } from '../utils/dailySentences';
 import { browserStorage } from '../utils/storage';
-import { MAX_SENTENCE_PACK_SIZE, type SentencePack } from '../utils/sentencePack';
+import { MAX_SENTENCE_PACK_SIZE, SENTENCE_PACK_SCHEMA_VERSION, type SentencePack } from '../utils/sentencePack';
 
 type Storage = Pick<typeof browserStorage, 'getItem' | 'setItem'>;
 export const DAILY_DECK_KEY = 'japaneseAnalyzer:dailyDeck:v1';
@@ -80,7 +80,7 @@ export function createDailySentencePool(storage: Storage = browserStorage, rando
     syncedAt: timestamps(source?.syncedAt), retryAt: timestamps(source?.retryAt), failures: timestamps(source?.failures),
     packVersion: typeof source?.packVersion === 'string' ? source.packVersion : undefined,
     packPublishedAt: typeof source?.packPublishedAt === 'string' ? source.packPublishedAt : undefined,
-    packSchemaVersion: source?.packSchemaVersion === 2 ? 2 : 1,
+    packSchemaVersion: [2, SENTENCE_PACK_SCHEMA_VERSION].includes(source?.packSchemaVersion ?? 0) ? source!.packSchemaVersion : 1,
     packIds: Array.isArray(source?.packIds) ? source.packIds.filter(id => Number.isSafeInteger(id) && id > 0).slice(0, MAX_SENTENCE_PACK_SIZE) : [],
   };
   const save = () => { write(DAILY_POOL_KEY, state, storage); };
@@ -111,11 +111,14 @@ export function createDailySentencePool(storage: Storage = browserStorage, rando
     return candidates;
   };
   const install = (sentences: DailySentence[], date: string, version: string, publishedAt: string, schemaVersion: number) => {
-    if (state.packVersion === version || (state.packPublishedAt && (state.packPublishedAt > publishedAt
-      || (state.packPublishedAt === publishedAt && (state.packSchemaVersion ?? 1) >= schemaVersion)))) return;
+    if (state.packVersion === version || (state.packSchemaVersion ?? 1) > schemaVersion
+      || ((state.packSchemaVersion ?? 1) === schemaVersion && state.packPublishedAt && state.packPublishedAt >= publishedAt)) return;
     state.candidates = state.candidates.filter(sentence => !state.packIds.includes(sentence.source!.id));
     state.packIds = sentences.map(sentence => sentence.source!.id);
     state.packVersion = version; state.packPublishedAt = publishedAt; state.packSchemaVersion = schemaVersion;
+    // Upgrade annotations/translations in place without changing the user's selected original.
+    const replacement = state.current?.source && sentences.find(sentence => sentence.source!.id === state.current!.source!.id && sentence.text === state.current!.text);
+    if (replacement) state.current = { ...replacement, date: state.current!.date };
     state.candidates.unshift(...shuffle(sentences));
     prune(date); state.candidates = state.candidates.slice(0, MAX_SENTENCE_PACK_SIZE); save();
   };
@@ -145,7 +148,8 @@ export function createDailySentencePool(storage: Storage = browserStorage, rando
       if (!candidates.length) return false;
       if (typeof batch.packVersion === 'string' && /^\d{4}-\d{2}-\d{2}-[a-f0-9]{12}$/.test(batch.packVersion)
         && typeof batch.packPublishedAt === 'string' && batch.packVersion.startsWith(`${batch.packPublishedAt}-`)) {
-        install(candidates, date, batch.packVersion, batch.packPublishedAt, batch.packSchemaVersion === 2 ? 2 : 1);
+        const schemaVersion = batch.packSchemaVersion === SENTENCE_PACK_SCHEMA_VERSION ? SENTENCE_PACK_SCHEMA_VERSION : batch.packSchemaVersion === 2 ? 2 : 1;
+        install(candidates, date, batch.packVersion, batch.packPublishedAt, schemaVersion);
       } else {
         state.candidates.push(...shuffle(candidates));
         prune(date); state.candidates = state.candidates.slice(0, MAX_SENTENCE_PACK_SIZE);

@@ -88,7 +88,9 @@ async function main() {
     await unmount(); await mount();
     assert.equal(text(), savedEnglish, 'Restoring the saved locale happens before selection, preserving the English sentence');
     await act(async () => { language.setLocale('zh-CN'); });
-    assert.equal(renderer!.root.findAllByType('a').length, 0, 'A locale change replaces an English-only selection with a complete local example');
+    assert.equal(text().split('：').at(-1), savedEnglish.split('：').at(-1), 'Locale changes keep the same four-language example');
+    assert.equal(renderer!.root.findAllByType('a').length, 3, 'Project translations do not invent a Tatoeba translation link');
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-source' })[0].findAllByType('span').some(node => node.children.includes('项目补充译文')), true);
     await unmount(); resetValues(); navigatorMock.onLine = true;
     await mount();
     const initial = text();

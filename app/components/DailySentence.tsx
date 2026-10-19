@@ -202,7 +202,9 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
         <a href={sentenceLicenseUrl(source.license)} target="_blank" rel="noopener noreferrer">{source.license}</a>
         {translation && translatedSource && <>
           <span aria-hidden="true"> · </span>
-          <a href={`https://tatoeba.org/en/sentences/show/${translatedSource.id}`} target="_blank" rel="noopener noreferrer">{t('译文来源')}</a>
+          {'provider' in translatedSource
+            ? <span>{t('项目补充译文')}</span>
+            : <a href={`https://tatoeba.org/en/sentences/show/${translatedSource.id}`} target="_blank" rel="noopener noreferrer">{t('译文来源')}</a>}
           <span aria-hidden="true"> · </span>
           <a href={sentenceLicenseUrl(translatedSource.license)} target="_blank" rel="noopener noreferrer">{translatedSource.license}</a>
         </>}

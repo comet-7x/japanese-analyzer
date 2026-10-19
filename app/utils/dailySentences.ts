@@ -3,6 +3,7 @@ import type { Locale } from '../i18n';
 
 export type SentenceLicense = 'CC BY 2.0 FR' | 'CC0 1.0';
 export interface SentenceAttribution { id: number; license: SentenceLicense; owner?: string; }
+export type SentenceTranslationAttribution = SentenceAttribution | { provider: 'project'; license: 'CC BY 2.0 FR'; id?: never; owner?: never };
 
 export interface DailySentence {
   /** 日本时间日期 YYYY-MM-DD；备用句没有 */
@@ -10,7 +11,7 @@ export interface DailySentence {
   text: string;
   tokens: TokenData[];
   translation: Partial<Record<Locale, string>>;
-  source?: { provider: 'tatoeba'; id: number; license: SentenceLicense; owner?: string; translations: Partial<Record<Locale, SentenceAttribution>> };
+  source?: { provider: 'tatoeba'; id: number; license: SentenceLicense; owner?: string; translations: Partial<Record<Locale, SentenceTranslationAttribution>> };
 }
 
 // 首页离线句库：预先分词、注音并提供四种译文，不调用 AI。
@@ -149,6 +150,12 @@ export function isSentenceAttribution(value: unknown): value is SentenceAttribut
   return Number.isSafeInteger(item.id) && item.id > 0 && isSentenceLicense(item.license);
 }
 
+function isTranslationAttribution(value: unknown): value is SentenceTranslationAttribution {
+  if (!value || typeof value !== 'object') return false;
+  if ('provider' in value) return value.provider === 'project' && !('id' in value) && 'license' in value && value.license === 'CC BY 2.0 FR';
+  return isSentenceAttribution(value);
+}
+
 /** Readings must cover every kanji and tokens must reconstruct the original exactly. */
 export function hasDailySentenceReadings(value: unknown): value is Pick<DailySentence, 'text' | 'tokens'> {
   if (!value || typeof value !== 'object') return false;
@@ -178,7 +185,7 @@ export function isOnlineDailySentence(value: unknown): value is DailySentence & 
     || !item.translation || typeof item.translation !== 'object' || Array.isArray(item.translation)) return false;
   return Object.entries(item.translation).every(([locale, text]) => ['zh-CN', 'zh-TW', 'en', 'ko'].includes(locale)
     && typeof text === 'string' && text.trim().length > 0 && text.length <= 240 && !/[<>\r\n]/.test(text)
-    && isSentenceAttribution(item.source!.translations[locale as Locale]));
+    && isTranslationAttribution(item.source!.translations[locale as Locale]));
 }
 
 export function sentenceLicenseUrl(license: SentenceLicense): string {

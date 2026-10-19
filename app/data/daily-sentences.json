@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 2,
-  "version": "2026-10-19-1d424cb980fe",
+  "schemaVersion": 3,
+  "version": "2026-10-19-bedc2613003b",
   "publishedAt": "2026-10-19",
-  "sha256": "1d424cb980fee500caae5c330d604b23d4d3af99490234ccfd0e79c8991b8142",
+  "sha256": "bedc2613003bde1024641ca2f05276b67e7c11af8870bda19ccc397eb451aa85",
   "source": {
     "url": "https://www.manythings.org/anki/jpn-eng.zip",
     "sha256": "af9e98121df9ce9c8a258bf81033905cb38f31bbc26432f3354d8ace316f20ee",
@@ -56,7 +56,10 @@
         }
       ],
       "translation": {
-        "en": "Who knows?"
+        "en": "Who knows?",
+        "zh-CN": "谁也不知道。",
+        "zh-TW": "誰也不知道。",
+        "ko": "아무도 몰라요."
       },
       "source": {
         "provider": "tatoeba",
@@ -67,6 +70,18 @@
           "en": {
             "id": 276369,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -107,7 +122,10 @@
         }
       ],
       "translation": {
-        "en": "Thank you."
+        "en": "Thank you.",
+        "zh-CN": "非常感谢。",
+        "zh-TW": "非常感謝。",
+        "ko": "감사했습니다."
       },
       "source": {
         "provider": "tatoeba",
@@ -118,6 +136,18 @@
           "en": {
             "id": 1876041,
             "owner": "Asma",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -170,7 +200,10 @@
         }
       ],
       "translation": {
-        "en": "Fill it up."
+        "en": "Fill it up.",
+        "zh-CN": "请把油加满。",
+        "zh-TW": "請把油加滿。",
+        "ko": "가득 넣어 주세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -181,6 +214,18 @@
           "en": {
             "id": 322631,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -233,7 +278,10 @@
         }
       ],
       "translation": {
-        "en": "Fill her up."
+        "en": "Fill her up.",
+        "zh-CN": "麻烦加满油。",
+        "zh-TW": "麻煩加滿油。",
+        "ko": "가득 부탁합니다."
       },
       "source": {
         "provider": "tatoeba",
@@ -244,6 +292,18 @@
           "en": {
             "id": 2245491,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -290,7 +350,10 @@
         }
       ],
       "translation": {
-        "en": "All is well."
+        "en": "All is well.",
+        "zh-CN": "一切都很顺利。",
+        "zh-TW": "一切都很順利。",
+        "ko": "모든 일이 잘되고 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -301,6 +364,18 @@
           "en": {
             "id": 322610,
             "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -347,7 +422,10 @@
         }
       ],
       "translation": {
-        "en": "I like jazz."
+        "en": "I like jazz.",
+        "zh-CN": "我喜欢爵士乐。",
+        "zh-TW": "我喜歡爵士樂。",
+        "ko": "나는 재즈를 좋아해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -358,6 +436,18 @@
           "en": {
             "id": 321631,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -404,7 +494,10 @@
         }
       ],
       "translation": {
-        "en": "She smiled."
+        "en": "She smiled.",
+        "zh-CN": "她微微一笑。",
+        "zh-TW": "她微微一笑。",
+        "ko": "그녀는 방긋 웃었어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -415,6 +508,18 @@
           "en": {
             "id": 311898,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -461,7 +566,10 @@
         }
       ],
       "translation": {
-        "en": "He stood up."
+        "en": "He stood up.",
+        "zh-CN": "他站了起来。",
+        "zh-TW": "他站了起來。",
+        "ko": "그는 자리에서 일어났어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -472,6 +580,18 @@
           "en": {
             "id": 517531,
             "owner": "blay_paul",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -524,7 +644,10 @@
         }
       ],
       "translation": {
-        "en": "He can come."
+        "en": "He can come.",
+        "zh-CN": "他能来。",
+        "zh-TW": "他能來。",
+        "ko": "그는 올 수 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -535,6 +658,18 @@
           "en": {
             "id": 289971,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -593,7 +728,10 @@
         }
       ],
       "translation": {
-        "en": "Is he tall?"
+        "en": "Is he tall?",
+        "zh-CN": "他个子高吗？",
+        "zh-TW": "他個子高嗎？",
+        "ko": "그는 키가 큰가요?"
       },
       "source": {
         "provider": "tatoeba",
@@ -604,6 +742,18 @@
           "en": {
             "id": 302406,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -656,7 +806,10 @@
         }
       ],
       "translation": {
-        "en": "He's my age."
+        "en": "He's my age.",
+        "zh-CN": "他和我同岁。",
+        "zh-TW": "他和我同歲。",
+        "ko": "그는 나와 동갑이에요."
       },
       "source": {
         "provider": "tatoeba",
@@ -667,6 +820,18 @@
           "en": {
             "id": 674278,
             "owner": "yessoos",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -725,7 +890,10 @@
         }
       ],
       "translation": {
-        "en": "He's not in."
+        "en": "He's not in.",
+        "zh-CN": "他出门了。",
+        "zh-TW": "他出門了。",
+        "ko": "그는 외출 중이에요."
       },
       "source": {
         "provider": "tatoeba",
@@ -736,6 +904,18 @@
           "en": {
             "id": 1300772,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -794,7 +974,10 @@
         }
       ],
       "translation": {
-        "en": "I'm lost."
+        "en": "I'm lost.",
+        "zh-CN": "我迷路了。",
+        "zh-TW": "我迷路了。",
+        "ko": "길을 잃었어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -805,6 +988,18 @@
           "en": {
             "id": 455833,
             "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -851,7 +1046,10 @@
         }
       ],
       "translation": {
-        "en": "Try hard."
+        "en": "Try hard.",
+        "zh-CN": "尽全力试试看吧。",
+        "zh-TW": "盡全力試試看吧。",
+        "ko": "최선을 다해 보세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -862,6 +1060,18 @@
           "en": {
             "id": 271901,
             "owner": "Zifre",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -914,7 +1124,10 @@
         }
       ],
       "translation": {
-        "en": "Don't worry."
+        "en": "Don't worry.",
+        "zh-CN": "不用担心。",
+        "zh-TW": "不用擔心。",
+        "ko": "걱정하지 않아도 돼요."
       },
       "source": {
         "provider": "tatoeba",
@@ -925,6 +1138,18 @@
           "en": {
             "id": 506446,
             "owner": "rtomharper",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -989,7 +1214,10 @@
         }
       ],
       "translation": {
-        "en": "Time flies."
+        "en": "Time flies.",
+        "zh-CN": "时间过得真快啊。",
+        "zh-TW": "時間過得真快啊。",
+        "ko": "시간은 참 빨리 가네요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1000,6 +1228,18 @@
           "en": {
             "id": 263886,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1052,7 +1292,10 @@
         }
       ],
       "translation": {
-        "en": "I can run."
+        "en": "I can run.",
+        "zh-CN": "我会跑步。",
+        "zh-TW": "我會跑步。",
+        "ko": "나는 달릴 수 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1063,6 +1306,18 @@
           "en": {
             "id": 1173661,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1115,7 +1370,10 @@
         }
       ],
       "translation": {
-        "en": "I laughed."
+        "en": "I laughed.",
+        "zh-CN": "我忍不住笑了。",
+        "zh-TW": "我忍不住笑了。",
+        "ko": "나는 그만 웃고 말았어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1126,6 +1384,18 @@
           "en": {
             "id": 258713,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1184,7 +1454,10 @@
         }
       ],
       "translation": {
-        "en": "I am ready."
+        "en": "I am ready.",
+        "zh-CN": "我已经做好心理准备了。",
+        "zh-TW": "我已經做好心理準備了。",
+        "ko": "나는 마음의 준비가 되어 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1195,6 +1468,18 @@
           "en": {
             "id": 436423,
             "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1253,7 +1538,10 @@
         }
       ],
       "translation": {
-        "en": "I can swim."
+        "en": "I can swim.",
+        "zh-CN": "我会游泳。",
+        "zh-TW": "我會游泳。",
+        "ko": "나는 수영할 수 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1264,6 +1552,18 @@
           "en": {
             "id": 256178,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1316,7 +1616,10 @@
         }
       ],
       "translation": {
-        "en": "I like both."
+        "en": "I like both.",
+        "zh-CN": "两个我都喜欢。",
+        "zh-TW": "兩個我都喜歡。",
+        "ko": "나는 둘 다 좋아해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1327,6 +1630,18 @@
           "en": {
             "id": 255228,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1379,7 +1694,10 @@
         }
       ],
       "translation": {
-        "en": "I said so."
+        "en": "I said so.",
+        "zh-CN": "我是那么说的。",
+        "zh-TW": "我是那麼說的。",
+        "ko": "나는 그렇게 말했어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1390,6 +1708,18 @@
           "en": {
             "id": 254069,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1448,7 +1778,10 @@
         }
       ],
       "translation": {
-        "en": "I disagree."
+        "en": "I disagree.",
+        "zh-CN": "我不这么认为。",
+        "zh-TW": "我不這麼認為。",
+        "ko": "나는 그렇게 생각하지 않아요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1459,6 +1792,18 @@
           "en": {
             "id": 2111806,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1505,7 +1850,10 @@
         }
       ],
       "translation": {
-        "en": "I like cake."
+        "en": "I like cake.",
+        "zh-CN": "我喜欢蛋糕。",
+        "zh-TW": "我喜歡蛋糕。",
+        "ko": "나는 케이크를 좋아해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1516,6 +1864,18 @@
           "en": {
             "id": 253417,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1568,7 +1928,10 @@
         }
       ],
       "translation": {
-        "en": "I like tea."
+        "en": "I like tea.",
+        "zh-CN": "我喜欢喝茶。",
+        "zh-TW": "我喜歡喝茶。",
+        "ko": "나는 차를 좋아해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1579,6 +1942,18 @@
           "en": {
             "id": 253293,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1631,7 +2006,10 @@
         }
       ],
       "translation": {
-        "en": "Answer me."
+        "en": "Answer me.",
+        "zh-CN": "请回答我的问题。",
+        "zh-TW": "請回答我的問題。",
+        "ko": "내 질문에 대답하세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1642,6 +2020,18 @@
           "en": {
             "id": 251060,
             "owner": "Eldad",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1694,7 +2084,10 @@
         }
       ],
       "translation": {
-        "en": "I mean it."
+        "en": "I mean it.",
+        "zh-CN": "我是认真的。",
+        "zh-TW": "我是認真的。",
+        "ko": "진심으로 하는 말이에요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1705,6 +2098,18 @@
           "en": {
             "id": 250804,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1757,7 +2162,10 @@
         }
       ],
       "translation": {
-        "en": "Let me go!"
+        "en": "Let me go!",
+        "zh-CN": "请让我去吧。",
+        "zh-TW": "請讓我去吧。",
+        "ko": "내가 가게 해 주세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1768,6 +2176,18 @@
           "en": {
             "id": 250112,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1820,7 +2240,10 @@
         }
       ],
       "translation": {
-        "en": "I'll do it."
+        "en": "I'll do it.",
+        "zh-CN": "我会好好做的。",
+        "zh-TW": "我會好好做的。",
+        "ko": "내가 제대로 할 테니까요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1831,6 +2254,18 @@
           "en": {
             "id": 433474,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1883,7 +2318,10 @@
         }
       ],
       "translation": {
-        "en": "Do it now."
+        "en": "Do it now.",
+        "zh-CN": "现在马上做。",
+        "zh-TW": "現在馬上做。",
+        "ko": "지금 당장 그것을 하세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -1894,6 +2332,18 @@
           "en": {
             "id": 435763,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -1958,7 +2408,10 @@
         }
       ],
       "translation": {
-        "en": "I like you."
+        "en": "I like you.",
+        "zh-CN": "我喜欢你。",
+        "zh-TW": "我喜歡你。",
+        "ko": "너를 좋아해."
       },
       "source": {
         "provider": "tatoeba",
@@ -1969,6 +2422,18 @@
           "en": {
             "id": 410751,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2027,7 +2492,10 @@
         }
       ],
       "translation": {
-        "en": "I miss you."
+        "en": "I miss you.",
+        "zh-CN": "你不在，我很寂寞。",
+        "zh-TW": "你不在，我很寂寞。",
+        "ko": "네가 없어서 쓸쓸해."
       },
       "source": {
         "provider": "tatoeba",
@@ -2038,6 +2506,18 @@
           "en": {
             "id": 1308,
             "owner": "brauliobezerra",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2090,7 +2570,10 @@
         }
       ],
       "translation": {
-        "en": "Wash up."
+        "en": "Wash up.",
+        "zh-CN": "去洗脸和洗手。",
+        "zh-TW": "去洗臉和洗手。",
+        "ko": "얼굴과 손을 씻으세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2101,6 +2584,18 @@
           "en": {
             "id": 20763,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2147,7 +2642,10 @@
         }
       ],
       "translation": {
-        "en": "Have fun."
+        "en": "Have fun.",
+        "zh-CN": "请玩得开心。",
+        "zh-TW": "請玩得開心。",
+        "ko": "즐겁게 보내고 가세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2158,6 +2656,18 @@
           "en": {
             "id": 21267,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2198,7 +2708,10 @@
         }
       ],
       "translation": {
-        "en": "All aboard!"
+        "en": "All aboard!",
+        "zh-CN": "请大家上车。",
+        "zh-TW": "請大家上車。",
+        "ko": "모두 탑승해 주세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2209,6 +2722,18 @@
           "en": {
             "id": 22121,
             "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2267,7 +2792,10 @@
         }
       ],
       "translation": {
-        "en": "Pardon me?"
+        "en": "Pardon me?",
+        "zh-CN": "你刚才说什么？",
+        "zh-TW": "你剛才說什麼？",
+        "ko": "뭐라고 하셨나요?"
       },
       "source": {
         "provider": "tatoeba",
@@ -2278,6 +2806,18 @@
           "en": {
             "id": 31477,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2330,7 +2870,10 @@
         }
       ],
       "translation": {
-        "en": "We agree."
+        "en": "We agree.",
+        "zh-CN": "意见一致。",
+        "zh-TW": "意見一致。",
+        "ko": "의견이 일치해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2341,6 +2884,18 @@
           "en": {
             "id": 628230,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2375,7 +2930,10 @@
         }
       ],
       "translation": {
-        "en": "Speak up!"
+        "en": "Speak up!",
+        "zh-CN": "请说清楚。",
+        "zh-TW": "請說清楚。",
+        "ko": "분명하게 말하세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2386,6 +2944,18 @@
           "en": {
             "id": 35175,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2432,7 +3002,10 @@
         }
       ],
       "translation": {
-        "en": "How cute!"
+        "en": "How cute!",
+        "zh-CN": "真可爱啊！",
+        "zh-TW": "真可愛啊！",
+        "ko": "정말 귀엽네요!"
       },
       "source": {
         "provider": "tatoeba",
@@ -2443,6 +3016,18 @@
           "en": {
             "id": 36097,
             "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2483,7 +3068,10 @@
         }
       ],
       "translation": {
-        "en": "Go ahead."
+        "en": "Go ahead.",
+        "zh-CN": "请说吧。",
+        "zh-TW": "請說吧。",
+        "ko": "말씀해 주세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2494,6 +3082,18 @@
           "en": {
             "id": 38546,
             "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2534,7 +3134,10 @@
         }
       ],
       "translation": {
-        "en": "Excuse me?"
+        "en": "Excuse me?",
+        "zh-CN": "请再说一遍。",
+        "zh-TW": "請再說一遍。",
+        "ko": "한 번 더 부탁합니다."
       },
       "source": {
         "provider": "tatoeba",
@@ -2545,6 +3148,18 @@
           "en": {
             "id": 434704,
             "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2585,7 +3200,10 @@
         }
       ],
       "translation": {
-        "en": "Study hard."
+        "en": "Study hard.",
+        "zh-CN": "要好好学习。",
+        "zh-TW": "要好好學習。",
+        "ko": "열심히 공부하세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2596,6 +3214,18 @@
           "en": {
             "id": 53465,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2642,7 +3272,10 @@
         }
       ],
       "translation": {
-        "en": "Do come in."
+        "en": "Do come in.",
+        "zh-CN": "来，请进。",
+        "zh-TW": "來，請進。",
+        "ko": "자, 어서 들어오세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2653,6 +3286,18 @@
           "en": {
             "id": 2245265,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2705,7 +3350,10 @@
         }
       ],
       "translation": {
-        "en": "Come on in!"
+        "en": "Come on in!",
+        "zh-CN": "来，进来吧，进来吧。",
+        "zh-TW": "來，進來吧，進來吧。",
+        "ko": "자, 들어와, 들어와."
       },
       "source": {
         "provider": "tatoeba",
@@ -2716,6 +3364,18 @@
           "en": {
             "id": 54229,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2774,7 +3434,10 @@
         }
       ],
       "translation": {
-        "en": "Can we talk?"
+        "en": "Can we talk?",
+        "zh-CN": "我有话想跟你说。",
+        "zh-TW": "我有話想跟你說。",
+        "ko": "드리고 싶은 말씀이 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2785,6 +3448,18 @@
           "en": {
             "id": 63859,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2825,7 +3500,10 @@
         }
       ],
       "translation": {
-        "en": "I'm full."
+        "en": "I'm full.",
+        "zh-CN": "我吃饱了。",
+        "zh-TW": "我吃飽了。",
+        "ko": "배가 불러요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2836,6 +3514,18 @@
           "en": {
             "id": 433863,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2888,7 +3578,10 @@
         }
       ],
       "translation": {
-        "en": "I'm hungry!"
+        "en": "I'm hungry!",
+        "zh-CN": "啊，肚子饿了。",
+        "zh-TW": "啊，肚子餓了。",
+        "ko": "아, 배고파."
       },
       "source": {
         "provider": "tatoeba",
@@ -2899,6 +3592,18 @@
           "en": {
             "id": 404096,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -2951,7 +3656,10 @@
         }
       ],
       "translation": {
-        "en": "I eat here."
+        "en": "I eat here.",
+        "zh-CN": "我在这里吃。",
+        "zh-TW": "我在這裡吃。",
+        "ko": "나는 여기서 먹어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -2962,6 +3670,18 @@
           "en": {
             "id": 449105,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3026,7 +3746,10 @@
         }
       ],
       "translation": {
-        "en": "I love you."
+        "en": "I love you.",
+        "zh-CN": "我爱你。",
+        "zh-TW": "我愛你。",
+        "ko": "나는 당신을 사랑해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3037,6 +3760,18 @@
           "en": {
             "id": 1434,
             "owner": "awael58",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3095,7 +3830,10 @@
         }
       ],
       "translation": {
-        "en": "Be quiet."
+        "en": "Be quiet.",
+        "zh-CN": "请安静一点。",
+        "zh-TW": "請安靜一點。",
+        "ko": "조금 조용히 하고 있으세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3106,6 +3844,18 @@
           "en": {
             "id": 1275396,
             "owner": "jakov",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3152,7 +3902,10 @@
         }
       ],
       "translation": {
-        "en": "Try again."
+        "en": "Try again.",
+        "zh-CN": "再试一次吧。",
+        "zh-TW": "再試一次吧。",
+        "ko": "한 번 더 해 봐."
       },
       "source": {
         "provider": "tatoeba",
@@ -3163,6 +3916,18 @@
           "en": {
             "id": 31723,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3221,7 +3986,10 @@
         }
       ],
       "translation": {
-        "en": "I am sure."
+        "en": "I am sure.",
+        "zh-CN": "我对此确信不疑。",
+        "zh-TW": "我對此確信不疑。",
+        "ko": "그 일을 확신하고 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3232,6 +4000,18 @@
           "en": {
             "id": 436433,
             "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3290,7 +4070,10 @@
         }
       ],
       "translation": {
-        "en": "Let me in."
+        "en": "Let me in.",
+        "zh-CN": "请让我也参加。",
+        "zh-TW": "請讓我也參加。",
+        "ko": "나도 참가하게 해 주세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3301,6 +4084,18 @@
           "en": {
             "id": 277466,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3365,7 +4160,10 @@
         }
       ],
       "translation": {
-        "en": "We try."
+        "en": "We try.",
+        "zh-CN": "我们正在努力。",
+        "zh-TW": "我們正在努力。",
+        "ko": "저희는 노력하고 있습니다."
       },
       "source": {
         "provider": "tatoeba",
@@ -3376,6 +4174,18 @@
           "en": {
             "id": 247763,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3434,7 +4244,10 @@
         }
       ],
       "translation": {
-        "en": "I'm free."
+        "en": "I'm free.",
+        "zh-CN": "我现在有空。",
+        "zh-TW": "我現在有空。",
+        "ko": "지금 한가해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3445,6 +4258,18 @@
           "en": {
             "id": 23959,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3497,7 +4322,10 @@
         }
       ],
       "translation": {
-        "en": "Come home."
+        "en": "Come home.",
+        "zh-CN": "回家来吧。",
+        "zh-TW": "回家來吧。",
+        "ko": "집으로 돌아오세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3508,6 +4336,18 @@
           "en": {
             "id": 413767,
             "owner": "Scott",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3554,7 +4394,10 @@
         }
       ],
       "translation": {
-        "en": "Be nice."
+        "en": "Be nice.",
+        "zh-CN": "要温柔地对待对方。",
+        "zh-TW": "要溫柔地對待對方。",
+        "ko": "친절하게 대해 주세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3565,6 +4408,18 @@
           "en": {
             "id": 1916314,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3641,7 +4496,10 @@
         }
       ],
       "translation": {
-        "en": "Ask anybody."
+        "en": "Ask anybody.",
+        "zh-CN": "问谁都行，去问问看吧。",
+        "zh-TW": "問誰都行，去問問看吧。",
+        "ko": "누구라도 좋으니 물어보세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3652,6 +4510,18 @@
           "en": {
             "id": 2111968,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3692,7 +4562,10 @@
         }
       ],
       "translation": {
-        "en": "Help me up."
+        "en": "Help me up.",
+        "zh-CN": "帮我起来一下。",
+        "zh-TW": "幫我起來一下。",
+        "ko": "일어나는 것 좀 도와줘."
       },
       "source": {
         "provider": "tatoeba",
@@ -3703,6 +4576,18 @@
           "en": {
             "id": 2245555,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3755,7 +4640,10 @@
         }
       ],
       "translation": {
-        "en": "I'm direct."
+        "en": "I'm direct.",
+        "zh-CN": "我说话很直。",
+        "zh-TW": "我說話很直。",
+        "ko": "나는 돌려 말하지 않아요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3766,6 +4654,18 @@
           "en": {
             "id": 2202768,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3824,7 +4724,10 @@
         }
       ],
       "translation": {
-        "en": "I can read."
+        "en": "I can read.",
+        "zh-CN": "我会阅读。",
+        "zh-TW": "我會閱讀。",
+        "ko": "나는 글을 읽을 수 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3835,6 +4738,18 @@
           "en": {
             "id": 3220342,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3875,7 +4790,10 @@
         }
       ],
       "translation": {
-        "en": "I'm shy."
+        "en": "I'm shy.",
+        "zh-CN": "我比较内向。",
+        "zh-TW": "我比較內向。",
+        "ko": "나는 내성적이에요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3886,6 +4804,18 @@
           "en": {
             "id": 2203346,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3926,7 +4856,10 @@
         }
       ],
       "translation": {
-        "en": "Keep warm."
+        "en": "Keep warm.",
+        "zh-CN": "注意保暖。",
+        "zh-TW": "注意保暖。",
+        "ko": "따뜻하게 하고 있으세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -3937,6 +4870,18 @@
           "en": {
             "id": 2111630,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -3983,7 +4928,10 @@
         }
       ],
       "translation": {
-        "en": "Who is it?"
+        "en": "Who is it?",
+        "zh-CN": "请问您是哪位？",
+        "zh-TW": "請問您是哪位？",
+        "ko": "누구신가요?"
       },
       "source": {
         "provider": "tatoeba",
@@ -3994,6 +4942,18 @@
           "en": {
             "id": 428379,
             "owner": "witbrock",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4046,7 +5006,10 @@
         }
       ],
       "translation": {
-        "en": "Here it is."
+        "en": "Here it is.",
+        "zh-CN": "看，就在这里。",
+        "zh-TW": "看，就在這裡。",
+        "ko": "봐, 여기 있어."
       },
       "source": {
         "provider": "tatoeba",
@@ -4057,6 +5020,18 @@
           "en": {
             "id": 35529,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4115,7 +5090,10 @@
         }
       ],
       "translation": {
-        "en": "I feel old."
+        "en": "I feel old.",
+        "zh-CN": "我也上年纪了啊。",
+        "zh-TW": "我也上年紀了啊。",
+        "ko": "나도 나이가 들었구나."
       },
       "source": {
         "provider": "tatoeba",
@@ -4126,6 +5104,18 @@
           "en": {
             "id": 1430734,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4178,7 +5168,10 @@
         }
       ],
       "translation": {
-        "en": "I need you."
+        "en": "I need you.",
+        "zh-CN": "我需要你。",
+        "zh-TW": "我需要你。",
+        "ko": "당신이 필요해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -4189,6 +5182,18 @@
           "en": {
             "id": 17735,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4223,7 +5228,10 @@
         }
       ],
       "translation": {
-        "en": "Just relax."
+        "en": "Just relax.",
+        "zh-CN": "总之，先冷静下来。",
+        "zh-TW": "總之，先冷靜下來。",
+        "ko": "일단 진정해."
       },
       "source": {
         "provider": "tatoeba",
@@ -4234,6 +5242,18 @@
           "en": {
             "id": 1555685,
             "owner": "Spamster",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4274,7 +5294,10 @@
         }
       ],
       "translation": {
-        "en": "Lean on me."
+        "en": "Lean on me.",
+        "zh-CN": "可以靠过来哦。",
+        "zh-TW": "可以靠過來喔。",
+        "ko": "기대도 돼."
       },
       "source": {
         "provider": "tatoeba",
@@ -4285,6 +5308,18 @@
           "en": {
             "id": 2249515,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4343,7 +5378,10 @@
         }
       ],
       "translation": {
-        "en": "Sing along."
+        "en": "Sing along.",
+        "zh-CN": "来，大家一起唱吧。",
+        "zh-TW": "來，大家一起唱吧。",
+        "ko": "자, 다 같이 노래합시다."
       },
       "source": {
         "provider": "tatoeba",
@@ -4354,6 +5392,18 @@
           "en": {
             "id": 2111554,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4406,7 +5456,10 @@
         }
       ],
       "translation": {
-        "en": "I like blue."
+        "en": "I like blue.",
+        "zh-CN": "我喜欢蓝色。",
+        "zh-TW": "我喜歡藍色。",
+        "ko": "나는 파란색을 좋아해요."
       },
       "source": {
         "provider": "tatoeba",
@@ -4417,6 +5470,18 @@
           "en": {
             "id": 2245933,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4463,7 +5528,10 @@
         }
       ],
       "translation": {
-        "en": "I relaxed."
+        "en": "I relaxed.",
+        "zh-CN": "我放松下来了。",
+        "zh-TW": "我放鬆下來了。",
+        "ko": "나는 긴장을 풀었어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -4474,6 +5542,18 @@
           "en": {
             "id": 5828674,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4514,7 +5594,10 @@
         }
       ],
       "translation": {
-        "en": "See above."
+        "en": "See above.",
+        "zh-CN": "请看上面的内容。",
+        "zh-TW": "請看上面的內容。",
+        "ko": "위의 내용을 봐 주세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -4525,6 +5608,18 @@
           "en": {
             "id": 273621,
             "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4595,7 +5690,10 @@
         }
       ],
       "translation": {
-        "en": "I got lucky."
+        "en": "I got lucky.",
+        "zh-CN": "我那时运气很好。",
+        "zh-TW": "我那時運氣很好。",
+        "ko": "나는 운이 좋았어."
       },
       "source": {
         "provider": "tatoeba",
@@ -4606,6 +5704,18 @@
           "en": {
             "id": 2199425,
             "owner": "Hybrid",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4640,7 +5750,10 @@
         }
       ],
       "translation": {
-        "en": "Wait a bit."
+        "en": "Wait a bit.",
+        "zh-CN": "请稍等一下。",
+        "zh-TW": "請稍等一下。",
+        "ko": "잠시만 기다려 주세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -4651,6 +5764,18 @@
           "en": {
             "id": 3696774,
             "owner": "Lindoula",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4691,7 +5816,10 @@
         }
       ],
       "translation": {
-        "en": "I ate a lot."
+        "en": "I ate a lot.",
+        "zh-CN": "不知不觉吃了好多。",
+        "zh-TW": "不知不覺吃了好多。",
+        "ko": "그만 많이 먹어 버렸어."
       },
       "source": {
         "provider": "tatoeba",
@@ -4702,6 +5830,18 @@
           "en": {
             "id": 8933302,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4754,7 +5894,10 @@
         }
       ],
       "translation": {
-        "en": "We're shy."
+        "en": "We're shy.",
+        "zh-CN": "我们都很害羞。",
+        "zh-TW": "我們都很害羞。",
+        "ko": "우리는 부끄러움을 많이 타요."
       },
       "source": {
         "provider": "tatoeba",
@@ -4765,6 +5908,18 @@
           "en": {
             "id": 2203343,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4829,7 +5984,10 @@
         }
       ],
       "translation": {
-        "en": "I can drive."
+        "en": "I can drive.",
+        "zh-CN": "我会开车。",
+        "zh-TW": "我會開車。",
+        "ko": "나는 운전할 수 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -4840,6 +5998,18 @@
           "en": {
             "id": 744722,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4880,7 +6050,10 @@
         }
       ],
       "translation": {
-        "en": "Please eat."
+        "en": "Please eat.",
+        "zh-CN": "请用餐。",
+        "zh-TW": "請用餐。",
+        "ko": "맛있게 드세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -4891,6 +6064,18 @@
           "en": {
             "id": 6358715,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4925,7 +6110,10 @@
         }
       ],
       "translation": {
-        "en": "Thank you."
+        "en": "Thank you.",
+        "zh-CN": "谢谢您。",
+        "zh-TW": "謝謝您。",
+        "ko": "감사합니다."
       },
       "source": {
         "provider": "tatoeba",
@@ -4936,6 +6124,18 @@
           "en": {
             "id": 1876041,
             "owner": "Asma",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -4982,7 +6182,10 @@
         }
       ],
       "translation": {
-        "en": "I hope not."
+        "en": "I hope not.",
+        "zh-CN": "希望不是那样。",
+        "zh-TW": "希望不是那樣。",
+        "ko": "그렇지 않으면 좋겠는데."
       },
       "source": {
         "provider": "tatoeba",
@@ -4993,6 +6196,18 @@
           "en": {
             "id": 51119,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5039,7 +6254,10 @@
         }
       ],
       "translation": {
-        "en": "I yawned."
+        "en": "I yawned.",
+        "zh-CN": "我忍不住打了个哈欠。",
+        "zh-TW": "我忍不住打了個哈欠。",
+        "ko": "그만 하품이 나왔어."
       },
       "source": {
         "provider": "tatoeba",
@@ -5050,6 +6268,18 @@
           "en": {
             "id": 5828642,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5096,7 +6326,10 @@
         }
       ],
       "translation": {
-        "en": "Say when."
+        "en": "Say when.",
+        "zh-CN": "要停的时候说一声哦。",
+        "zh-TW": "要停的時候說一聲喔。",
+        "ko": "멈출 때 말해 줘."
       },
       "source": {
         "provider": "tatoeba",
@@ -5107,6 +6340,18 @@
           "en": {
             "id": 10309145,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5171,7 +6416,10 @@
         }
       ],
       "translation": {
-        "en": "Ask around."
+        "en": "Ask around.",
+        "zh-CN": "问问周围的人吧。",
+        "zh-TW": "問問周圍的人吧。",
+        "ko": "주변 사람들에게 물어봐."
       },
       "source": {
         "provider": "tatoeba",
@@ -5182,6 +6430,18 @@
           "en": {
             "id": 2111967,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5228,7 +6488,10 @@
         }
       ],
       "translation": {
-        "en": "I can jump."
+        "en": "I can jump.",
+        "zh-CN": "我会跳哦。",
+        "zh-TW": "我會跳喔。",
+        "ko": "나 점프할 수 있어."
       },
       "source": {
         "provider": "tatoeba",
@@ -5239,6 +6502,18 @@
           "en": {
             "id": 261421,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5303,7 +6578,10 @@
         }
       ],
       "translation": {
-        "en": "I know him."
+        "en": "I know him.",
+        "zh-CN": "我认识他。",
+        "zh-TW": "我認識他。",
+        "ko": "그 사람은 알고 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -5314,6 +6592,18 @@
           "en": {
             "id": 71751,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5372,7 +6662,10 @@
         }
       ],
       "translation": {
-        "en": "I grow rice."
+        "en": "I grow rice.",
+        "zh-CN": "我在种水稻。",
+        "zh-TW": "我在種水稻。",
+        "ko": "쌀을 재배하고 있어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -5383,6 +6676,18 @@
           "en": {
             "id": 5828944,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5435,7 +6740,10 @@
         }
       ],
       "translation": {
-        "en": "We made up."
+        "en": "We made up.",
+        "zh-CN": "我们和好了。",
+        "zh-TW": "我們和好了。",
+        "ko": "우리는 화해했어요."
       },
       "source": {
         "provider": "tatoeba",
@@ -5446,6 +6754,18 @@
           "en": {
             "id": 11766461,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5474,7 +6794,10 @@
         }
       ],
       "translation": {
-        "en": "Excuse me."
+        "en": "Excuse me.",
+        "zh-CN": "不好意思，打扰一下。",
+        "zh-TW": "不好意思，打擾一下。",
+        "ko": "잠깐 실례합니다."
       },
       "source": {
         "provider": "tatoeba",
@@ -5485,6 +6808,18 @@
           "en": {
             "id": 433504,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5531,7 +6866,10 @@
         }
       ],
       "translation": {
-        "en": "I guess so."
+        "en": "I guess so.",
+        "zh-CN": "那倒也是啊。",
+        "zh-TW": "那倒也是啊。",
+        "ko": "그야 그렇겠지."
       },
       "source": {
         "provider": "tatoeba",
@@ -5542,6 +6880,18 @@
           "en": {
             "id": 3820733,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5594,7 +6944,10 @@
         }
       ],
       "translation": {
-        "en": "Let's talk."
+        "en": "Let's talk.",
+        "zh-CN": "来，说说看吧。",
+        "zh-TW": "來，說說看吧。",
+        "ko": "자, 이야기해 보세요."
       },
       "source": {
         "provider": "tatoeba",
@@ -5605,6 +6958,18 @@
           "en": {
             "id": 2007936,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }
@@ -5651,7 +7016,10 @@
         }
       ],
       "translation": {
-        "en": "Study hard."
+        "en": "Study hard.",
+        "zh-CN": "一起努力学习吧。",
+        "zh-TW": "一起努力學習吧。",
+        "ko": "열심히 공부합시다."
       },
       "source": {
         "provider": "tatoeba",
@@ -5662,6 +7030,18 @@
           "en": {
             "id": 53465,
             "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-CN": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "zh-TW": {
+            "provider": "project",
+            "license": "CC BY 2.0 FR"
+          },
+          "ko": {
+            "provider": "project",
             "license": "CC BY 2.0 FR"
           }
         }

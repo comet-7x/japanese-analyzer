@@ -3,22 +3,32 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { strFromU8, unzipSync } from 'fflate';
-import { parseSentencePack, type SentencePack } from '../../app/utils/sentencePack';
+import { parseSentencePack, SENTENCE_PACK_SCHEMA_VERSION, type SentencePack } from '../../app/utils/sentencePack';
 import { annotateSentence } from './readings';
 
 export const digest = (value: string | Uint8Array) => createHash('sha256').update(value).digest('hex');
-interface SourceLock { schemaVersion: number; date: string; url: string; sha256: string; approved: { id: number; sha256: string }[]; }
+interface SourceLock { schemaVersion: number; date: string; url: string; sha256: string; translationsSha256: string; approved: { id: number; sha256: string }[]; }
 
 /** Only explicitly selected, fingerprinted sentence pairs enter a release pack. */
-export async function buildSentencePack(archive: Uint8Array, lock: SourceLock): Promise<SentencePack> {
+export async function buildSentencePack(archive: Uint8Array, lock: SourceLock, localizedText: string): Promise<SentencePack> {
   if (lock.schemaVersion !== 1 || digest(archive) !== lock.sha256) throw new Error('Source archive checksum mismatch');
   const files = unzipSync(archive);
   if (!files['jpn.txt'] || files['jpn.txt'].length > 40_000_000) throw new Error('Expected Japanese sentence export');
-  return buildSentencePackFromRows(strFromU8(files['jpn.txt']), lock);
+  return buildSentencePackFromRows(strFromU8(files['jpn.txt']), lock, localizedText);
 }
 
-export async function buildSentencePackFromRows(text: string, lock: SourceLock): Promise<SentencePack> {
+export async function buildSentencePackFromRows(text: string, lock: SourceLock, localizedText: string): Promise<SentencePack> {
   if (lock.schemaVersion !== 1 || !/^[a-f0-9]{64}$/.test(lock.sha256)) throw new Error('Invalid source lock');
+  if (digest(localizedText) !== lock.translationsSha256) throw new Error('Project translation checksum mismatch');
+  const localized = new Map<number, { 'zh-CN': string; 'zh-TW': string; ko: string }>();
+  for (const line of localizedText.trimEnd().split('\n')) {
+    const [idText, zh, tw, ko, extra] = line.split('\t'); const id = Number(idText);
+    if (!Number.isSafeInteger(id) || id <= 0 || localized.has(id) || extra !== undefined
+      || ![zh, tw, ko].every(value => typeof value === 'string' && value.trim() && value.length <= 240 && !/[<>\r\n]/.test(value))
+      || ![zh, tw].every(value => /\p{Script=Han}/u.test(value) && !/\p{Script=Hangul}/u.test(value))
+      || !/\p{Script=Hangul}/u.test(ko)) throw new Error(`Invalid project translation row: ${idText}`);
+    localized.set(id, { 'zh-CN': zh, 'zh-TW': tw, ko });
+  }
   const approved = new Map(lock.approved.map(row => [row.id, row.sha256]));
   if (!approved.size || approved.size !== lock.approved.length) throw new Error('Invalid selection');
   const sentences: SentencePack['sentences'] = [];
@@ -28,21 +38,28 @@ export async function buildSentencePackFromRows(text: string, lock: SourceLock):
     if (!attribution || !approved.has(Number(attribution[3]))) continue;
     const id = Number(attribution[3]);
     if (digest(line) !== approved.get(id)) throw new Error(`Selected sentence ${id} changed; review it before updating`);
-    sentences.push({ text: ja, tokens: await annotateSentence(ja), translation: { en }, source: {
+    const translations = localized.get(id);
+    if (!translations) throw new Error(`Missing project translations: ${id}`);
+    sentences.push({ text: ja, tokens: await annotateSentence(ja), translation: { en, ...translations }, source: {
       provider: 'tatoeba', id, owner: attribution[4], license: 'CC BY 2.0 FR',
-      translations: { en: { id: Number(attribution[1]), owner: attribution[2], license: 'CC BY 2.0 FR' } },
+      translations: { en: { id: Number(attribution[1]), owner: attribution[2], license: 'CC BY 2.0 FR' },
+        'zh-CN': { provider: 'project', license: 'CC BY 2.0 FR' }, 'zh-TW': { provider: 'project', license: 'CC BY 2.0 FR' },
+        ko: { provider: 'project', license: 'CC BY 2.0 FR' } },
     } });
     approved.delete(id);
+    localized.delete(id);
   }
   if (approved.size) throw new Error(`Missing selected sentences: ${[...approved.keys()].join(', ')}`);
+  if (localized.size) throw new Error(`Unselected project translations: ${[...localized.keys()].join(', ')}`);
   sentences.sort((a, b) => a.source!.id - b.source!.id);
   const sha256 = digest(JSON.stringify(sentences));
-  return parseSentencePack({ schemaVersion: 2, version: `${lock.date}-${sha256.slice(0, 12)}`, publishedAt: lock.date,
+  return parseSentencePack({ schemaVersion: SENTENCE_PACK_SCHEMA_VERSION, version: `${lock.date}-${sha256.slice(0, 12)}`, publishedAt: lock.date,
     sha256, source: { url: lock.url, sha256: lock.sha256, license: 'CC BY 2.0 FR' }, sentences });
 }
 
 async function main() {
   const lock = JSON.parse(await readFile('scripts/daily-sentence/source.lock.json', 'utf8')) as SourceLock;
+  const localizedText = await readFile('scripts/daily-sentence/translations.tsv', 'utf8');
   if (process.argv.includes('--check')) {
     const pack = parseSentencePack(JSON.parse(await readFile('app/data/daily-sentences.json', 'utf8')));
     if (digest(JSON.stringify(pack.sentences)) !== pack.sha256 || pack.source.sha256 !== lock.sha256
@@ -55,7 +72,7 @@ async function main() {
       const row = `${sentence.translation.en}\t${sentence.text}\tCC-BY 2.0 (France) Attribution: tatoeba.org #${translation?.id} (${translation?.owner}) & #${original.id} (${original.owner})`;
       if (digest(row) !== lock.approved.find(approved => approved.id === original.id)?.sha256) throw new Error(`Packed sentence ${original.id} differs from the reviewed source row`);
     }
-    const expected = await buildSentencePackFromRows(await readFile('scripts/daily-sentence/approved.tsv', 'utf8'), lock);
+    const expected = await buildSentencePackFromRows(await readFile('scripts/daily-sentence/approved.tsv', 'utf8'), lock, localizedText);
     if (JSON.stringify(expected) !== JSON.stringify(pack)) throw new Error('Bundled sentence pack is not reproducible from the selected row snapshot');
     console.log(`Sentence pack verified: ${pack.sentences.length} pairs (${pack.version})`);
     return;
@@ -81,8 +98,8 @@ async function main() {
     if (archiveIndex >= 0 && !process.argv[archiveIndex + 1]) throw new Error('--archive requires a path');
     archive = archiveIndex >= 0 ? await readFile(process.argv[archiveIndex + 1]) : new Uint8Array();
   }
-  const pack = await (process.argv.includes('--download') || archiveIndex >= 0 ? buildSentencePack(archive, lock)
-    : buildSentencePackFromRows(await readFile('scripts/daily-sentence/approved.tsv', 'utf8'), lock));
+  const pack = await (process.argv.includes('--download') || archiveIndex >= 0 ? buildSentencePack(archive, lock, localizedText)
+    : buildSentencePackFromRows(await readFile('scripts/daily-sentence/approved.tsv', 'utf8'), lock, localizedText));
   await mkdir('app/data', { recursive: true });
   await writeFile('app/data/daily-sentences.json', JSON.stringify(pack, null, 2) + '\n');
   console.log(`Built ${pack.sentences.length} pairs (${pack.version})`);
