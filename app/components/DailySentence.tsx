@@ -15,6 +15,7 @@ import { LatestRequest } from '../utils/latestRequest';
 import type { Locale } from '../i18n';
 import { createDailySentencePool } from '../services/dailySentenceClient';
 import { DAILY_SENTENCE_CLIENT_TIMEOUT_MS } from '../utils/dailySentencePolicy';
+import { bundledSentencePack } from '../utils/bundledSentencePack';
 
 interface DailySentenceProps {
   onAnalyze: (text: string) => void;
@@ -78,6 +79,7 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
 
   useEffect(() => {
     const deck = pool.current ??= createDailySentencePool();
+    deck.installPack(bundledSentencePack, dateKey);
     const requestManager = requests.current;
     const initial = (currentSentence.current?.date === dateKey ? currentSentence.current : null)
       ?? deck.current(dateKey) ?? deck.take(dateKey, locale);

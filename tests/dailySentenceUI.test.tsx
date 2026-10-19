@@ -5,8 +5,9 @@ import DailySentence from '../app/components/DailySentence';
 import { LanguageProvider, useLanguage } from '../app/contexts/LanguageContext';
 import { getJstDateKey } from '../app/utils/dailySentences';
 import { DAILY_POOL_KEY } from '../app/services/dailySentenceClient';
+import { bundledSentencePack } from '../app/utils/bundledSentencePack';
 import { parseDailySentenceCandidates } from '../app/api/_utils/dailySentence';
-import { DAILY_SENTENCE_CLIENT_TIMEOUT_MS, DAILY_SENTENCE_UPSTREAM_TIMEOUT_MS } from '../app/utils/dailySentencePolicy';
+import { DAILY_SENTENCE_CLIENT_TIMEOUT_MS, DAILY_SENTENCE_PACK_TIMEOUT_MS } from '../app/utils/dailySentencePolicy';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const tick = () => new Promise<void>(resolve => setImmediate(resolve));
@@ -28,6 +29,10 @@ async function main() {
   const values = new Map<string, string>();
   let writesBlocked = false;
   const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { if (writesBlocked) throw Error('quota exceeded'); values.set(key, value); } };
+  const resetValues = () => {
+    values.clear();
+    values.set(DAILY_POOL_KEY, JSON.stringify({ packVersion: bundledSentencePack.version, packPublishedAt: bundledSentencePack.publishedAt, candidates: [], packIds: [], history: [] }));
+  };
   const listeners = new Map<string, Set<() => void>>();
   const events = {
     addEventListener(name: string, callback: () => void) { const set = listeners.get(name) ?? new Set(); set.add(callback); listeners.set(name, set); },
@@ -62,7 +67,12 @@ async function main() {
   const text = () => button().props['aria-label'] as string;
   const reply = async (index: number, value: unknown) => act(async () => { pending[index].resolve(Response.json(value)); await tick(); });
   try {
-    assert.ok(DAILY_SENTENCE_CLIENT_TIMEOUT_MS > DAILY_SENTENCE_UPSTREAM_TIMEOUT_MS);
+    assert.ok(DAILY_SENTENCE_CLIENT_TIMEOUT_MS > DAILY_SENTENCE_PACK_TIMEOUT_MS);
+    navigatorMock.onLine = false;
+    await mount();
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-plain-text' }).length, 1, 'Fresh offline installs can select a bundled corpus sentence');
+    assert.equal(pending.length, 0);
+    await unmount(); resetValues(); navigatorMock.onLine = true;
     await mount();
     const initial = text();
     assert.ok(initial.length > 6);
@@ -112,7 +122,7 @@ async function main() {
     await unmount();
 
     // Blocked writes retain the pool and its consumed history in memory across language changes.
-    values.clear(); navigatorMock.onLine = true; writesBlocked = true;
+    resetValues(); navigatorMock.onLine = true; writesBlocked = true;
     await mount(); const blockedStart = pending.length - 1; const blockedLocal = text();
     await reply(blockedStart, pack);
     assert.equal(text(), blockedLocal);
@@ -133,7 +143,7 @@ async function main() {
     await unmount();
 
     // Failures and timeouts affect only background sync, with persisted cooldown.
-    values.clear(); navigatorMock.onLine = true;
+    resetValues(); navigatorMock.onLine = true;
     await mount(); const failureIndex = pending.length - 1; const beforeFailure = text();
     await act(async () => { pending[failureIndex].reject(Error('offline')); await tick(); });
     assert.equal(text(), beforeFailure);
@@ -153,7 +163,7 @@ async function main() {
     assert.equal(text(), chosenDuringBackoff, 'Retry success also leaves the displayed sentence untouched');
     await unmount();
 
-    values.clear(); await mount();
+    resetValues(); await mount();
     const timed = pending.at(-1)!;
     await act(async () => { refresh().props.onClick(); });
     const beforeTimeout = text();
@@ -165,7 +175,7 @@ async function main() {
     await unmount();
 
     // Superseded date/locale and unmounted results cannot populate the pool or change the display.
-    values.clear(); ignoreAbort = true;
+    resetValues(); ignoreAbort = true;
     await mount(); const oldIndex = pending.length - 1; const oldDate = getJstDateKey();
     now = OriginalDate.parse('2026-09-24T15:01:00Z');
     await emit('focus');

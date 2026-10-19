@@ -2,7 +2,7 @@ import type { TokenData } from '../services/api';
 import type { Locale } from '../i18n';
 
 export type SentenceLicense = 'CC BY 2.0 FR' | 'CC0 1.0';
-export interface SentenceAttribution { id: number; license: SentenceLicense; }
+export interface SentenceAttribution { id: number; license: SentenceLicense; owner?: string; }
 
 export interface DailySentence {
   /** 日本时间日期 YYYY-MM-DD；备用句没有 */
@@ -10,7 +10,7 @@ export interface DailySentence {
   text: string;
   tokens: TokenData[];
   translation: Partial<Record<Locale, string>>;
-  source?: { provider: 'tatoeba'; id: number; license: SentenceLicense; translations: Partial<Record<Locale, SentenceAttribution>> };
+  source?: { provider: 'tatoeba'; id: number; license: SentenceLicense; owner?: string; translations: Partial<Record<Locale, SentenceAttribution>> };
 }
 
 // 首页离线句库：预先分词、注音并提供四种译文，不调用 AI。

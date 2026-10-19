@@ -1,22 +1,5 @@
 import type { Locale } from '../../i18n';
 import { isDailySentenceText, isSentenceAttribution, type DailySentence } from '../../utils/dailySentences';
-import { DAILY_SENTENCE_UPSTREAM_TIMEOUT_MS } from '../../utils/dailySentencePolicy';
-
-const LANGUAGE: Record<Locale, string> = { 'zh-CN': 'cmn', 'zh-TW': 'cmn', en: 'eng', ko: 'kor' };
-export { DAILY_SENTENCE_UPSTREAM_TIMEOUT_MS } from '../../utils/dailySentencePolicy';
-
-/** Only fixed public endpoints are used; user text, credentials and model settings never leave the app here. */
-export function buildDailySentenceUrl(locale: Locale): URL {
-  const url = new URL('https://api.tatoeba.org/v1/sentences');
-  url.search = new URLSearchParams({
-    lang: 'jpn', sort: 'random', limit: '12', word_count: '10-40',
-    is_native: 'yes', is_unapproved: 'no', is_orphan: 'no',
-    'trans:lang': LANGUAGE[locale], 'trans:is_direct': 'yes', 'trans:is_unapproved': 'no',
-    'showtrans:lang': 'cmn,eng,kor', 'showtrans:is_direct': 'yes', 'showtrans:is_unapproved': 'no',
-  }).toString();
-  return url;
-}
-
 export function parseDailySentenceCandidates(value: unknown, date: string): DailySentence[] {
   if (!value || typeof value !== 'object' || !Array.isArray((value as { data?: unknown }).data)) return [];
   const result: DailySentence[] = [];
@@ -44,15 +27,4 @@ export function parseDailySentenceCandidates(value: unknown, date: string): Dail
     result.push(sentence);
   }
   return result;
-}
-
-export async function fetchDailySentenceCandidates(date: string, locale: Locale): Promise<DailySentence[]> {
-  const response = await fetch(buildDailySentenceUrl(locale), {
-    signal: AbortSignal.timeout(DAILY_SENTENCE_UPSTREAM_TIMEOUT_MS), cache: 'no-store', redirect: 'error',
-    headers: { Accept: 'application/json' },
-  });
-  if (!response.ok) throw new Error(`Tatoeba HTTP ${response.status}`);
-  const sentences = parseDailySentenceCandidates(await response.json(), date);
-  if (!sentences.length) throw new Error('No suitable daily sentences');
-  return sentences;
 }

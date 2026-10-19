@@ -1,0 +1,1853 @@
+{
+  "schemaVersion": 1,
+  "version": "2026-10-19-34262d4c8ba8",
+  "publishedAt": "2026-10-19",
+  "sha256": "34262d4c8ba8b6b27b18c9211d53c876f61207703a886ff086d73479f6f347d2",
+  "source": {
+    "url": "https://www.manythings.org/anki/jpn-eng.zip",
+    "sha256": "af9e98121df9ce9c8a258bf81033905cb38f31bbc26432f3354d8ace316f20ee",
+    "license": "CC BY 2.0 FR"
+  },
+  "sentences": [
+    {
+      "text": "誰にも分からないよ。",
+      "tokens": [],
+      "translation": {
+        "en": "Who knows?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 4839,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 276369,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "有難うございました。",
+      "tokens": [],
+      "translation": {
+        "en": "Thank you."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 79262,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1876041,
+            "owner": "Asma",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "満タンにしてください。",
+      "tokens": [],
+      "translation": {
+        "en": "Fill it up."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 81084,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 322631,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "満タンでお願いします。",
+      "tokens": [],
+      "translation": {
+        "en": "Fill her up."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 81085,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2245491,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "万事上手くいってます。",
+      "tokens": [],
+      "translation": {
+        "en": "All is well."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 81097,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 322610,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "僕はジャズが好きだ。",
+      "tokens": [],
+      "translation": {
+        "en": "I like jazz."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 82084,
+        "owner": "tommy_san",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 321631,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼女はにっこり笑った。",
+      "tokens": [],
+      "translation": {
+        "en": "She smiled."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 91814,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 311898,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は立ち上がりました。",
+      "tokens": [],
+      "translation": {
+        "en": "He stood up."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 99044,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 517531,
+            "owner": "blay_paul",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は来る事が出来る。",
+      "tokens": [],
+      "translation": {
+        "en": "He can come."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 99136,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 289971,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は背が高いですか。",
+      "tokens": [],
+      "translation": {
+        "en": "Is he tall?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 101290,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 302406,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は私と同い年です。",
+      "tokens": [],
+      "translation": {
+        "en": "He's my age."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 106257,
+        "owner": "KK_kaku_",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 674278,
+            "owner": "yessoos",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼は外出しています。",
+      "tokens": [],
+      "translation": {
+        "en": "He's not in."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 108940,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1300772,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "道に迷ってしまいました。",
+      "tokens": [],
+      "translation": {
+        "en": "I'm lost."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 123603,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 455833,
+            "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "精一杯やってみなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Try hard."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 142669,
+        "owner": "mookeee",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 271901,
+            "owner": "Zifre",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "心配しなくていいよ。",
+      "tokens": [],
+      "translation": {
+        "en": "Don't worry."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 145543,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 506446,
+            "owner": "rtomharper",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "時のたつのは早いものだ。",
+      "tokens": [],
+      "translation": {
+        "en": "Time flies."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 150671,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 263886,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は走ることができる。",
+      "tokens": [],
+      "translation": {
+        "en": "I can run."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 155347,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1173661,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は笑ってしまった。",
+      "tokens": [],
+      "translation": {
+        "en": "I laughed."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 155824,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 258713,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は覚悟ができている。",
+      "tokens": [],
+      "translation": {
+        "en": "I am ready."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 157889,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 436423,
+            "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は泳ぐことが出来ます。",
+      "tokens": [],
+      "translation": {
+        "en": "I can swim."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 158353,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 256178,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はどちらも好きです。",
+      "tokens": [],
+      "translation": {
+        "en": "I like both."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 159295,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 255228,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はそう言いました。",
+      "tokens": [],
+      "translation": {
+        "en": "I said so."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 160452,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 254069,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はそうは思いません。",
+      "tokens": [],
+      "translation": {
+        "en": "I disagree."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 160455,
+        "owner": "tommy_san",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111806,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はケーキが好きだ。",
+      "tokens": [],
+      "translation": {
+        "en": "I like cake."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 161101,
+        "owner": "tommy_san",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 253417,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はお茶が好きです。",
+      "tokens": [],
+      "translation": {
+        "en": "I like tea."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 161224,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 253293,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私の質問に答えなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Answer me."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 163451,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 251060,
+            "owner": "Eldad",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "本気で言ってるんです。",
+      "tokens": [],
+      "translation": {
+        "en": "I mean it."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 163707,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 250804,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私に行かせてください。",
+      "tokens": [],
+      "translation": {
+        "en": "Let me go!"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 164396,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 250112,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私がちゃんとやりますから。",
+      "tokens": [],
+      "translation": {
+        "en": "I'll do it."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 167956,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 433474,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "今すぐそれをやりなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Do it now."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 172831,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 435763,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "君のことが好きなんだ。",
+      "tokens": [],
+      "translation": {
+        "en": "I like you."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 178541,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 410751,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "君がいなくて寂しいよ。",
+      "tokens": [],
+      "translation": {
+        "en": "I miss you."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 179195,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1308,
+            "owner": "brauliobezerra",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "顔と手を洗いなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Wash up."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 183641,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 20763,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "楽しんでいってください。",
+      "tokens": [],
+      "translation": {
+        "en": "Have fun."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 184146,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 21267,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "皆さんお乗りください。",
+      "tokens": [],
+      "translation": {
+        "en": "All aboard!"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 184989,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 22121,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "何ていったんですか。",
+      "tokens": [],
+      "translation": {
+        "en": "Pardon me?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 187853,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 31477,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "意見が一致している。",
+      "tokens": [],
+      "translation": {
+        "en": "We agree."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 191067,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 628230,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "はっきり言いなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Speak up!"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 197986,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 35175,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "なんて可愛いんでしょう。",
+      "tokens": [],
+      "translation": {
+        "en": "How cute!"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 198901,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 36097,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "どうぞお話し下さい。",
+      "tokens": [],
+      "translation": {
+        "en": "Go ahead."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 201339,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 38546,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "もう一度お願いします。",
+      "tokens": [],
+      "translation": {
+        "en": "Excuse me?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 214165,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 434704,
+            "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "しっかり勉強しなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Study hard."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 216163,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 53465,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "さあどうぞお入りください。",
+      "tokens": [],
+      "translation": {
+        "en": "Do come in."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 216899,
+        "owner": "wakatyann630",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2245265,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "さあ、入って入って。",
+      "tokens": [],
+      "translation": {
+        "en": "Come on in!"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 216921,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 54229,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "お話ししたいことがあります。",
+      "tokens": [],
+      "translation": {
+        "en": "Can we talk?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 226514,
+        "owner": "KK_kaku_",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 63859,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "お腹がいっぱいです。",
+      "tokens": [],
+      "translation": {
+        "en": "I'm full."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 226693,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 433863,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ああ、お腹が空いた。",
+      "tokens": [],
+      "translation": {
+        "en": "I'm hungry!"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 234717,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 404096,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はここで食べます。",
+      "tokens": [],
+      "translation": {
+        "en": "I eat here."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 546095,
+        "owner": "qahwa",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 449105,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私はあなたを愛しています。",
+      "tokens": [],
+      "translation": {
+        "en": "I love you."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 630415,
+        "owner": "arihato",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1434,
+            "owner": "awael58",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "少し静かにしていなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Be quiet."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 714252,
+        "owner": "arihato",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1275396,
+            "owner": "jakov",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "もう一度やってみて。",
+      "tokens": [],
+      "translation": {
+        "en": "Try again."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1034968,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 31723,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "そのことを確信している。",
+      "tokens": [],
+      "translation": {
+        "en": "I am sure."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1179922,
+        "owner": "mookeee",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 436433,
+            "owner": "lukaszpp",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私も参加させてください。",
+      "tokens": [],
+      "translation": {
+        "en": "Let me in."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1284070,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 277466,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私たちは努力しております。",
+      "tokens": [],
+      "translation": {
+        "en": "We try."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1293333,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 247763,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "手は空いていますよ。",
+      "tokens": [],
+      "translation": {
+        "en": "I'm free."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1302432,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 23959,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "家に戻ってきなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Come home."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 1516322,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 413767,
+            "owner": "Scott",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "優しくしてあげなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Be nice."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 2038458,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1916314,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "誰にでもいいから訊いてみてください。",
+      "tokens": [],
+      "translation": {
+        "en": "Ask anybody."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 2179177,
+        "owner": "tommy_san",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111968,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "起き上がるの手伝って。",
+      "tokens": [],
+      "translation": {
+        "en": "Help me up."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 2562528,
+        "owner": "OrangeTart",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2245555,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は単刀直入なんです。",
+      "tokens": [],
+      "translation": {
+        "en": "I'm direct."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 2579328,
+        "owner": "OrangeTart",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2202768,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は読むことができます。",
+      "tokens": [],
+      "translation": {
+        "en": "I can read."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3220575,
+        "owner": "e4zh1nmcz",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 3220342,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は引っ込み思案です。",
+      "tokens": [],
+      "translation": {
+        "en": "I'm shy."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3480374,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2203346,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "あったかくしてなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Keep warm."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488153,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111630,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "どなたさまでしょうか。",
+      "tokens": [],
+      "translation": {
+        "en": "Who is it?"
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488193,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 428379,
+            "owner": "witbrock",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ほら、ここにあるよ。",
+      "tokens": [],
+      "translation": {
+        "en": "Here it is."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488304,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 35529,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私も年をとったなあ。",
+      "tokens": [],
+      "translation": {
+        "en": "I feel old."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488345,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1430734,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "あなたが必要なんです。",
+      "tokens": [],
+      "translation": {
+        "en": "I need you."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488368,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 17735,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "とにかく落ち着いて。",
+      "tokens": [],
+      "translation": {
+        "en": "Just relax."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488541,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1555685,
+            "owner": "Spamster",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "寄りかかっていいよ。",
+      "tokens": [],
+      "translation": {
+        "en": "Lean on me."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488564,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2249515,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "さあ、みんなで歌いましょう。",
+      "tokens": [],
+      "translation": {
+        "en": "Sing along."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 3488728,
+        "owner": "arnab",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111554,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は青色が好きです。",
+      "tokens": [],
+      "translation": {
+        "en": "I like blue."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 6537581,
+        "owner": "nihonjin",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2245933,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "僕はリラックスした。",
+      "tokens": [],
+      "translation": {
+        "en": "I relaxed."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 7554267,
+        "owner": "Ninja",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 5828674,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "上記をご覧ください。",
+      "tokens": [],
+      "translation": {
+        "en": "See above."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8617728,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 273621,
+            "owner": "CM",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私って、運が良かったのよ。",
+      "tokens": [],
+      "translation": {
+        "en": "I got lucky."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8714160,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2199425,
+            "owner": "Hybrid",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "少しお待ちください。",
+      "tokens": [],
+      "translation": {
+        "en": "Wait a bit."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8886169,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 3696774,
+            "owner": "Lindoula",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "たくさん食べちゃった。",
+      "tokens": [],
+      "translation": {
+        "en": "I ate a lot."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8933304,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 8933302,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "僕らは恥ずかしがり屋です。",
+      "tokens": [],
+      "translation": {
+        "en": "We're shy."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 8967779,
+        "owner": "Ninja",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2203343,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私は運転することができます。",
+      "tokens": [],
+      "translation": {
+        "en": "I can drive."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 9008559,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 744722,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "どうぞお召し上がりください。",
+      "tokens": [],
+      "translation": {
+        "en": "Please eat."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 9511216,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 6358715,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ありがとうございます。",
+      "tokens": [],
+      "translation": {
+        "en": "Thank you."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 9559301,
+        "owner": "Sim5634",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 1876041,
+            "owner": "Asma",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "そうでなきゃいいけど。",
+      "tokens": [],
+      "translation": {
+        "en": "I hope not."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10012775,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 51119,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "あくびが出ちゃった。",
+      "tokens": [],
+      "translation": {
+        "en": "I yawned."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10230418,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 5828642,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ストップって言ってね。",
+      "tokens": [],
+      "translation": {
+        "en": "Say when."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10309140,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 10309145,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "周りの人に聞いてみて。",
+      "tokens": [],
+      "translation": {
+        "en": "Ask around."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10329999,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2111967,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "僕、ジャンプできるよ。",
+      "tokens": [],
+      "translation": {
+        "en": "I can jump."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10557602,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 261421,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "彼のことは知ってますよ。",
+      "tokens": [],
+      "translation": {
+        "en": "I know him."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10692082,
+        "owner": "bunbuku",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 71751,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "お米を栽培しています。",
+      "tokens": [],
+      "translation": {
+        "en": "I grow rice."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10833268,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 5828944,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "私たちは仲直りした。",
+      "tokens": [],
+      "translation": {
+        "en": "We made up."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10910960,
+        "owner": "SomeHungryBois",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 11766461,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "ちょっとすみません。",
+      "tokens": [],
+      "translation": {
+        "en": "Excuse me."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10985082,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 433504,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "そりゃそうだろうな。",
+      "tokens": [],
+      "translation": {
+        "en": "I guess so."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 10987698,
+        "owner": "small_snow",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 3820733,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "さ、話してみなさい。",
+      "tokens": [],
+      "translation": {
+        "en": "Let's talk."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 11005195,
+        "owner": "KK_kaku_",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 2007936,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    },
+    {
+      "text": "勉強を頑張りましょう。",
+      "tokens": [],
+      "translation": {
+        "en": "Study hard."
+      },
+      "source": {
+        "provider": "tatoeba",
+        "id": 11256195,
+        "owner": "sh5555",
+        "license": "CC BY 2.0 FR",
+        "translations": {
+          "en": {
+            "id": 53465,
+            "owner": "CK",
+            "license": "CC BY 2.0 FR"
+          }
+        }
+      }
+    }
+  ]
+}

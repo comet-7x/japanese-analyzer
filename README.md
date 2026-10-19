@@ -75,7 +75,7 @@
 
 从 [GitHub Releases](https://github.com/cokice/japanese-analyzer/releases) 下载：macOS 12+ 选择 Apple Silicon（aarch64）或 Intel（x64）的 DMG，将应用拖入「应用程序」；Windows 10/11 x64 运行 NSIS `setup.exe`。桌面包内置 Node.js，无需另外安装；Windows 需要 WebView2，安装程序会在缺失时联网下载安装。
 
-功能与 Web 版一致，在应用设置中填写自己的模型 Key 即可使用解析、词详情、AI 助手、图片识别与朗读。「今日一句」联网时获取开放例句，断网时使用内置句；Edge TTS 可直接使用，Gemini TTS 需要自己的 Key。模型调用需要联网，历史记录和个人设置保存在本机 WebView 中。
+功能与 Web 版一致，在应用设置中填写自己的模型 Key 即可使用解析、词详情、AI 助手、图片识别与朗读。「今日一句」随应用提供日文例句，离线也可即时换句；Edge TTS 可直接使用，Gemini TTS 需要自己的 Key。模型调用需要联网，历史记录和个人设置保存在本机 WebView 中。
 
 通过原生菜单「桌面 → 桌面设置」（`⌘/Ctrl+,`）检查更新：macOS 可在应用内下载、验证签名、替换完整应用并重启；Windows 显示「有新版本」，请前往 Releases 下载并运行完整安装包。
 
@@ -127,6 +127,7 @@ npm run dev
 | 变量 | 说明 |
 | --- | --- |
 | `GEMINI_API_KEY` | 可选。用户未填写密钥时供官方 Gemini TTS 使用 |
+| `DAILY_SENTENCE_PACK_URL` | 可选。自己托管的静态句包 HTTPS 地址；留空使用随应用发布的句库 |
 | `CODE` | 可选。访问密码，留空则不需要密码 |
 | `NEXT_PUBLIC_UMAMI_SRC` / `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | 可选。两个都填写后启用 Umami 统计 |
 
@@ -140,7 +141,7 @@ npm run dev
 
 图片解析仅允许支持图片输入的多模态模型。未知或自定义模型默认不启用图片输入，可在「模型设置 → 高级配置 → 输入类型」中按服务商说明开启「图片」开关。上传、拖拽、粘贴及 API 都会检查此能力；不支持时通过居中弹窗提示切换模型，并提供设置入口；上传、粘贴或拖拽的图片不会发送到模型服务。已核对的 GPT-4o mini 与 Gemini 2.5 Flash 预设默认开启；依据 [OpenAI 模型说明](https://developers.openai.com/api/docs/models/gpt-4o-mini) 与 [Gemini 模型说明](https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash)。
 
-「今日一句」无需账号或模型 Key：点击「换一句」立即从已缓存的在线候选池或内置句库取下一句，不等待网络。启动、候选不足或缓存过期时，后台通过应用 API 补充 Tatoeba 例句；新结果留待下次选择，不替换当前句子。候选池、最后选句和失败重试间隔保存在本机，断网或上游超时仍可连续换句。本地 60 条句子随机洗牌轮换，保留注音、词性和四种译文。在线句子保留原文、实际已有译文、来源和许可链接；缺少界面语言译文时隐藏译文，点击句子后才解析，不自动消耗模型额度。详见 [每日一句设计与数据来源](docs/daily-sentence.md)。
+「今日一句」无需账号或模型 Key：点击「换一句」立即从持久候选池取句，不等待网络。随应用提供 60 条四语言注音例句和 92 条附来源、作者与许可的 Tatoeba 日英例句，首装离线共可用 152 条。API 直接读取已验证的静态句包，不再依赖实时随机接口；可选 `DAILY_SENTENCE_PACK_URL` 在后台检查自己托管的新包，失败保留当前版本。缺少界面语言译文时隐藏译文，点击原句后才解析。生成、校验与更新方式见 [每日一句设计与数据来源](docs/daily-sentence.md)。
 
 <details>
 <summary>Umami 会记录什么</summary>

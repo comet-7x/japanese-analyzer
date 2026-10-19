@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
-import { buildDailySentenceUrl, fetchDailySentenceCandidates, parseDailySentenceCandidates } from '../app/api/_utils/dailySentence';
+import { parseDailySentenceCandidates } from '../app/api/_utils/dailySentence';
 import { GET } from '../app/api/daily-sentence/route';
 import { DAILY_SENTENCES, getDayNumber, getJstDateKey, isOnlineDailySentence, secondsUntilJstMidnight } from '../app/utils/dailySentences';
 import { createDailySentencePool, DAILY_DECK_KEY, DAILY_ONLINE_KEY, DAILY_POOL_KEY, getLocalDailySentence } from '../app/services/dailySentenceClient';
@@ -135,55 +135,16 @@ async function main() {
   try {
     delete process.env.CODE;
     let calls = 0;
-    globalThis.fetch = async (input, init) => {
-      calls++;
-      const url = new URL(String(input));
-      assert.equal(url.origin, 'https://api.tatoeba.org');
-      assert.equal(url.pathname, '/v1/sentences');
-      assert.equal(url.searchParams.get('is_native'), 'yes');
-      assert.equal(url.searchParams.get('trans:lang'), 'eng');
-      assert.equal(new Headers(init?.headers).has('Authorization'), false);
-      assert.ok(init?.signal);
-      return Response.json({ data: [remoteRow()] });
-    };
+    globalThis.fetch = async () => { calls++; throw new Error('No external calls expected'); };
     const req = () => new NextRequest('http://localhost/api/daily-sentence?locale=en');
-    const responses = await Promise.all([GET(req()), GET(req())]);
-    assert.ok(responses.every(r => r.status === 200));
-    assert.equal(calls, 1, 'Concurrent calls share one public API request');
-    await GET(req()); assert.equal(calls, 1, 'Successful daily batch is reused');
-    const refreshReq = () => new NextRequest('http://localhost/api/daily-sentence?locale=en&refresh=1');
-    await GET(refreshReq()); assert.equal(calls, 1, 'Rapid refresh reuses the existing candidate pool');
-    const originalNow = Date.now;
-    try {
-      const later = originalNow() + 11_000;
-      Date.now = () => later;
-      assert.equal((await GET(refreshReq())).status, 200);
-      assert.equal(calls, 2, 'A later manual refresh can fetch a fresh random candidate pool');
-    } finally { Date.now = originalNow; }
-    globalThis.fetch = async () => { calls++; return new Response('', { status: 429 }); };
-    const failing = () => new NextRequest('http://localhost/api/daily-sentence?locale=ko');
-    assert.equal((await GET(failing())).status, 503);
-    assert.equal((await GET(failing())).status, 503);
-    assert.equal(calls, 4, 'Failures are not cached as a successful daily batch');
-    await assert.rejects(fetchDailySentenceCandidates(date, 'en'));
-    let resolveSlow!: (response: Response) => void;
-    let slowCalls = 0;
-    globalThis.fetch = async () => {
-      slowCalls++;
-      return new Promise<Response>(resolve => { resolveSlow = resolve; });
-    };
-    const slow = GET(new NextRequest('http://localhost/api/daily-sentence?locale=zh-TW'));
-    try {
-      Date.now = () => originalNow() + 11_000;
-      const joined = GET(new NextRequest('http://localhost/api/daily-sentence?locale=zh-TW&refresh=1'));
-      assert.equal(slowCalls, 1, 'A refresh after ten seconds still joins an in-flight request instead of starting another');
-      resolveSlow(Response.json({ data: [remoteRow()] }));
-      const slowResponses = await Promise.all([slow, joined]);
-      assert.ok(slowResponses.every(response => response.status === 200));
-    } finally { Date.now = originalNow; }
+    const responses = await Promise.all([GET(req()), GET(req()), GET(new NextRequest('http://localhost/api/daily-sentence?locale=zh-CN&refresh=1'))]);
+    assert.ok(responses.every(response => response.status === 200));
+    const body = await responses[0].json();
+    assert.equal(body.sentences.length, 92);
+    assert.ok(body.sentences.every(isOnlineDailySentence));
+    assert.equal(calls, 0, 'Serving and refreshing bundled snapshots never depends on a public upstream');
     process.env.CODE = 'secret';
     assert.equal((await GET(req())).status, 401);
-    assert.equal(buildDailySentenceUrl('zh-CN').searchParams.get('trans:lang'), 'cmn');
   } finally {
     globalThis.fetch = originalFetch;
     if (code === undefined) delete process.env.CODE; else process.env.CODE = code;

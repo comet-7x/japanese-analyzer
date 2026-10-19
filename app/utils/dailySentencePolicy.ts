@@ -1,3 +1,3 @@
-// Keep the browser deadline longer than the upstream budget, including response/compilation overhead.
-export const DAILY_SENTENCE_UPSTREAM_TIMEOUT_MS = 15_000;
-export const DAILY_SENTENCE_CLIENT_TIMEOUT_MS = DAILY_SENTENCE_UPSTREAM_TIMEOUT_MS + 3_000;
+// Snapshot updates never block selection; the browser also allows time for cold development compilation.
+export const DAILY_SENTENCE_PACK_TIMEOUT_MS = 5_000;
+export const DAILY_SENTENCE_CLIENT_TIMEOUT_MS = 10_000;
