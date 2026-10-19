@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useDictionary } from '../hooks/useDictionary';
-import { dictionaryLanguage, dictionaryMatch, type DictionaryEntry, type DictionaryMatch, type DictionaryProvider } from '../lib/dictionary';
+import { dictionaryLanguage, dictionaryMatch, type DictionaryEntry, type DictionaryMatch } from '../lib/dictionary';
 import { DictionaryContent, dictionaryGlosses } from './DictionaryContent';
 import { postLearning, type LearningModel } from '../services/learning';
 import { validateTranslations, type SenseTranslation } from '../lib/learningTools';
@@ -82,9 +82,9 @@ function Entry({ entry, tags, model, match, showSource, unavailable, word, lemma
     {showSource && <p className="tool-note dictionary-source"><a href={entry.source.url} target="_blank" rel="noreferrer">{entry.source.name}</a> · {entry.source.date} · {entry.source.version} · <a href={entry.source.licenseUrl} target="_blank" rel="noreferrer">{entry.source.license}</a></p>}
   </article>;
 }
-export default function DictionaryPanel({ word, lemma = '', reading = '', provider, model, standalone = false, onEmptyChange }: { word: string; lemma?: string; reading?: string; provider: DictionaryProvider; model: LearningModel; standalone?: boolean; onEmptyChange?: (empty: boolean) => void }) {
+export default function DictionaryPanel({ word, lemma = '', reading = '', model, standalone = false, onEmptyChange }: { word: string; lemma?: string; reading?: string; model: LearningModel; standalone?: boolean; onEmptyChange?: (empty: boolean) => void }) {
   const { t, errorText, locale } = useLanguage();
-  const { result, loading, error, retry, more } = useDictionary(word, lemma, reading, provider, locale);
+  const { result, loading, error, retry, more } = useDictionary(word, lemma, reading, locale);
   const matches = (result?.entries ?? []).map(entry => ({ entry, match: dictionaryMatch(entry, word, lemma, reading) }));
   const primary = matches.filter(value => value.match === 'surface' || value.match === 'lemma');
   const related = matches.filter(value => value.match === 'reading' || value.match === 'other');
@@ -95,7 +95,6 @@ export default function DictionaryPanel({ word, lemma = '', reading = '', provid
   const content = <>
     {loading && <p role="status">{t('正在查询词典…')}</p>}
     {error && <p role="alert">{errorText(error)} <button className="nd-ghost-btn" onClick={retry}>{t('重试')}</button></p>}
-    {result?.fallback && <p role="status">{t('已回退内置词典')} · {t({ empty: '外部词典无结果', timeout: '外部词典超时', unavailable: '外部词典连接失败' }[result.fallback])}</p>}
     {result?.localizationStatus?.status === 'unavailable' && <p role="alert">{t('当前语言词典暂不可用，原文仍可查询。')} <button className="nd-ghost-btn" onClick={retry}>{t('重试')}</button></p>}
     {result && !result.entries.length && !loading && <p>{t('未找到词条')}</p>}
     {primary.map(renderEntry)}

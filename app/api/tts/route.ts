@@ -28,6 +28,8 @@ export async function POST(req: NextRequest) {
     const voice = typeof body.voice === 'string' ? body.voice.trim() : preset.voice;
     const speed = body.speed ?? 1;
     if (!model || !voice || typeof speed !== 'number' || !Number.isFinite(speed) || speed < 0.5 || speed > 2) return failure('语音参数无效');
+    const signal = AbortSignal.any([req.signal, createUpstreamSignal()!]);
+    signal.throwIfAborted();
 
     // 优先使用直连 Edge TTS 获取毫秒级 WordBoundary 时间戳
     if (provider === 'edge') {
@@ -47,6 +49,7 @@ export async function POST(req: NextRequest) {
           gender: gender as string,
           rate,
           pitch,
+          signal,
         });
         return NextResponse.json({
           audio: edgeRes.audio.toString('base64'),
@@ -54,6 +57,8 @@ export async function POST(req: NextRequest) {
           cues: edgeRes.cues,
         });
       } catch (err) {
+        if (signal.aborted) throw signal.reason;
+        if (isUpstreamTimeoutError(err)) throw err;
         console.warn('Native Edge TTS failed, falling back to proxy:', err);
         // Fallback to proxy if native websocket fails
       }
@@ -96,7 +101,7 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), redirect: 'error', signal: AbortSignal.any([req.signal, createUpstreamSignal()!]) });
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), redirect: 'error', signal });
     if (!response.ok) {
       const data = await response.json().catch(() => null);
       return failure(typeof data?.error === 'string' ? data.error : data?.error?.message || (typeof data?.message === 'string' ? data.message : '') || `TTS 请求失败（HTTP ${response.status}）`, response.status);

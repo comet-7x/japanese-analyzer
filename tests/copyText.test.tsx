@@ -7,7 +7,6 @@ import AnalysisResult from '../app/components/AnalysisResult';
 import InputSection from '../app/components/InputSection';
 import SelectionDetailPanel from '../app/components/SelectionDetailPanel';
 import { ExternalLookupProvider } from '../app/contexts/ExternalLookupContext';
-import { BUILTIN_DICTIONARY } from '../app/lib/dictionary';
 import { SPEECH_PRESETS } from '../app/lib/speechServices';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -46,7 +45,7 @@ async function main() {
       speechService={SPEECH_PRESETS[0]} speechServices={[...SPEECH_PRESETS]} onSpeechServiceChange={() => {}} compact />
     <AnalysisResult {...props} selectedIndex={selection ? 0 : null} />
     {selection && <SelectionDetailPanel selectedText={selection} pos="名詞" reading="" context={originalText}
-      tokens={tokens} selectionKind="phrase" identity={selection} provider={BUILTIN_DICTIONARY}
+      tokens={tokens} selectionKind="phrase" identity={selection}
       model={{ endpoint }} onClose={() => {}} onEdit={() => {}} canEdit={false} canGroup={false} />}
 
   </>);

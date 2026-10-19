@@ -225,7 +225,7 @@ function migrateFlatProfiles(raw: unknown): ProviderProfile[] {
     if (!baseUrl || !model) continue;
     const rawCaps = item.caps && typeof item.caps === 'object' ? (item.caps as Record<string, unknown>) : {};
     const caps: ModelCaps = {
-      structuredOutput: rawCaps.jsonSchema === true ? 'json_schema' : 'json_object',
+      structuredOutput: rawCaps.jsonSchema !== false ? 'json_schema' : 'json_object',
     };
     if (typeof rawCaps.thinking === 'boolean') caps.thinking = rawCaps.thinking;
     if (typeof rawCaps.reasoningEffort === 'string' && rawCaps.reasoningEffort.trim()) {

@@ -48,6 +48,8 @@ async function main() {
       (error: unknown) => error instanceof MachineTranslationError && error.status === 503);
     globalThis.fetch = async () => Response.json({ responseStatus: 200, responseData: { translatedText: '&#x110000;&amp;' } });
     assert.equal(await machineTranslate('駅', 'mymemory', 'en', signal), '&#x110000;&');
+    globalThis.fetch = async () => Response.json({ responseStatus: 200, responseData: { translatedText: '&#55296;&#xDFFF;&#128512;&#x5409;' } });
+    assert.equal(await machineTranslate('駅', 'mymemory', 'en', signal), '&#55296;&#xDFFF;😀吉');
     const aborted = new AbortController(); aborted.abort();
     await assert.rejects(machineTranslate('駅', 'mymemory', 'en', aborted.signal), { name: 'AbortError' });
     const defaultExpected = {

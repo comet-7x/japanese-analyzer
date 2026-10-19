@@ -1,6 +1,6 @@
 # 词典、分词纠错与阅读辅助
 
-首页可切换「句子解析／查词」。查词默认使用随应用提供的完整英文 JMdict，无需模型 Key；句子解析仍使用配置的模型。
+首页可切换「句子解析／查词」。查词使用随应用提供的完整英文 JMdict，无需模型 Key；句子解析仍使用配置的模型。
 
 中文词典后续开发见 [中文词典接入设计](./chinese-dictionary-design.md)。该文档描述设计中的功能，当前默认数据仍为英文 JMdict。
 
@@ -50,52 +50,11 @@ npm run build
 
 数据及派生索引采用 CC BY-SA 4.0，独立于应用代码许可证。署名与转换说明见 `NOTICE`，授权副本见 `LICENSES/EDRDG.html` 与 `LICENSES/CC-BY-SA-4.0.txt`。
 
-## 外部 HTTP v1 协议
+## 内置查询接口
 
-在设置中的「词典服务」添加名称、完整查询 URL 和可选 Bearer Key，测试后添加并保存设置。可以选择内置或一个外部服务；删除当前外部服务会恢复内置。词典 Key 与模型 Key 分开保存于本机浏览器，请求时经应用服务器转发。
+`POST /api/dictionary/lookup` 只查询随应用提供的内置词典。请求字段为 `query`、可选的 `dictionaryForm`、`reading` 和 `offset`；每页最多二十条，语言沿用 `X-App-Locale`。接口沿用应用会话认证。
 
-外部服务必须实现以下协议。其他厂商可在 `dictionaryAdapters` 中加入协议转换器；单独填写任意厂商 URL 不会自动转换其协议。
-
-请求为 POST，`Content-Type: application/json`；Key 存在时附带 `Authorization: Bearer ...`：
-
-```json
-{"query":"食べた","dictionaryForm":"食べる","reading":"たべた","offset":0,"limit":20}
-```
-
-只发送查询词、辞书形、读音和分页，不发送整句或模型信息。URL 不接受用户信息、查询参数或 fragment；不跟随重定向。默认沿用应用的私网地址限制；个人自托管确需访问内网时，由管理员配置现有的 `ALLOW_PRIVATE_BASE_URL=true`。
-
-响应必须符合 `DictionaryResult` 和 `DictionaryEntry` 类型。下面是完整的单条示例；没有结果时返回空 `entries` 和 `total:0`：
-
-```json
-{
-  "entries": [{
-    "id": "entry-1",
-    "common": true,
-    "spellings": [{"text":"食べる","common":true,"tags":[]}],
-    "readings": [{"text":"たべる","common":true,"appliesTo":["*"],"tags":[]}],
-    "senses": [{
-      "id":"entry-1:0","pos":["v1","vt"],"glosses":["to eat"],
-      "appliesToSpellings":["*"],"appliesToReadings":["*"],"tags":[],"notes":[]
-    }],
-    "source": {
-      "id":"my-dictionary","name":"My dictionary","version":"1","date":"2026-10-05",
-      "url":"https://example.com/dictionary","license":"CC BY-SA 4.0",
-      "licenseUrl":"https://example.com/license"
-    }
-  }],
-  "total":1,"offset":0,"hasMore":false,
-  "source": {
-    "id":"my-dictionary","name":"My dictionary","version":"1","date":"2026-10-05",
-    "url":"https://example.com/dictionary","license":"CC BY-SA 4.0",
-    "licenseUrl":"https://example.com/license"
-  },
-  "tags":{"v1":"Ichidan verb","vt":"transitive verb"}
-}
-```
-
-每页最多二十条，响应上限 1 MiB，整体请求超时八秒。词条 ID 与义项 ID 在来源版本内应稳定且唯一；`["*"]` 表示适用全部写法／读音。`tags` 映射可省略。来源及授权 URL 必须使用 HTTP(S)。
-
-超时、无效协议和首批空结果会回退内置词典，并在界面展示原因与实际来源；连接测试不使用回退，避免错误地把内置成功当成外部连接成功。取消请求不会触发回退。所有词典和学习工具 API 沿用应用会话认证。
+自定义 HTTP 词典及连接测试已移除；携带 `provider` 或 `test` 的旧请求返回 400，不访问外部服务。浏览器启动时清理旧的自定义词典配置及其中保存的密钥，查词统一使用内置数据。外部查询网站链接仍由用户主动点击打开。
 
 ## 验证基线
 
@@ -124,6 +83,6 @@ npm run build
 
 在查词与句子解析模式之间切换会保留解析组件和译文。切换回有成功结果的模型时可恢复该模型的解析和译文；未命中的解析仍由用户触发，不因切换模型而新增解析请求。翻译沿用原先随当前句子及模型变化自动获取的行为，但先查缓存。工具栏「重新解析」及「重新翻译」显式绕过各自缓存。
 
-词典查询另有仅当前页面会话有效的有界缓存，最多 80 批结果、4 MiB：内置结果保留 10 分钟，HTTP 服务结果保留 2 分钟。缓存区分词典服务、密钥、界面语言、查询条件和分页，不随模型切换失效；回退、失败和取消结果不缓存，连接测试及错误后的重试直接请求服务。切换词语和模式可复用成功查询，不会自动发起义项翻译或 AI 原形识别。
+词典查询另有仅当前页面会话有效的有界缓存，最多 80 批结果、4 MiB，保留 10 分钟。缓存区分界面语言、查询条件和分页，不随模型切换失效；失败、取消和本地化数据不可用的结果不缓存，错误后的重试直接请求内置查询接口。切换词语和模式可复用成功查询，不会自动发起义项翻译或 AI 原形识别。
 
 撤销只影响本次解析后的分词和手动阅读分组调整（最多 20 步）；未调整时按钮禁用。恢复初始分词还会清除手动分组及自动分组的手动抑制规则，阅读视图的自动分组仍按原有规则显示。

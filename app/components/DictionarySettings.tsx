@@ -2,17 +2,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { queryDictionary } from '../services/learning';
-import { type DictionarySettings as Settings, type ExternalServiceId, type DictionaryLocalizationInfo } from '../lib/dictionary';
+import { type ExternalServiceId, type DictionaryLocalizationInfo } from '../lib/dictionary';
 import { useExternalLookupSettings } from '../contexts/ExternalLookupContext';
 import IchiMoeOptionsPanel from './IchiMoeOptionsPanel';
-import { LatestRequest } from '../utils/latestRequest';
 
-export default function DictionarySettings({ value, onChange }: { value: Settings; onChange: (s: Settings) => void }) {
+export default function DictionarySettings() {
   const { t } = useLanguage();
   const [metadata, setMetadata] = useState('');
   const [infoOpen, setInfoOpen] = useState(false);
   const infoTriggerRef = useRef<HTMLDivElement | null>(null);
-  const request = useRef(new LatestRequest());
   const [datasets, setDatasets] = useState<DictionaryLocalizationInfo[]>([]);
   const { services, ichiOptions, updateServices, updateIchiOptions } = useExternalLookupSettings();
 
@@ -39,11 +37,10 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
   }, [infoOpen]);
 
   useEffect(() => {
-    const manager = request.current;
     const controller = new AbortController();
     setMetadata('');
     setDatasets([]);
-    void queryDictionary({ query: '駅' }, value.providers[0], controller.signal)
+    void queryDictionary({ query: '駅' }, controller.signal)
       .then((r) => {
         if (!controller.signal.aborted) {
           setMetadata(`${r.source.name} · ${r.source.date} · ${r.source.version}`);
@@ -57,9 +54,8 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
       });
     return () => {
       controller.abort();
-      manager.cancel();
     };
-  }, [value.providers, t]);
+  }, [t]);
 
   const displayMetadata = metadata || t('正在获取词典版本…');
 
@@ -122,7 +118,7 @@ export default function DictionarySettings({ value, onChange }: { value: Setting
       <div className="settings-card-group mb-5">
         <div className="settings-card-row">
           <div className="settings-card-row-info">
-            <span className="settings-card-row-title">{value.providers[0]?.name || 'JMdict'}</span>
+            <span className="settings-card-row-title">JMdict</span>
             <span className="settings-card-row-desc">
               {t('内置词典随应用更新，运行时不下载数据。')}
             </span>

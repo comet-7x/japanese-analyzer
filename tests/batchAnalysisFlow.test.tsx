@@ -5,12 +5,10 @@ import SelectionDetailPanel from '../app/components/SelectionDetailPanel';
 import { LanguageProvider } from '../app/contexts/LanguageContext';
 import { ExternalLookupProvider } from '../app/contexts/ExternalLookupContext';
 import type { TokenData } from '../app/services/api';
-import type { DictionaryProvider } from '../app/lib/dictionary';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const tick = () => new Promise<void>(resolve => setImmediate(resolve));
 
-const testProvider: DictionaryProvider = { id: 'builtin', name: 'JMdict', adapter: 'builtin' };
 
 const sampleTokens: TokenData[] = [
   { word: '猫', furigana: 'ねこ', romaji: 'neko', pos: '名詞' },
@@ -46,7 +44,6 @@ async function main() {
               tokens={sampleTokens}
               selectionKind="word"
               identity="test:1:0:0"
-              provider={testProvider}
               model={{ endpoint: { baseUrl: 'https://model.example/v1', model: 'test' }, apiKey: 'key' }}
               onClose={() => undefined}
               onEdit={() => undefined}
@@ -155,7 +152,6 @@ async function main() {
               tokens={sampleTokens}
               selectionKind="word"
               identity="test:3:0:0"
-              provider={testProvider}
               model={{ endpoint: { baseUrl: 'https://model.example/v1', model: 'test' }, apiKey: 'key' }}
               onClose={() => undefined}
               onEdit={() => undefined}
@@ -203,7 +199,6 @@ async function main() {
               tokens={[{ word: '猫', pos: '名詞' }, { word: 'が', pos: '助詞' }, { word: 'いる', pos: '動詞' }, { word: '。', pos: '記号' }]}
               selectionKind="phrase"
               identity="test:4:0:3"
-              provider={testProvider}
               model={{ endpoint: { baseUrl: 'https://model.example/v1', model: 'test' }, apiKey: 'key' }}
               onClose={() => undefined}
               onEdit={() => undefined}
@@ -255,7 +250,6 @@ async function main() {
               tokens={[{ word: '猫', pos: '名詞' }, { word: 'が', pos: '助词' }, { word: 'いる', pos: '動詞' }, { word: '。', pos: '記号' }]}
               selectionKind="phrase"
               identity="test:5:0:3"
-              provider={testProvider}
               model={{ endpoint: { baseUrl: 'https://model.example/v1', model: 'test' }, apiKey: 'key' }}
               onClose={() => undefined}
               onEdit={() => undefined}
@@ -278,7 +272,7 @@ async function main() {
 
     const verbView = (identity: string, word = '走った') => <LanguageProvider><ExternalLookupProvider>
       <SelectionDetailPanel selectedText={word} pos="動詞" reading="" context="昨日走った。"
-        tokens={[{ word, pos: '動詞' }]} selectionKind="word" identity={identity} provider={testProvider}
+        tokens={[{ word, pos: '動詞' }]} selectionKind="word" identity={identity}
         model={{ endpoint: { baseUrl: 'https://model.example/v1', model: 'test' }, apiKey: 'key' }}
         onClose={() => undefined} onEdit={() => undefined} canEdit={false} canGroup={false} />
     </ExternalLookupProvider></LanguageProvider>;

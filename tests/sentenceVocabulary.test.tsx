@@ -5,7 +5,7 @@ import { collectSentenceVocabulary, vocabularyContext, vocabularyKey } from '../
 import DictionaryLookup from '../app/components/DictionaryLookup';
 import { ExternalLookupProvider } from '../app/contexts/ExternalLookupContext';
 import { LanguageProvider } from '../app/contexts/LanguageContext';
-import { BUILTIN_DICTIONARY, type DictionaryProvider, type DictionaryResult } from '../app/lib/dictionary';
+import { type DictionaryResult } from '../app/lib/dictionary';
 import { queryDictionary } from '../app/services/learning';
 import type { TokenData } from '../app/services/api';
 
@@ -47,7 +47,7 @@ async function main() {
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { documentElement: { lang: 'zh-CN' }, querySelector: () => null, title: '' } });
   const pending: { path: string; body: Record<string, unknown>; signal: AbortSignal; resolve: (result: Response) => void }[] = [];
   let draftWrites = 0;
-  const props = { draft: '', onDraftChange: () => { draftWrites++; }, provider: BUILTIN_DICTIONARY, model, sentence, tokens, active: true, analysisId: 1 };
+  const props = { draft: '', onDraftChange: () => { draftWrites++; }, model, sentence, tokens, active: true, analysisId: 1 };
   const view = (changes: Partial<React.ComponentProps<typeof DictionaryLookup>> = {}) => <LanguageProvider><ExternalLookupProvider><DictionaryLookup {...props} {...changes} /></ExternalLookupProvider></LanguageProvider>;
   const wordButtons = () => renderer!.root.findAll(node => node.type === 'button' && node.props.className === 'vocabulary-word');
   const button = (text: string) => renderer!.root.findAllByType('button').find(node => textOf(node) === text)!;
@@ -125,38 +125,36 @@ async function main() {
 
     // Exercise the shared query cache independently of React state.
     let requests = 0;
-    let fail = false; let fallback = false;
-    globalThis.fetch = async () => {
+    let fail = false; let unavailable = false;
+    globalThis.fetch = async (_url, init) => {
       requests++;
-      if (fail) return Response.json({ error: { message: 'offline' } }, { status: 503 });
-      return Response.json({ ...response('cached'), ...(fallback ? { fallback: 'timeout' } : {}) });
+      const body = JSON.parse(String(init?.body));
+      assert.equal(body.provider, undefined);
+      assert.equal(body.test, undefined);
+      if (fail) throw new Error('offline');
+      return Response.json({ ...response('cached'), ...(unavailable ? { localizationStatus: { language: 'zh-Hans', status: 'unavailable' } } : {}) });
     };
     const signal = new AbortController().signal;
     const query = { query: 'cache-isolation' };
-    const provider: DictionaryProvider = { id: 'service', name: 'service', adapter: 'http-v1', lookupUrl: 'https://dict.example', apiKey: 'one' };
-    await queryDictionary(query, provider, signal); await queryDictionary(query, provider, signal);
-    assert.equal(requests, 1);
-    await queryDictionary(query, { ...provider, apiKey: 'two' }, signal);
-    assert.equal(requests, 2, 'Dictionary credentials have separate cache scopes');
-    await queryDictionary(query, provider, signal, false, true);
-    assert.equal(requests, 3, 'Explicit retry bypasses cache');
-    await queryDictionary(query, provider, signal, true);
-    assert.equal(requests, 4, 'Connection tests always hit the service');
-    Date.now = () => originalDateNow() + 3 * 60_000;
-    await queryDictionary(query, provider, signal);
-    assert.equal(requests, 5, 'Expired external results are refreshed');
+    await queryDictionary(query, signal); await queryDictionary(query, signal);
+    assert.equal(requests, 1, 'Repeated built-in lookups use the cache');
+    await queryDictionary(query, signal, true);
+    assert.equal(requests, 2, 'Explicit retry bypasses cache');
+    Date.now = () => originalDateNow() + 11 * 60_000;
+    await queryDictionary(query, signal);
+    assert.equal(requests, 3, 'Expired built-in results are refreshed');
     Date.now = originalDateNow;
-    fallback = true;
-    await queryDictionary({ query: 'fallback' }, provider, signal); await queryDictionary({ query: 'fallback' }, provider, signal);
-    assert.equal(requests, 7, 'Fallback results do not hide a recovering provider');
-    fallback = false; fail = true;
-    await assert.rejects(queryDictionary({ query: 'failure' }, provider, signal));
-    await assert.rejects(queryDictionary({ query: 'failure' }, provider, signal));
-    assert.equal(requests, 9, 'Failures are not cached');
+    unavailable = true;
+    await queryDictionary({ query: 'unavailable' }, signal); await queryDictionary({ query: 'unavailable' }, signal);
+    assert.equal(requests, 5, 'Unavailable localized data is retried');
+    unavailable = false; fail = true;
+    await assert.rejects(queryDictionary({ query: 'failure' }, signal));
+    await assert.rejects(queryDictionary({ query: 'failure' }, signal));
+    assert.equal(requests, 7, 'Failures are not cached');
     fail = false;
     const cancelled = new AbortController(); cancelled.abort();
-    await assert.rejects(queryDictionary(query, provider, cancelled.signal));
-    assert.equal(requests, 9, 'Already cancelled requests cannot consume even a cached result');
+    await assert.rejects(queryDictionary(query, cancelled.signal));
+    assert.equal(requests, 7, 'Already cancelled requests cannot consume even a cached result');
     console.log('Sentence vocabulary passed: source fidelity, homographs, occurrences, editing sync, mode cache, known lemmas and no automatic AI.');
   } finally {
     if (renderer) await act(async () => { renderer!.unmount(); });

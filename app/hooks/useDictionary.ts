@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { queryDictionary } from '../services/learning';
-import type { DictionaryProvider, DictionaryResult } from '../lib/dictionary';
+import type { DictionaryResult } from '../lib/dictionary';
 import { LatestRequest } from '../utils/latestRequest';
 import { getClientLocale, type Locale } from '../i18n';
 
-export function useDictionary(word: string, lemma: string, reading: string, provider: DictionaryProvider, locale: Locale = getClientLocale()) {
+export function useDictionary(word: string, lemma: string, reading: string, locale: Locale = getClientLocale()) {
   const [result, setResult] = useState<DictionaryResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +19,7 @@ export function useDictionary(word: string, lemma: string, reading: string, prov
     seen.current.add(q);
     const ticket = request.current.start(); setLoading(true); setError('');
     try {
-      const data = await queryDictionary({ query: word, dictionaryForm: supplement ? q : lemma || undefined, reading: reading || undefined, offset }, provider, ticket.signal, false, force);
+      const data = await queryDictionary({ query: word, dictionaryForm: supplement ? q : lemma || undefined, reading: reading || undefined, offset }, ticket.signal, force);
       if (!ticket.isCurrent()) return;
       const previous = resultRef.current;
       const sameSource = previous?.source.id === data.source.id && previous.source.version === data.source.version;
@@ -28,7 +28,7 @@ export function useDictionary(word: string, lemma: string, reading: string, prov
       const next = { ...data, entries: unique }; resultRef.current = next; setResult(next); seen.current.add(q);
     } catch (e) { if (ticket.isCurrent()) setError(e instanceof Error ? e.message : '词典查询失败'); }
     finally { if (ticket.isCurrent()) setLoading(false); }
-  }, [word, lemma, reading, provider]);
+  }, [word, lemma, reading]);
   const loadRef = useRef(load); loadRef.current = load;
   useEffect(() => {
     const manager = request.current;
@@ -38,7 +38,7 @@ export function useDictionary(word: string, lemma: string, reading: string, prov
     const ticket = request.current.start();
     if (word.trim()) {
       setLoading(true);
-      void queryDictionary({ query: word, reading: reading || undefined }, provider, ticket.signal).then(data => {
+      void queryDictionary({ query: word, reading: reading || undefined }, ticket.signal).then(data => {
         if (!ticket.isCurrent()) return;
         seen.current.add(word); resultRef.current = data; setResult(data);
       }).catch(e => { if (ticket.isCurrent()) setError(e instanceof Error ? e.message : '词典查询失败'); }).finally(() => {
@@ -49,7 +49,7 @@ export function useDictionary(word: string, lemma: string, reading: string, prov
       });
     }
     return () => manager.cancel();
-  }, [word, reading, provider, locale]);
+  }, [word, reading, locale]);
   useEffect(() => {
     if (word && lemma && !loading && resultRef.current && !seen.current.has(lemma)) void loadRef.current(lemma, 0, true);
   }, [lemma, word, loading]);

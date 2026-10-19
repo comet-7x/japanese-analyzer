@@ -21,14 +21,12 @@ import DictionarySettings from './DictionarySettings';
 import TranslationSettings from './TranslationSettings';
 import { isValidMyMemoryEmail, readTranslationServiceSettings, type TranslationServiceSettings } from '../lib/translationServices';
 import SettingsConfigLayer from './SettingsConfigLayer';
-import type { DictionarySettings as DictionarySettingsValue } from '../lib/dictionary';
 import { sanitizeSpeechSettings, type SpeechSettings } from '../lib/speechServices';
 
 export type SettingsTabId = 'models' | 'analysis' | 'translation' | 'dictionary' | 'speech';
 
 interface SettingsPayload {
   translationSettings: TranslationServiceSettings;
-  dictionarySettings: DictionarySettingsValue;
   services: ProviderProfile[];
   activeServiceId: string;
   activeModelId: string;
@@ -40,7 +38,6 @@ interface SettingsPayload {
 
 interface SettingsModalProps {
   translationSettings: TranslationServiceSettings;
-  dictionarySettings: DictionarySettingsValue;
   services: ProviderProfile[];
   activeServiceId: string;
   activeModelId: string;
@@ -80,7 +77,6 @@ interface SettingsSignatureInput {
   services: ProviderProfile[];
   activeServiceId: string;
   activeModelId: string;
-  dictionary: DictionarySettingsValue;
   speech: SpeechSettings;
   thinking: boolean;
   stream: boolean;
@@ -91,7 +87,6 @@ const getSettingsSignature = (input: SettingsSignatureInput) => {
     services: sanitizeProfiles(input.services),
     activeServiceId: input.activeServiceId,
     activeModelId: input.activeModelId,
-    dictionary: input.dictionary,
     translation: input.translation,
     speech: sanitizeSpeechSettings(input.speech),
     thinking: input.thinking,
@@ -101,7 +96,6 @@ const getSettingsSignature = (input: SettingsSignatureInput) => {
 
 export default function SettingsModal({
   translationSettings: initialTranslationSettings,
-  dictionarySettings: initialDictionarySettings,
   services: initialServices,
   activeServiceId: initialActiveServiceId,
   activeModelId: initialActiveModelId,
@@ -115,7 +109,6 @@ export default function SettingsModal({
 }: SettingsModalProps) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<SettingsTabId>('models');
-  const [dictionarySettings, setDictionarySettings] = useState(initialDictionarySettings);
   const [translationSettings, setTranslationSettings] = useState(initialTranslationSettings);
   const [services, setServices] = useState<ProviderProfile[]>(initialServices);
   const [activeServiceId, setActiveServiceId] = useState(initialActiveServiceId);
@@ -154,20 +147,18 @@ export default function SettingsModal({
       services,
       activeServiceId,
       activeModelId,
-      dictionary: dictionarySettings,
       translation: translationSettings,
       speech: speechSettings,
       thinking: thinkingEnabled,
       stream: streamEnabled,
     });
-  }, [services, activeServiceId, activeModelId, dictionarySettings, translationSettings, speechSettings, thinkingEnabled, streamEnabled]);
+  }, [services, activeServiceId, activeModelId, translationSettings, speechSettings, thinkingEnabled, streamEnabled]);
 
   const hasUnsavedChanges = Boolean(savedSignature && currentSignature !== savedSignature);
 
   // 打开弹窗时重置本地编辑态：默认展开当前服务商
   useEffect(() => {
     if (!isModalOpen) return;
-    setDictionarySettings(initialDictionarySettings);
     setTranslationSettings(initialTranslationSettings);
     setServices(initialServices);
     setActiveServiceId(initialActiveServiceId);
@@ -190,7 +181,6 @@ export default function SettingsModal({
         services: initialServices,
         activeServiceId: initialActiveServiceId,
         activeModelId: initialActiveModelId,
-        dictionary: initialDictionarySettings,
         translation: initialTranslationSettings,
         speech: initialSpeechSettings,
         thinking: initialThinkingEnabled,
@@ -321,7 +311,6 @@ export default function SettingsModal({
 
     onSaveSettings({
       translationSettings: normalizedTranslation,
-      dictionarySettings,
       services: valid,
       activeServiceId: service?.id ?? '',
       activeModelId: model?.id ?? '',
@@ -335,7 +324,6 @@ export default function SettingsModal({
       services: valid,
       activeServiceId: service?.id ?? '',
       activeModelId: model?.id ?? '',
-      dictionary: dictionarySettings,
       translation: normalizedTranslation,
       speech: speechSettings,
       thinking: thinkingEnabled,
@@ -797,7 +785,7 @@ export default function SettingsModal({
             </div>
 
             <div style={{ display: activeTab === 'dictionary' ? 'block' : 'none' }}>
-              {isModalOpen && <DictionarySettings value={dictionarySettings} onChange={setDictionarySettings} />}
+              {isModalOpen && <DictionarySettings />}
             </div>
 
             {/* 模块 4：语音服务 */}

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { mock } from 'node:test';
 import './canonicalSurface.test';
 import { NextRequest } from 'next/server';
 import { zipSync, strToU8 } from 'fflate';
@@ -87,6 +88,32 @@ async function main() {
     assert.equal(FakeWorker.instances.length, 2);
     await assert.rejects(analyzeLocally('猫'.repeat(12_001), { signal: new AbortController().signal }), /12000/);
     assert.equal(FakeWorker.instances.length, 2, 'Oversized input never allocates an engine');
+    await clearLocalDictionaryCache();
+
+    mock.timers.enable({ apis: ['setTimeout'] });
+    try {
+      const stalled = analyzeLocally('猫', { signal: new AbortController().signal });
+      const stalledWorker = FakeWorker.instances.at(-1)!;
+      mock.timers.tick(120_000);
+      await assert.rejects(stalled, /本地解析超时/);
+      assert.ok(stalledWorker.terminated);
+
+      const ongoing = analyzeLocally('猫', { signal: new AbortController().signal });
+      const ongoingWorker = FakeWorker.instances.at(-1)!;
+      for (let i = 0; i < 9; i++) {
+        mock.timers.tick(60_000);
+        ongoingWorker.deliver({ type: 'partial', tokens: [token('猫')] });
+      }
+      mock.timers.tick(60_000);
+      await assert.rejects(ongoing, /本地解析超时/);
+      assert.ok(ongoingWorker.terminated, 'Progress cannot prevent the overall deadline');
+
+      const recovered = analyzeLocally('犬', { signal: new AbortController().signal });
+      const recoveredWorker = FakeWorker.instances.at(-1)!;
+      assert.notEqual(recoveredWorker, ongoingWorker);
+      recoveredWorker.deliver({ type: 'complete', tokens: [token('犬')] });
+      assert.equal((await recovered)[0].word, '犬', 'Timeout releases busy state for the next request');
+    } finally { mock.timers.reset(); }
     await clearLocalDictionaryCache();
 
     const draft = [token('猫'), { word: '。', pos: '記号', furigana: '' }]; const unchanged = JSON.stringify(draft);

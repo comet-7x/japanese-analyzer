@@ -235,6 +235,11 @@ export function getActiveTokenIndexAtTime(
     if (adjustedTime >= cue.startTime && adjustedTime < cue.endTime) {
       return cue.tokenIndex;
     }
+    // Retain the preceding word during pauses between official word boundaries.
+    const nextCue = cues[i + 1];
+    if (nextCue && adjustedTime >= cue.endTime && adjustedTime < nextCue.startTime) {
+      return cue.tokenIndex;
+    }
   }
 
   // If at or past the end of the last cue
@@ -273,7 +278,7 @@ export function alignWordBoundariesToTokens(
   for (const b of boundaries) {
     const idx = fullSentence.indexOf(b.word, searchIndex);
     if (idx !== -1) {
-      const charLen = Array.from(b.word).length;
+      const charLen = b.word.length;
       boundaryRanges.push({
         ...b,
         start: idx,
@@ -289,7 +294,7 @@ export function alignWordBoundariesToTokens(
 
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
-    const len = Array.from(t.word || '').length;
+    const len = (t.word || '').length;
     const start = charPos;
     const end = charPos + len;
     charPos = end;

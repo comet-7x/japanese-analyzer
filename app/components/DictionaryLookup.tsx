@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { isMultiWordLookup, isSentenceLike, type DictionaryProvider } from '../lib/dictionary';
+import { isMultiWordLookup, isSentenceLike } from '../lib/dictionary';
 import type { TokenData } from '../services/api';
 import { postLearning, type LearningModel } from '../services/learning';
 import { LatestRequest } from '../utils/latestRequest';
@@ -16,7 +16,6 @@ import { Icon } from './Icons';
 interface Props {
   draft: string;
   onDraftChange: (value: string) => void;
-  provider: DictionaryProvider;
   model: LearningModel;
   active?: boolean;
   sentence?: string;
@@ -30,7 +29,7 @@ const NO_TOKENS: TokenData[] = [];
 const NO_FORMS: Record<string, string> = {};
 const canQuery = (word: string) => !!word.trim() && Array.from(word).length <= 120;
 
-export default function DictionaryLookup({ draft, onDraftChange, provider, model, active = true, sentence = '', tokens = NO_TOKENS, analysisId = 0, dictionaryForms = NO_FORMS, onGoToAnalyze }: Props) {
+export default function DictionaryLookup({ draft, onDraftChange, model, active = true, sentence = '', tokens = NO_TOKENS, analysisId = 0, dictionaryForms = NO_FORMS, onGoToAnalyze }: Props) {
   const { t, locale, errorText } = useLanguage();
   const vocabulary = useMemo(() => collectSentenceVocabulary(sentence, tokens, dictionaryForms), [sentence, tokens, dictionaryForms]);
   const scope = JSON.stringify([analysisId, sentence]);
@@ -54,8 +53,8 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
   const query = currentSelection?.kind === 'manual' ? currentSelection.word : selectedItem?.token.word || '';
   const reading = selectedItem?.token.furigana || '';
   const identity = JSON.stringify([scope, currentSelection?.kind ?? 'sentence', selectedItem?.key ?? query, lookupId]);
-  // AI guesses are local to a word, provider, language and model; they never initiate on selection.
-  const inferenceIdentity = JSON.stringify([identity, provider.adapter, provider.id, provider.lookupUrl, credentialScope(provider.apiKey), locale, model.endpoint, credentialScope(model.apiKey)]);
+  // AI guesses are local to a word, language and model; they never initiate on selection.
+  const inferenceIdentity = JSON.stringify([identity, locale, model.endpoint, credentialScope(model.apiKey)]);
   const lemma = inferred.identity === inferenceIdentity ? inferred.lemma : selectedItem?.lemma || '';
   const onEmptyChange = useCallback((empty: boolean) => setEmptyFor(empty ? identity : ''), [identity]);
   useEffect(() => {
@@ -163,7 +162,7 @@ export default function DictionaryLookup({ draft, onDraftChange, provider, model
             {emptyFor === identity && <button className="nd-ghost-btn" disabled={loading || !model.endpoint.model} onClick={findLemma}>{t(loading ? '查找中…' : 'AI 查找原形')}</button>}
             {lemma && lemma !== query && <span>{t('AI 推断原形')}：<span lang="ja">{lemma}</span></span>}
           </div>
-          <DictionaryPanel key={identity} word={query} lemma={lemma} reading={reading} provider={provider} model={model} standalone onEmptyChange={onEmptyChange} />
+          <DictionaryPanel key={identity} word={query} lemma={lemma} reading={reading} model={model} standalone onEmptyChange={onEmptyChange} />
           <ExternalDictionaryLookup key={`external:${identity}`} word={query} lemma={lemma} multiWord={currentSelection?.kind === 'manual' ? currentSelection.multiWord : false} />
         </>}
         {error && <p role="alert">{errorText(error)}</p>}

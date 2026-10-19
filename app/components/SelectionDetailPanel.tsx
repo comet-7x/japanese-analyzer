@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { TokenData } from '../services/api';
 import type { LearningModel } from '../services/learning';
-import type { DictionaryProvider } from '../lib/dictionary';
 import { isMultiWordLookup } from '../lib/dictionary';
 import { getPosGroup, getJapaneseTtsAudioUrl, speakJapanese } from '../utils/helpers';
 import { loadSpeechSettings } from '../lib/speechServices';
@@ -33,10 +32,10 @@ function LazyDisclosure({ label, open, onToggle, onFirstOpen, children }: {
 }
 
 export default function SelectionDetailPanel({ selectedText, pos, reading, context, tokens, selectionKind,
-  identity, provider, model, onClose, onMerge, onSelectMore, onEdit, onGroup, onUngroup, canEdit, canGroup, hideClose = false,
+  identity, model, onClose, onMerge, onSelectMore, onEdit, onGroup, onUngroup, canEdit, canGroup, hideClose = false,
 }: {
   selectedText: string; pos: string; reading: string; context: string; tokens: readonly TokenData[];
-  selectionKind: 'word' | 'phrase'; identity: string; provider: DictionaryProvider; model: LearningModel;
+  selectionKind: 'word' | 'phrase'; identity: string; model: LearningModel;
   onClose: () => void; onMerge?: (analysis: { pos: string; furigana: string }) => void; onSelectMore?: () => void;
   onEdit: () => void; onGroup?: () => void; onUngroup?: () => void; canEdit: boolean; canGroup: boolean; hideClose?: boolean;
 }) {
@@ -110,12 +109,14 @@ export default function SelectionDetailPanel({ selectedText, pos, reading, conte
   const speak = async () => {
     speechCleanup.current();
     const controller = new AbortController(); let audio: HTMLAudioElement | undefined; let url: string | undefined;
-    const cleanup = () => { controller.abort(); if (audio) { audio.pause(); audio.removeAttribute('src'); audio.load(); } if (url) URL.revokeObjectURL(url); };
+    const cleanup = () => { controller.abort(); if (audio) { audio.pause(); audio.removeAttribute('src'); audio.load(); } if (url) { URL.revokeObjectURL(url); url = undefined; } };
     speechCleanup.current = cleanup;
     try {
       const settings = loadSpeechSettings(browserStorage); const service = settings.services.find(item => item.id === settings.activeId) ?? settings.services[0];
-      url = await getJapaneseTtsAudioUrl(selectedText, service.apiKey, service.provider, { baseUrl: service.baseUrl, model: service.model, voice: service.voice, speed: service.speed, signal: controller.signal });
-      if (controller.signal.aborted) return; audio = new Audio(url); audio.onended = cleanup; audio.onerror = cleanup; await audio.play(); trackTtsUsage(service.provider, service.model);
+      const gender = browserStorage.getItem('ttsGender') === 'male' ? 'male' : 'female';
+      const rate = Number(browserStorage.getItem('ttsRate')) || 0;
+      url = await getJapaneseTtsAudioUrl(selectedText, service.apiKey, service.provider, { baseUrl: service.baseUrl, model: service.model, voice: service.voice, speed: service.speed, gender, rate, signal: controller.signal });
+      if (controller.signal.aborted) { cleanup(); return; } audio = new Audio(url); audio.onended = cleanup; audio.onerror = cleanup; await audio.play(); trackTtsUsage(service.provider, service.model);
     } catch { if (!controller.signal.aborted) { cleanup(); speakJapanese(selectedText); } }
   };
   const lemma = analysis?.dictionaryForm ?? '';
@@ -176,7 +177,7 @@ export default function SelectionDetailPanel({ selectedText, pos, reading, conte
         {analysisError && <p role="alert">{errorText(analysisError)} <button className="nd-ghost-btn" onClick={() => void loadAnalysis(true)}>{t('重试')}</button></p>}
       </LazyDisclosure>
       {!multiWord && <LazyDisclosure label={t('词典解释')} open={dictionaryOpen} onToggle={setDictionaryOpen}>
-        {dictionaryOpen && <DictionaryPanel word={selectedText} lemma={lemma} reading={reading} provider={provider} model={model} standalone />}
+        {dictionaryOpen && <DictionaryPanel word={selectedText} lemma={lemma} reading={reading} model={model} standalone />}
       </LazyDisclosure>}
       {conjugatable && <ConjugationPanel tool={conjugation} onLoad={() => conjugation.load(lemma)} open={conjugationOpen} onOpenChange={setConjugationOpen} />}
       <ExternalDictionaryLookup word={selectedText} lemma={!multiWord ? lemma : ''} multiWord={multiWord} />

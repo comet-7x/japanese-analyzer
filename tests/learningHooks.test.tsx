@@ -4,7 +4,6 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { useDictionary } from '../app/hooks/useDictionary';
 import { useAnalysisEditing } from '../app/hooks/useAnalysisEditing';
 import { useReadingPreferences } from '../app/hooks/useReadingPreferences';
-import { BUILTIN_DICTIONARY, type DictionaryProvider } from '../app/lib/dictionary';
 import { makeShareLink, READING_PREFERENCES_KEY } from '../app/utils/readingPreferences';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -19,7 +18,7 @@ async function main() {
     const pending: { data: Record<string, unknown>; signal: AbortSignal; resolve: (r: Response) => void; reject: (e: Error) => void }[] = [];
     globalThis.fetch = async (_url, init) => new Promise<Response>((resolve, reject) => pending.push({ data: JSON.parse(String(init?.body)), signal: init!.signal!, resolve, reject }));
     let dictionary!: ReturnType<typeof useDictionary>;
-    function DictionaryHarness({ word, lemma = '', provider = BUILTIN_DICTIONARY }: { word: string; lemma?: string; provider?: DictionaryProvider }) { dictionary = useDictionary(word, lemma, '', provider); return null; }
+    function DictionaryHarness({ word, lemma = '' }: { word: string; lemma?: string }) { dictionary = useDictionary(word, lemma, ''); return null; }
     await act(async () => { renderer = create(<DictionaryHarness word="駅" />); });
     assert.equal(pending.length, 1);
     await act(async () => { renderer!.update(<DictionaryHarness word="前" />); });
@@ -36,8 +35,7 @@ async function main() {
     await act(async () => { pending[3].reject(new Error('offline')); await tick(); });
     assert.equal(dictionary.loading, false); assert.equal(pending.length, 4, 'A failed lemma request must not retry forever');
     assert.equal(dictionary.error, 'offline');
-    const otherProvider: DictionaryProvider = { id: 'other', name: 'Other', adapter: 'http-v1', lookupUrl: 'https://example.com/lookup' };
-    await act(async () => { renderer!.update(<DictionaryHarness word="前" provider={otherProvider} />); });
+    await act(async () => { renderer!.update(<DictionaryHarness word="猫" />); });
     assert.equal(dictionary.result, null);
     await act(async () => { renderer!.unmount(); });
     assert.equal(pending.at(-1)?.signal.aborted, true);

@@ -153,7 +153,7 @@ export function createCustomModelId(prefix = 'model'): string {
 
 /** 合并服务商与模型的能力位，得到请求要发送的完整 caps */
 export function effectiveCaps(service: ProviderProfile, model: ModelConfig | null | undefined): ProviderCaps {
-  const legacyMode: StructuredOutputMode = service.jsonSchema === true ? 'json_schema' : 'json_object';
+  const legacyMode: StructuredOutputMode = service.jsonSchema !== false ? 'json_schema' : 'json_object';
   const caps: ProviderCaps = { structuredOutput: model?.caps?.structuredOutput ?? legacyMode };
   if (model?.caps?.thinking === true) caps.thinking = true;
   if (model?.caps?.reasoningEffort) caps.reasoningEffort = model.caps.reasoningEffort;
@@ -203,7 +203,9 @@ export function sanitizeProfiles(raw: unknown): ProviderProfile[] {
     const id = typeof item.id === 'string' && item.id.trim() ? item.id.trim() : '';
     const baseUrl = typeof item.baseUrl === 'string' ? item.baseUrl.trim() : '';
     if (!baseUrl) continue;
-    const legacyMode: StructuredOutputMode = item.jsonSchema === true ? 'json_schema' : 'json_object';
+    // Older profiles omitted jsonSchema when strict output was enabled.
+    // New models already persist an explicit structuredOutput capability.
+    const legacyMode: StructuredOutputMode = item.jsonSchema !== false ? 'json_schema' : 'json_object';
     const models = Array.isArray(item.models)
       ? item.models.map(model => sanitizeModel(model, legacyMode)).filter((m): m is ModelConfig => m !== null)
       : [];

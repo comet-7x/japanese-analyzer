@@ -7,7 +7,6 @@ import DictionaryLookup from './components/DictionaryLookup';
 import ResegmentEditor from './components/ResegmentEditor';
 import { useAnalysisEditing } from './hooks/useAnalysisEditing';
 import { buildReadingGroups } from './utils/analysisEditing';
-import { readDictionarySettings, DICTIONARY_SETTINGS_KEY, type DictionarySettings } from './lib/dictionary';
 import { browserStorage } from './utils/storage';
 import { loadSpeechSettings, SPEECH_PRESETS, SPEECH_SETTINGS_KEY, type SpeechSettings } from './lib/speechServices';
 import { readTranslationServiceSettings, TRANSLATION_SERVICES_KEY, type TranslationProviderId, type TranslationServiceSettings } from './lib/translationServices';
@@ -65,8 +64,6 @@ export default function Home() {
   const [draft, setDraft] = useState('');
   const [dictionaryDraft, setDictionaryDraft] = useState('');
   const [mode, setMode] = useState<'analyze' | 'dictionary'>('analyze');
-  const [dictionarySettings, setDictionarySettings] = useState<DictionarySettings>(() => readDictionarySettings(null));
-  const dictionaryProvider = dictionarySettings.providers.find(p => p.id === dictionarySettings.activeId) ?? dictionarySettings.providers[0];
   const [editRange, setEditRange] = useState<{ range: PhraseRange; taskId: number; revision: number } | null>(null);
   const handleDraftChange = useCallback((value: string) => {
     setDraft(value); setEditRange(null);
@@ -320,7 +317,8 @@ export default function Home() {
 
   // 从本地存储加载用户API设置
   useEffect(() => {
-    setDictionarySettings(readDictionarySettings(browserStorage.getItem(DICTIONARY_SETTINGS_KEY)));
+    // Remove retired HTTP dictionary settings, including stored credentials.
+    browserStorage.removeItem('japaneseAnalyzer:dictionary:v1');
     const storedAISettings = loadAISettingsFromStorage(browserStorage);
     const storedUseStream = browserStorage.getItem('useStream');
 
@@ -367,7 +365,6 @@ export default function Home() {
   // 保存用户API设置
   const handleSaveSettings = (settings: {
     translationSettings: TranslationServiceSettings;
-    dictionarySettings: DictionarySettings;
     services: ProviderProfile[];
     activeServiceId: string;
     activeModelId: string;
@@ -378,8 +375,6 @@ export default function Home() {
   }) => {
     setTranslationSettings(settings.translationSettings);
     browserStorage.setItem(TRANSLATION_SERVICES_KEY, JSON.stringify(settings.translationSettings));
-    setDictionarySettings(settings.dictionarySettings);
-    browserStorage.setItem(DICTIONARY_SETTINGS_KEY, JSON.stringify(settings.dictionarySettings));
     saveAISettingsToStorage(browserStorage, {
       services: settings.services,
       activeServiceId: settings.activeServiceId,
@@ -809,7 +804,7 @@ export default function Home() {
     selectedText={detailWord} pos={selectedRange ? '' : detailTokens[0]?.pos ?? ''} reading={detailReading}
     context={detailContext} tokens={detailTokens} selectionKind={selectedRange ? 'phrase' : 'word'}
     identity={`${editing.state.taskId}:${editing.state.revision}:${detailRange.start}:${detailRange.end}`}
-    provider={dictionaryProvider} model={learningModel} onClose={handleCloseWordDetail}
+    model={learningModel} onClose={handleCloseWordDetail}
     onMerge={canMergePhrase ? handleMergePhrase : undefined} onSelectMore={selectedIndex !== null ? handleStartPick : undefined}
     onEdit={() => { setEditRange({ range: detailRange, taskId: editing.state.taskId, revision: editing.state.revision }); handleCloseWordDetail(); }}
     onGroup={selectedRange ? () => { editing.group(selectedRange); handleCloseWordDetail(); } : undefined}
@@ -868,7 +863,6 @@ export default function Home() {
               <DictionaryLookup
                 draft={dictionaryDraft}
                 onDraftChange={setDictionaryDraft}
-                provider={dictionaryProvider}
                 model={learningModel}
                 active={mode === 'dictionary'}
                 sentence={currentSentence}
@@ -1080,7 +1074,6 @@ export default function Home() {
         {/* 设置模态框 */}
         <SettingsModal
           translationSettings={translationSettings}
-          dictionarySettings={dictionarySettings}
           services={services}
           activeServiceId={activeServiceId}
           activeModelId={activeModelId}

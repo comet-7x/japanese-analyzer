@@ -18,7 +18,8 @@ function decodeHtmlEntities(value: string): string {
     if (entity[0] === '#') {
       const hex = entity[1]?.toLowerCase() === 'x';
       const code = Number.parseInt(entity.slice(hex ? 2 : 1), hex ? 16 : 10);
-      return Number.isInteger(code) && code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match;
+      return Number.isInteger(code) && code >= 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff)
+        ? String.fromCodePoint(code) : match;
     }
     return named[entity.toLowerCase()] ?? match;
   });

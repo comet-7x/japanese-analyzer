@@ -167,7 +167,7 @@ assert.deepStrictEqual(sanitizedSingle, [
 assert.ok(sanitizedSingle[0].models[0].id.startsWith('model-'));
 assert.strictEqual(sanitizedSingle[0].models[0].name, 'm-1');
 assert.strictEqual(sanitizedSingle[0].models[0].model, 'm-1');
-assert.deepStrictEqual(sanitizedSingle[0].models[0].caps, { structuredOutput: 'json_object' });
+assert.deepStrictEqual(sanitizedSingle[0].models[0].caps, { structuredOutput: 'json_schema' });
 assert.deepStrictEqual(
   sanitizeProfiles([
     { id: 'b', baseUrl: 'https://x.example', jsonSchema: false, models: [{ id: 'b1', name: 'B', model: 'm', caps: { thinking: true, reasoningEffort: ' xhigh ' } }] },
@@ -175,7 +175,7 @@ assert.deepStrictEqual(
   ]),
   [
     { id: 'b', name: 'b', baseUrl: 'https://x.example', apiKey: '', models: [{ id: 'b1', name: 'B', model: 'm', caps: { structuredOutput: 'json_object', thinking: true, reasoningEffort: 'xhigh' } }] },
-    { id: 'c', name: 'c', baseUrl: 'https://x.example', apiKey: '', models: [{ id: 'c1', name: 'm', model: 'm', caps: { structuredOutput: 'json_object', thinking: true } }] },
+    { id: 'c', name: 'c', baseUrl: 'https://x.example', apiKey: '', models: [{ id: 'c1', name: 'm', model: 'm', caps: { structuredOutput: 'json_schema', thinking: true } }] },
   ]
 );
 

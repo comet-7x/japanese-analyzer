@@ -18,6 +18,7 @@ import { secondsUntilJstMidnight } from '../app/utils/dailySentences';
 import { extractTextFromImage, translateText, loadAISettingsFromStorage, saveAISettingsToStorage } from '../app/services/api';
 import { sanitizeProfiles, resolveModelSelection, type ProviderProfile } from '../app/lib/aiModels';
 import { testProviderConnection } from '../app/lib/providerConnection';
+import { canRecoverAnalysis } from '../app/utils/requestErrors';
 
 const request = (body: string, url = 'http://localhost/api/auth', headers: Record<string, string> = {}) =>
   new NextRequest(url, { method: 'POST', body, headers: { 'Content-Type': 'application/json', ...headers } });
@@ -25,6 +26,8 @@ const completion = (reason = 'stop') => ({ choices: [{ message: { content: 'шкну
 const endpointBody = { baseUrl: 'https://api.test.example', model: 'test-model' };
 
 async function run() {
+  assert.equal(canRecoverAnalysis(new TypeError('Cannot read properties of undefined')), false);
+  assert.equal(canRecoverAnalysis(new TypeError('Failed to fetch')), true);
   const env = { CODE: process.env.CODE, AUTH_COOKIE_SECURE: process.env.AUTH_COOKIE_SECURE };
   const originalFetch = globalThis.fetch;
   try {

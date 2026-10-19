@@ -22,6 +22,7 @@ import {
 import { getJapaneseTtsAudioUrl } from '../utils/helpers';
 import { Icon } from './Icons';
 import { ProviderLogo } from './ProviderLogo';
+import { LatestRequest } from '../utils/latestRequest';
 
 export default function SpeechServices({
   settings,
@@ -41,6 +42,7 @@ export default function SpeechServices({
   const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
   const [rowAudioUrl, setRowAudioUrl] = useState<string | null>(null);
   const rowAudioRef = useRef<HTMLAudioElement | null>(null);
+  const previewRequest = useRef(new LatestRequest());
 
   const providers = settings.providers && settings.providers.length > 0
     ? settings.providers
@@ -75,10 +77,18 @@ export default function SpeechServices({
   }, [defaultMenuOpen]);
 
   useEffect(() => {
+    let current = true;
     if (rowAudioUrl && rowAudioRef.current) {
-      rowAudioRef.current.play().catch(() => setPlayingVoiceId(null));
+      rowAudioRef.current.play().catch(() => { if (current) setPlayingVoiceId(null); });
     }
+    return () => { current = false; };
   }, [rowAudioUrl]);
+
+  useEffect(() => {
+    const manager = previewRequest.current;
+    const audio = rowAudioRef.current;
+    return () => { manager.cancel(); audio?.pause(); };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -87,6 +97,9 @@ export default function SpeechServices({
   }, [rowAudioUrl]);
 
   const previewRowVoice = async (provider: SpeechProviderProfile, voice: SpeechVoice) => {
+    previewRequest.current.cancel();
+    rowAudioRef.current?.pause();
+    setRowAudioUrl(null);
     if (playingVoiceId === voice.id) {
       if (rowAudioRef.current) {
         rowAudioRef.current.pause();
@@ -95,6 +108,7 @@ export default function SpeechServices({
       setPlayingVoiceId(null);
       return;
     }
+    const ticket = previewRequest.current.start();
     setPlayingVoiceId(voice.id);
     try {
       const url = await getJapaneseTtsAudioUrl(
@@ -106,12 +120,13 @@ export default function SpeechServices({
           model: voice.model.trim(),
           voice: voice.voice.trim(),
           speed: voice.speed,
+          signal: ticket.signal,
         }
       );
-      if (rowAudioUrl) URL.revokeObjectURL(rowAudioUrl);
+      if (!ticket.isCurrent()) { URL.revokeObjectURL(url); return; }
       setRowAudioUrl(url);
     } catch {
-      setPlayingVoiceId(null);
+      if (ticket.isCurrent()) setPlayingVoiceId(null);
     }
   };
 

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer';
 import { LanguageProvider, useLanguage } from '../app/contexts/LanguageContext';
 import DictionaryPanel from '../app/components/DictionaryPanel';
-import { BUILTIN_DICTIONARY, type DictionaryEntry, type DictionaryLocalization } from '../app/lib/dictionary';
+import { type DictionaryEntry, type DictionaryLocalization } from '../app/lib/dictionary';
 import { DictionaryContent } from '../app/components/DictionaryContent';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -32,7 +32,7 @@ async function main() {
     globalThis.fetch = async (path, init) => new Promise<Response>(resolve => pending.push({ path: String(path), headers: new Headers(init?.headers), body: JSON.parse(String(init?.body)), signal: init!.signal!, resolve }));
     let language!: ReturnType<typeof useLanguage>;
     function Control() { language = useLanguage(); return null; }
-    const view = (modelName = 'model-one', word = '駅') => <LanguageProvider><Control /><DictionaryPanel standalone word={word} provider={BUILTIN_DICTIONARY} model={{ endpoint: { model: modelName, baseUrl: 'https://example.com/v1' } }} /></LanguageProvider>;
+    const view = (modelName = 'model-one', word = '駅') => <LanguageProvider><Control /><DictionaryPanel standalone word={word} model={{ endpoint: { model: modelName, baseUrl: 'https://example.com/v1' } }} /></LanguageProvider>;
     await act(async () => { renderer = create(view()); });
     await act(async () => { pending[0].resolve(Response.json(result('zh-Hans'))); await tick(); });
     assert.equal(pending.length, 1, 'Included translations never start a model request');

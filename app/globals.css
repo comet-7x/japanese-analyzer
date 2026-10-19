@@ -3756,7 +3756,7 @@ body {
 .dictionary-entry li:last-child { padding-bottom: 0; }
 .dictionary-entry small { color: var(--ink-3); }
 .dictionary-entry-actions { margin-top: 18px; gap: 6px 14px; }
-.dictionary-entry-actions .nd-ghost-btn { padding: 0; font-size: 12px; text-align: start; }
+.dictionary-entry-actions .nd-ghost-btn { padding: 4px 10px; font-size: 12px; text-align: start; }
 .dictionary-source { display: flex; flex-wrap: wrap; gap: 2px 10px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 10px; }
 .dictionary-source a:hover { color: var(--primary); }
 .dictionary-language-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; }

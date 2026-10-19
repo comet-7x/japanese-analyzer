@@ -1,7 +1,7 @@
 import React from 'react';
 import assert from 'node:assert/strict';
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer';
-import { dictionaryMatch, BUILTIN_DICTIONARY, type DictionaryEntry } from '../app/lib/dictionary';
+import { dictionaryMatch, type DictionaryEntry } from '../app/lib/dictionary';
 import DictionaryPanel from '../app/components/DictionaryPanel';
 import SelectionDetailPanel from '../app/components/SelectionDetailPanel';
 import ConjugationPanel from '../app/components/ConjugationPanel';
@@ -36,7 +36,7 @@ async function main() {
   const view = (node: React.ReactNode) => <LanguageProvider><ExternalLookupProvider>{node}</ExternalLookupProvider></LanguageProvider>;
   try {
     globalThis.fetch = async (path, init) => new Promise<Response>(resolve => requests.push({ path: String(path), body: JSON.parse(String(init?.body)), signal: init!.signal!, resolve }));
-    const dictionary = <DictionaryPanel word="駅" reading="えき" provider={BUILTIN_DICTIONARY} model={model} />;
+    const dictionary = <DictionaryPanel word="駅" reading="えき" model={model} />;
     await act(async () => { renderer = create(view(dictionary)); });
     await act(async () => { requests[0].resolve(Response.json({ entries: [entry('駅', 'えき'), entry('液', 'えき')], total: 2, offset: 0, hasMore: false, source })); await tick(); });
     const related = renderer!.root.findAllByType('details').find(node => node.props.className.includes('dictionary-related'))!;
@@ -46,14 +46,14 @@ async function main() {
     assert.equal(renderer!.root.findAllByType('article').find(node => node.props['data-match'] === 'surface')!.findByType('h3').children[0], '駅');
     assert.equal(renderer!.root.findAllByType('summary').some(node => textOf(node) === '外部查询'), false, 'External lookup is never nested inside dictionary senses');
     let noExactMatch = false;
-    await act(async () => { renderer!.update(view(<DictionaryPanel word="駅前" reading="えき" provider={BUILTIN_DICTIONARY} model={model} onEmptyChange={empty => { noExactMatch = empty; }} />)); });
+    await act(async () => { renderer!.update(view(<DictionaryPanel word="駅前" reading="えき" model={model} onEmptyChange={empty => { noExactMatch = empty; }} />)); });
     await act(async () => { requests.at(-1)!.resolve(Response.json({ entries: [entry('液', 'えき')], total: 1, offset: 0, hasMore: false, source })); await tick(); });
     assert.ok(noExactMatch, 'Reading-only results still allow the user to request AI lemma identification');
     assert.match(textOf(renderer!.root), /没有本词或原形的精确匹配/);
     await act(async () => { renderer!.unmount(); });
     const dictionaryRequestCount = requests.length;
 
-    const props = { selectedText: '駅の前', pos: '', reading: '', identity: 'phrase:1', onClose() {}, onEdit() {}, canEdit: false, canGroup: false, tokens: [{ word: '駅', pos: '名詞' }, { word: 'の', pos: '助詞' }, { word: '前', pos: '名詞' }], selectionKind: 'phrase' as const, context: '駅の前。', provider: BUILTIN_DICTIONARY, model };
+    const props = { selectedText: '駅の前', pos: '', reading: '', identity: 'phrase:1', onClose() {}, onEdit() {}, canEdit: false, canGroup: false, tokens: [{ word: '駅', pos: '名詞' }, { word: 'の', pos: '助詞' }, { word: '前', pos: '名詞' }], selectionKind: 'phrase' as const, context: '駅の前。', model };
     await act(async () => { renderer = create(view(<SelectionDetailPanel {...props} />)); });
     assert.equal(requests.length, dictionaryRequestCount, 'Phrase selection does not start a dictionary or model request');
     assert.equal(renderer!.root.findAllByType(DictionaryPanel).length, 0);

@@ -43,6 +43,6 @@ export function canRecoverAnalysis(error: unknown): boolean {
     if (error.code === 'content_filter') return false;
     return error.status === 502 || error.status === 504;
   }
-  if (error instanceof TypeError) return true;
+  if (error instanceof TypeError) return /failed to fetch|fetch failed|networkerror|network request failed|load failed/i.test(error.message);
   return false;
 }

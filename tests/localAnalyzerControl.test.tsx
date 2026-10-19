@@ -5,9 +5,10 @@ import { LanguageProvider } from '../app/contexts/LanguageContext';
 import AnalysisEngineControl, { LOCAL_CONFIRMED_KEY } from '../app/components/AnalysisEngineControl';
 import { browserStorage } from '../app/utils/storage';
 
-import * as ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+Object.defineProperty(globalThis, 'React', { configurable: true, value: React });
 try {
   Object.defineProperty(ReactDOM, 'createPortal', { configurable: true, value: (children: React.ReactNode) => children });
 } catch {}
@@ -35,7 +36,7 @@ if (typeof localStorage === 'undefined') {
   (globalThis as unknown as { localStorage: unknown }).localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 }
 
-import { test } from 'bun:test';
+import { test } from 'node:test';
 
 test('AnalysisEngineControl confirmation persistence', async () => {
   const store = new Map<string, string>();
@@ -49,6 +50,7 @@ test('AnalysisEngineControl confirmation persistence', async () => {
 
   const renderComponent = async () => {
     await act(async () => {
+      if (renderer) renderer.unmount();
       renderer = create(
         <LanguageProvider>
           <AnalysisEngineControl
@@ -111,5 +113,6 @@ test('AnalysisEngineControl confirmation persistence', async () => {
   assert.equal(cleared, true);
   assert.equal(store.get(LOCAL_CONFIRMED_KEY), undefined, 'Confirmation key should be removed when cache is cleared');
 
+  await act(async () => { renderer!.unmount(); });
   console.log('AnalysisEngineControl test passed: no repeated confirmation modal once confirmed');
 });

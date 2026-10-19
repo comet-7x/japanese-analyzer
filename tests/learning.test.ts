@@ -6,7 +6,6 @@ import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { NextRequest } from 'next/server';
 import { DictionaryStore, DictionaryUnavailableError } from '../app/api/_utils/dictionaryStore';
-import { dictionaryAdapters, lookupDictionary, validateDictionaryResult } from '../app/api/_utils/dictionaryProvider';
 import { POST as lookup } from '../app/api/dictionary/lookup/route';
 import { POST as resegment } from '../app/api/resegment/route';
 import { POST as conjugation } from '../app/api/conjugation/route';
@@ -17,11 +16,9 @@ import { parseReadingPreferences, makeShareLink, parseSharedText } from '../app/
 import {
   externalDictionaryLinks,
   normalizeDictionaryKey,
-  readDictionarySettings,
   readExternalServicesSettings,
   readIchiOptions,
   type DictionaryEntry,
-  type DictionaryResult,
 } from '../app/lib/dictionary';
 import { validateCandidates, validateConjugation, validateTranslations } from '../app/lib/learningTools';
 import { convertWord } from '../scripts/dictionary/format.mjs';
@@ -29,7 +26,6 @@ import { convertWord } from '../scripts/dictionary/format.mjs';
 const digest = (data: Uint8Array) => createHash('sha256').update(data).digest('hex');
 const source = { id: 'fixture', name: 'Fixture JMdict', version: '1', date: '2026-10-05', url: 'https://example.com/dict', license: 'CC BY-SA 4.0', licenseUrl: 'https://example.com/license' };
 const word = (id: string, text: string, reading: string, common = false): DictionaryEntry => ({ id, common, spellings: [{ text, common, tags: [] }], readings: [{ text: reading, common, appliesTo: [text], tags: [] }], senses: [{ id: `${id}:0`, pos: ['n'], glosses: ['front'], appliesToSpellings: [text], appliesToReadings: [reading], tags: [], notes: [] }], source });
-const response = (entries: DictionaryEntry[] = []): DictionaryResult => ({ entries, total: entries.length, offset: 0, hasMore: false, source });
 const request = (data: unknown, headers = {}) => new NextRequest('http://localhost/api/test', { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(data) });
 const token = (word: string, pos = '動詞') => ({ word, pos, furigana: word });
 const completion = (data: unknown, finish_reason = 'stop') => Response.json({ choices: [{ message: { content: JSON.stringify(data) }, finish_reason }] });
@@ -38,7 +34,6 @@ async function main() {
   const directory = await mkdtemp(join(tmpdir(), 'ja-dictionary-'));
   const originalFetch = globalThis.fetch;
   const originalCode = process.env.CODE;
-  const originalBuiltin = dictionaryAdapters.builtin;
   try {
     const indices: Record<string, string[]> = { '前': ['2','1'], 'まえ': ['1','2'], 'ぜん': ['3','2'], '善': ['3'] };
     const entries: Record<string, DictionaryEntry> = { '1': word('1','前','まえ', true), '2': word('2','前','ぜん'), '3': word('3','善','ぜん', true) };
@@ -71,8 +66,6 @@ async function main() {
     await assert.rejects(new DictionaryStore(directory).lookup({ query: '前' }), DictionaryUnavailableError);
     await assert.rejects(new DictionaryStore(join(directory, 'missing')).lookup({ query: '前' }), DictionaryUnavailableError);
     assert.equal(normalizeDictionaryKey(' ｶﾀｶﾅ '), 'かたかな');
-    assert.equal(readDictionarySettings('{').activeId, 'builtin');
-    assert.equal(readDictionarySettings(JSON.stringify({ activeId: 'secret', providers: [{ id: 'bad', adapter: 'script' }] })).providers.length, 1);
     assert.ok(externalDictionaryLinks('表面', '食べる').ichi.endsWith(encodeURIComponent('食べる')));
     assert.match(externalDictionaryLinks('表面', '食べる').ichi, /^https:\/\/ichi\.moe\/cl\/word\/\?q=/);
     assert.match(externalDictionaryLinks('表面', '食べる').google, /^https:\/\/translate\.google\.com\/\?sl=ja&tl=zh-CN&text=%E8%A1%A8%E9%9D%A2&op=translate$/);
@@ -166,33 +159,28 @@ async function main() {
     assert.equal((await detail(request({ ...longSelection, word: 'あ'.repeat(12_001) }, headers))).status, 400);
     assert.equal((await detail(request({ ...longSelection, kind: 'word' }, headers))).status, 400, 'Standalone word lookup retains its smaller bound');
 
-    const provider = { id: 'remote', name: 'Remote', adapter: 'http-v1' as const, lookupUrl: 'https://dict.example/lookup', apiKey: 'dictionary-key' };
-    globalThis.fetch = async (url, init) => {
-      assert.equal(url, provider.lookupUrl); assert.equal(init?.redirect, 'error');
-      assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer dictionary-key');
-      const data = JSON.parse(String(init?.body)); assert.equal(data.query, '前'); assert.equal(data.sentence, undefined); assert.equal(data.model, undefined);
-      return Response.json(response([entries['1']]));
-    };
-    assert.equal((await lookupDictionary({ query: '前' }, provider, new AbortController().signal)).entries.length, 1);
-    assert.throws(() => validateDictionaryResult({ ...response(), source: { ...source, url: 'javascript:alert(1)' } }));
-    assert.throws(() => validateDictionaryResult({ ...response(), entries: [{}] }));
-    const fallbackResponse = response([entries['1']]);
-    // Fallback uses the real bundled dictionary in integration; a temporary singleton lookup is isolated here.
     const { dictionaryStore } = await import('../app/api/_utils/dictionaryStore');
-    const builtinLookup = dictionaryStore.lookup; dictionaryStore.lookup = async () => fallbackResponse;
+    const builtinLookup = dictionaryStore.lookup;
+    let builtinCalls = 0;
+    dictionaryStore.lookup = async query => { builtinCalls++; return store.lookup(query); };
+    let outboundCalls = 0;
+    globalThis.fetch = async () => { outboundCalls++; throw new Error('Dictionary lookup must never contact an external service'); };
     try {
-      globalThis.fetch = async () => Response.json(response());
-      assert.equal((await lookupDictionary({ query: '前' }, provider, new AbortController().signal)).fallback, 'empty');
-      globalThis.fetch = async () => { throw new DOMException('timeout', 'TimeoutError'); };
-      assert.equal((await lookupDictionary({ query: '前' }, provider, new AbortController().signal)).fallback, 'timeout');
-      globalThis.fetch = async () => Response.json({ malformed: true });
-      assert.equal((await lookupDictionary({ query: '前' }, provider, new AbortController().signal)).fallback, 'unavailable');
-      await assert.rejects(lookupDictionary({ query: '前' }, provider, new AbortController().signal, true), /连接失败/);
-      const controller = new AbortController(); controller.abort();
-      await assert.rejects(lookupDictionary({ query: '前' }, provider, controller.signal));
+      for (const extra of [
+        { provider: { id: 'remote', name: 'Remote', adapter: 'http-v1', lookupUrl: 'https://dict.example/lookup', apiKey: 'removed-key' } },
+        { test: true },
+      ]) {
+        assert.equal((await lookup(request({ query: '善', ...extra }))).status, 400);
+      }
+      assert.equal(builtinCalls, 0, 'Removed provider and connection-test requests are rejected before lookup');
+      const local = await lookup(request({ query: '善' }));
+      assert.equal(local.status, 200);
+      assert.equal((await local.json()).entries[0].id, '3');
+      assert.equal(builtinCalls, 1);
+      assert.equal(outboundCalls, 0);
     } finally { dictionaryStore.lookup = builtinLookup; }
     assert.equal((await readFile(join(directory, 'manifest.json'), 'utf8')).includes('fixture'), true);
-    console.log('Learning tools passed: dictionary fixtures, adapters/fallback, protected APIs, segmentation invariants, reading groups, translations, conjugation and sharing.');
-  } finally { globalThis.fetch = originalFetch; dictionaryAdapters.builtin = originalBuiltin; if (originalCode === undefined) delete process.env.CODE; else process.env.CODE = originalCode; await rm(directory, { recursive: true, force: true }); }
+    console.log('Learning tools passed: dictionary fixtures, built-in-only lookup, protected APIs, segmentation invariants, reading groups, translations, conjugation and sharing.');
+  } finally { globalThis.fetch = originalFetch; if (originalCode === undefined) delete process.env.CODE; else process.env.CODE = originalCode; await rm(directory, { recursive: true, force: true }); }
 }
 void main().catch(error => { console.error(error); process.exitCode = 1; });

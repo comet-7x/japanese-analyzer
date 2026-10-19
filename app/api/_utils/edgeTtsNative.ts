@@ -41,71 +41,90 @@ export async function synthesizeEdgeTtsWithBoundaries(
     gender?: string;
     rate?: number;
     pitch?: number;
+    signal?: AbortSignal;
   } = {}
 ): Promise<EdgeTtsResult> {
+  options.signal?.throwIfAborted();
   const tts = new MsEdgeTTS();
-
-  const selectedVoice = options.voice || (options.gender === 'male' ? 'ja-JP-KeitaNeural' : 'ja-JP-NanamiNeural');
-  const rateStr = formatSsmlRate(options.rate || 0);
-  const pitchStr = formatSsmlPitch(options.pitch || 0);
-
-  await tts.setMetadata(selectedVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3, {
-    wordBoundaryEnabled: true,
+  let removeAbort = () => {};
+  const aborted = new Promise<never>((_, reject) => {
+    const abort = () => reject(options.signal!.reason);
+    options.signal?.addEventListener('abort', abort, { once: true });
+    removeAbort = () => options.signal?.removeEventListener('abort', abort);
   });
 
-  const { audioStream, metadataStream } = await tts.toStream(text, {
-    rate: rateStr,
-    pitch: pitchStr,
-  });
-
-  const audioChunks: Buffer[] = [];
-  const rawBoundaries: Array<{ word: string; offsetMs: number; durationMs: number }> = [];
-
-  if (metadataStream) {
-    metadataStream.on('data', (data: Buffer | string) => {
-      try {
-        const raw = typeof data === 'string' ? data : data.toString('utf8');
-        const event = JSON.parse(raw);
-        for (const item of event.Metadata || []) {
-          if (item.Type === 'WordBoundary' && item.Data?.text?.Text) {
-            const { Offset, Duration, text: textObj } = item.Data;
-            // Offset and Duration are in ticks (1 tick = 100 nanoseconds = 0.0001 ms)
-            const offsetMs = (Offset || 0) / 10000;
-            const durationMs = (Duration || 0) / 10000;
-            rawBoundaries.push({
-              word: textObj.Text,
-              offsetMs,
-              durationMs,
-            });
-          }
-        }
-      } catch {
-        // Ignore partial or non-JSON telemetry frames
-      }
-    });
+  try {
+    return await Promise.race([synthesize(), aborted]);
+  } finally {
+    removeAbort();
+    tts.close();
   }
 
-  audioStream.on('data', (chunk: Buffer) => {
-    audioChunks.push(chunk);
-  });
+  async function synthesize(): Promise<EdgeTtsResult> {
+    const selectedVoice = options.voice || (options.gender === 'male' ? 'ja-JP-KeitaNeural' : 'ja-JP-NanamiNeural');
+    const rateStr = formatSsmlRate(options.rate || 0);
+    const pitchStr = formatSsmlPitch(options.pitch || 0);
 
-  await new Promise<void>((resolve, reject) => {
-    audioStream.on('end', () => resolve());
-    audioStream.on('error', (err) => reject(err));
-  });
+    await tts.setMetadata(selectedVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3, {
+      wordBoundaryEnabled: true,
+    });
+    options.signal?.throwIfAborted();
 
-  const audio = Buffer.concat(audioChunks);
+    const { audioStream, metadataStream } = tts.toStream(text, {
+      rate: rateStr,
+      pitch: pitchStr,
+    });
 
-  // Convert raw millisecond boundaries to second-based cues
-  const cues: EdgeTtsCue[] = rawBoundaries.map((b) => ({
-    word: b.word,
-    startTime: Math.round((b.offsetMs / 1000) * 1000) / 1000,
-    endTime: Math.round(((b.offsetMs + b.durationMs) / 1000) * 1000) / 1000,
-  }));
+    const audioChunks: Buffer[] = [];
+    const rawBoundaries: Array<{ word: string; offsetMs: number; durationMs: number }> = [];
 
-  return {
-    audio,
-    mimeType: 'audio/mpeg',
-    cues,
-  };
+    if (metadataStream) {
+      metadataStream.on('data', (data: Buffer | string) => {
+        try {
+          const raw = typeof data === 'string' ? data : data.toString('utf8');
+          const event = JSON.parse(raw);
+          for (const item of event.Metadata || []) {
+            if (item.Type === 'WordBoundary' && item.Data?.text?.Text) {
+              const { Offset, Duration, text: textObj } = item.Data;
+              // Offset and Duration are in ticks (1 tick = 100 nanoseconds = 0.0001 ms)
+              const offsetMs = (Offset || 0) / 10000;
+              const durationMs = (Duration || 0) / 10000;
+              rawBoundaries.push({
+                word: textObj.Text,
+                offsetMs,
+                durationMs,
+              });
+            }
+          }
+        } catch {
+          // Ignore partial or non-JSON telemetry frames
+        }
+      });
+    }
+
+    audioStream.on('data', (chunk: Buffer) => {
+      audioChunks.push(chunk);
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      audioStream.on('end', () => resolve());
+      audioStream.on('error', (err) => reject(err));
+      metadataStream?.on('error', reject);
+    });
+
+    const audio = Buffer.concat(audioChunks);
+
+    // Convert raw millisecond boundaries to second-based cues
+    const cues: EdgeTtsCue[] = rawBoundaries.map((b) => ({
+      word: b.word,
+      startTime: Math.round((b.offsetMs / 1000) * 1000) / 1000,
+      endTime: Math.round(((b.offsetMs + b.durationMs) / 1000) * 1000) / 1000,
+    }));
+
+    return {
+      audio,
+      mimeType: 'audio/mpeg',
+      cues,
+    };
+  }
 }

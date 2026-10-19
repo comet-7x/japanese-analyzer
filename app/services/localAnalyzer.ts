@@ -5,6 +5,8 @@ import localAnalyzerManifest from '../lib/localAnalyzerManifest.json';
 
 let instance: Worker | null = null;
 let busy = false;
+const WORKER_IDLE_TIMEOUT_MS = 120_000;
+const WORKER_TOTAL_TIMEOUT_MS = 600_000;
 /** One reusable engine per tab. Aborting terminates it, including active download/CPU work. */
 export function analyzeLocally(text: string, options: { signal: AbortSignal; onProgress?: (progress: LocalProgress) => void; onPartial?: (tokens: TokenData[]) => void }): Promise<TokenData[]> {
   options.signal.throwIfAborted();
@@ -16,13 +18,21 @@ export function analyzeLocally(text: string, options: { signal: AbortSignal; onP
     catch { reject(new Error('本地解析加载失败，请刷新页面或切换模型解析。')); return; }
     const worker = instance;
     busy = true;
-    const cleanup = () => { busy = false; worker.onmessage = null; worker.onerror = null; options.signal.removeEventListener('abort', abort); };
-    const stop = (error: Error) => { cleanup(); worker.terminate(); if (instance === worker) instance = null; reject(error); };
+    let settled = false;
+    let idleTimeout: ReturnType<typeof setTimeout>;
+    const totalTimeout = setTimeout(() => stop(new Error('本地解析超时，请重试或切换模型解析。')), WORKER_TOTAL_TIMEOUT_MS);
+    const resetIdleTimeout = () => {
+      clearTimeout(idleTimeout);
+      idleTimeout = setTimeout(() => stop(new Error('本地解析超时，请重试或切换模型解析。')), WORKER_IDLE_TIMEOUT_MS);
+    };
+    const cleanup = () => { settled = true; clearTimeout(idleTimeout); clearTimeout(totalTimeout); busy = false; worker.onmessage = null; worker.onerror = null; options.signal.removeEventListener('abort', abort); };
+    const stop = (error: Error) => { if (settled) return; cleanup(); worker.terminate(); if (instance === worker) instance = null; reject(error); };
     const abort = () => stop(new DOMException('Local analysis cancelled', 'AbortError'));
     options.signal.addEventListener('abort', abort, { once: true });
     worker.onerror = () => stop(new Error('本地解析加载失败，请刷新页面或切换模型解析。'));
     worker.onmessage = (event: MessageEvent<LocalReply>) => {
       if (options.signal.aborted) return;
+      resetIdleTimeout();
       const data = event.data;
       try {
         if (data.type === 'progress') options.onProgress?.(data.progress);
@@ -39,7 +49,9 @@ export function analyzeLocally(text: string, options: { signal: AbortSignal; onP
         } else throw new Error();
       } catch { stop(new Error('本地初稿未能完整还原原文。')); }
     };
-    worker.postMessage({ text });
+    resetIdleTimeout();
+    try { worker.postMessage({ text }); }
+    catch { stop(new Error('本地解析加载失败，请刷新页面或切换模型解析。')); }
   });
 }
 

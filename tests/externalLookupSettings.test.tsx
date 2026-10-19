@@ -6,7 +6,7 @@ import { ExternalLookupProvider } from '../app/contexts/ExternalLookupContext';
 import ExternalDictionaryLookup from '../app/components/ExternalDictionaryLookup';
 import DictionarySettings from '../app/components/DictionarySettings';
 import {
-  BUILTIN_DICTIONARY, EXTERNAL_SERVICES_KEY, ICHI_OPTIONS_KEY, DEFAULT_EXTERNAL_SERVICES,
+  EXTERNAL_SERVICES_KEY, ICHI_OPTIONS_KEY, DEFAULT_EXTERNAL_SERVICES,
   readExternalServicesSettings, isMultiWordLookup,
 } from '../app/lib/dictionary';
 
@@ -45,7 +45,7 @@ async function main() {
   globalThis.fetch = async () => new Promise<Response>(() => {});
   let renderer: ReactTestRenderer | undefined;
   const view = (cardKey = 'first') => <LanguageProvider><ExternalLookupProvider>
-    <DictionarySettings value={{ providers: [BUILTIN_DICTIONARY], activeId: 'builtin' }} onChange={() => {}} />
+    <DictionarySettings />
     <ExternalDictionaryLookup key={cardKey} word="駅の前" multiWord />
     <ExternalDictionaryLookup key="second" word="猫がいる" multiWord />
   </ExternalLookupProvider></LanguageProvider>;
@@ -101,6 +101,9 @@ async function main() {
     await act(async () => { romanization(cards()[0]).props.onChange({ target: { value: 'text' } }); });
     await act(async () => { renderer!.update(view('remounted')); });
     assert.ok(cards().every(card => !hasGoogle(card) && ichiUrl(card).includes('r=text')), 'Session settings survive card remounts when storage is blocked');
+
+    assert.equal(settings().findAllByType('input').some(input => input.props.type === 'url' || input.props.type === 'password'), false, 'Dictionary settings contain no custom service credentials or URL controls');
+    assert.equal(settings().findAllByProps({ 'aria-label': '词典服务' }).length, 0, 'No dictionary provider selector remains');
     console.log('External lookup settings passed: persistence, same-tab sync, cross-tab updates/clear, blocked storage and remounts.');
   } finally {
     if (renderer) await act(async () => { renderer!.unmount(); });
