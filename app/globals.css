@@ -3576,7 +3576,7 @@ body {
    输入框去掉玻璃高光和发光按钮，只留细边框和纯色主按钮。 */
 .app-column[data-home="true"] { padding-top: clamp(16px, 11vh, 120px); }
 /* 今日一句：用解析结果的样子展示一句日语，整块可点 */
-.daily-sentence, .daily-sentence-placeholder { display: block; min-height: 132px; margin-bottom: 26px; }
+.daily-sentence-card, .daily-sentence-placeholder { display: block; min-height: 132px; margin-bottom: 26px; }
 .daily-sentence {
   width: 100%;
   padding: 0 4px;
@@ -3602,11 +3602,32 @@ body {
   font-weight: 500;
   letter-spacing: 0.04em;
 }
+.daily-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding-inline: 4px; }
+.daily-heading .daily-label { margin-bottom: 0; }
+.daily-analyze { min-height: 30px; padding: 0; border: 0; border-radius: 4px; background: transparent; font: inherit; font-size: 13px; cursor: pointer; }
+.daily-analyze:disabled { cursor: default; }
+.daily-analyze:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .daily-go { display: inline-flex; opacity: 0; transform: translateX(-4px); transition: opacity 180ms ease, transform 180ms ease; }
-.daily-sentence:hover:not(:disabled) .daily-label,
-.daily-sentence:focus-visible .daily-label { color: var(--primary); }
-.daily-sentence:hover:not(:disabled) .daily-go,
-.daily-sentence:focus-visible .daily-go { opacity: 1; transform: none; }
+.daily-analyze:hover:not(:disabled), .daily-analyze:focus-visible,
+.daily-sentence-card:has(.daily-sentence:hover:not(:disabled)) .daily-analyze,
+.daily-sentence-card:has(.daily-sentence:focus-visible) .daily-analyze { color: var(--primary); }
+.daily-analyze:hover:not(:disabled) .daily-go, .daily-analyze:focus-visible .daily-go,
+.daily-sentence-card:has(.daily-sentence:hover:not(:disabled)) .daily-go,
+.daily-sentence-card:has(.daily-sentence:focus-visible) .daily-go { opacity: 1; transform: none; }
+.daily-refresh { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 4px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2); font: inherit; font-size: 12px; cursor: pointer; }
+.daily-refresh:hover:not(:disabled) { background: var(--primary-soft); color: var(--primary); }
+.daily-refresh:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.daily-refresh:disabled { opacity: 0.55; cursor: default; }
+.daily-refresh-icon { display: inline-flex; }
+.daily-refresh-icon svg { width: 14px; height: 14px; }
+.daily-refresh[aria-busy="true"] .daily-refresh-icon { animation: dailyRefresh 900ms linear infinite; }
+@keyframes dailyRefresh { to { transform: rotate(360deg); } }
+@media (pointer: coarse) { .daily-refresh { min-height: 44px; padding-inline: 10px; } }
+@media (prefers-reduced-motion: reduce) { .daily-refresh[aria-busy="true"] .daily-refresh-icon { animation: none; } }
+.daily-plain-text { display: block; padding-block: 12px 8px; font-family: var(--font-japanese); font-size: 30px; font-weight: 500; line-height: 1.7; overflow-wrap: anywhere; }
+.daily-source { margin-top: 8px; padding-inline: 4px; color: var(--ink-3); font-size: 11px; line-height: 1.8; }
+.daily-source a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.daily-source a:hover { color: var(--primary); }
 .daily-tokens { display: flex; flex-wrap: wrap; align-items: flex-end; row-gap: 8px; }
 .daily-tokens .word-unit-wrapper {
   grid-template-rows: 20px auto 10px;
@@ -3747,7 +3768,8 @@ body {
 
 @media (max-width: 640px) {
   .app-column[data-home="true"] { padding-top: 8px; }
-  .daily-sentence, .daily-sentence-placeholder { min-height: 110px; margin-bottom: 20px; }
+  .daily-sentence-card, .daily-sentence-placeholder { min-height: 110px; margin-bottom: 20px; }
+  .daily-plain-text { font-size: 24px; }
   .daily-tokens .word-unit-wrapper { font-size: 24px; grid-template-rows: 18px auto 9px; }
   .daily-tokens .word-unit-wrapper.is-punct { font-size: 22px; }
   .nd-card.input-card { padding: 18px 16px 12px; border-radius: 18px; }

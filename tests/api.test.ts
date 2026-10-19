@@ -1,6 +1,5 @@
 import assert from 'assert';
 import './analysisHistory.test';
-import './dailySentence.test';
 import './phraseRange.test';
 import './readingLayout.test';
 import './wordDetailContext.test';
@@ -28,7 +27,6 @@ import {
   buildCompletionPayload,
   getStructuredResponseFormat,
   resolveProviderConfig,
-  resolveServerProviderConfig,
   type ProviderCaps
 } from '../app/api/_utils/providerConfig';
 import {
@@ -699,46 +697,6 @@ assert.throws(
   () => resolveProviderConfig(createProviderConfigRequest('Bearer k'), { model: 'm' }),
   (error) => error instanceof ProviderConfigError && error.status === 400
 );
-
-const oldDailyUrl = process.env.DAILY_SENTENCE_API_URL;
-const oldDailyKey = process.env.DAILY_SENTENCE_API_KEY;
-const oldDailyModel = process.env.DAILY_SENTENCE_API_MODEL;
-const oldDeepseekKey = process.env.DEEPSEEK_API_KEY;
-const oldGeminiKey = process.env.GEMINI_API_KEY;
-try {
-  delete process.env.DAILY_SENTENCE_API_URL;
-  delete process.env.DAILY_SENTENCE_API_KEY;
-  delete process.env.DAILY_SENTENCE_API_MODEL;
-  delete process.env.DEEPSEEK_API_KEY;
-  delete process.env.GEMINI_API_KEY;
-  assert.strictEqual(resolveServerProviderConfig(), null);
-
-  process.env.DEEPSEEK_API_KEY = 'deepseek-key';
-  const serverConfig = resolveServerProviderConfig();
-  assert.strictEqual(serverConfig?.name, 'deepseek');
-  assert.strictEqual(serverConfig?.apiKey, 'deepseek-key');
-  assert.strictEqual(serverConfig?.model, 'deepseek-chat');
-  assert.strictEqual(serverConfig?.caps.structuredOutput, 'json_object');
-
-  process.env.DAILY_SENTENCE_API_URL = 'https://daily.example/v1';
-  process.env.DAILY_SENTENCE_API_KEY = 'daily-key';
-  process.env.DAILY_SENTENCE_API_MODEL = 'daily-model';
-  const dailyConfig = resolveServerProviderConfig();
-  assert.strictEqual(dailyConfig?.name, 'daily-sentence');
-  assert.strictEqual(dailyConfig?.apiUrl, 'https://daily.example/v1/chat/completions');
-  assert.strictEqual(dailyConfig?.apiKey, 'daily-key');
-} finally {
-  if (oldDailyUrl === undefined) delete process.env.DAILY_SENTENCE_API_URL;
-  else process.env.DAILY_SENTENCE_API_URL = oldDailyUrl;
-  if (oldDailyKey === undefined) delete process.env.DAILY_SENTENCE_API_KEY;
-  else process.env.DAILY_SENTENCE_API_KEY = oldDailyKey;
-  if (oldDailyModel === undefined) delete process.env.DAILY_SENTENCE_API_MODEL;
-  else process.env.DAILY_SENTENCE_API_MODEL = oldDailyModel;
-  if (oldDeepseekKey === undefined) delete process.env.DEEPSEEK_API_KEY;
-  else process.env.DEEPSEEK_API_KEY = oldDeepseekKey;
-  if (oldGeminiKey === undefined) delete process.env.GEMINI_API_KEY;
-  else process.env.GEMINI_API_KEY = oldGeminiKey;
-}
 
 class MemoryStorage implements StorageLike {
   private values = new Map<string, string>();

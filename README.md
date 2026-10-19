@@ -75,7 +75,7 @@
 
 从 [GitHub Releases](https://github.com/cokice/japanese-analyzer/releases) 下载：macOS 12+ 选择 Apple Silicon（aarch64）或 Intel（x64）的 DMG，将应用拖入「应用程序」；Windows 10/11 x64 运行 NSIS `setup.exe`。桌面包内置 Node.js，无需另外安装；Windows 需要 WebView2，安装程序会在缺失时联网下载安装。
 
-功能与 Web 版一致，在应用设置中填写自己的模型 Key 即可使用解析、词详情、AI 助手、图片识别与朗读。未配置服务端 Key 时「今日一句」使用内置句；Edge TTS 可直接使用，Gemini TTS 需要自己的 Key。模型调用需要联网，历史记录和个人设置保存在本机 WebView 中。
+功能与 Web 版一致，在应用设置中填写自己的模型 Key 即可使用解析、词详情、AI 助手、图片识别与朗读。「今日一句」联网时获取开放例句，断网时使用内置句；Edge TTS 可直接使用，Gemini TTS 需要自己的 Key。模型调用需要联网，历史记录和个人设置保存在本机 WebView 中。
 
 通过原生菜单「桌面 → 桌面设置」（`⌘/Ctrl+,`）检查更新：macOS 可在应用内下载、验证签名、替换完整应用并重启；Windows 显示「有新版本」，请前往 Releases 下载并运行完整安装包。
 
@@ -120,17 +120,22 @@ npm run dev
 
 打开 <http://localhost:3000>。想用手机访问同一局域网里的开发服务器，改用 `npm run dev -- --hostname 0.0.0.0`，再打开 `http://电脑IP:3000`。
 
+
 ## 环境变量
 
 | 变量 | 说明 |
 | --- | --- |
-| `DEEPSEEK_API_KEY` | 推荐。默认的解析、翻译与图片识别 |
-| `GEMINI_API_KEY` | 可选。Gemini 文本模型、图片识别与 Gemini TTS |
-| `DEEPSEEK_API_URL` / `GEMINI_API_URL` | 可选。OpenAI 兼容接口地址，留空用官方地址 |
+| `GEMINI_API_KEY` | 可选。用户未填写密钥时供官方 Gemini TTS 使用 |
 | `CODE` | 可选。访问密码，留空则不需要密码 |
 | `NEXT_PUBLIC_UMAMI_SRC` / `NEXT_PUBLIC_UMAMI_WEBSITE_ID` | 可选。两个都填写后启用 Umami 统计 |
 
-Key 只在服务端使用，不会下发到浏览器。「每日一句」使用服务器 Key 生成，未配置时显示内置例句。
+解析、翻译等模型配置由用户在「设置」中填写，服务器不再提供默认模型密钥。服务器环境变量中的 Gemini TTS 密钥不会下发到浏览器。
+
+
+
+
+
+「今日一句」无需账号或模型 Key：点击「换一句」立即从已缓存的在线候选池或内置句库取下一句，不等待网络。启动、候选不足或缓存过期时，后台通过应用 API 补充 Tatoeba 例句；新结果留待下次选择，不替换当前句子。候选池、最后选句和失败重试间隔保存在本机，断网或上游超时仍可连续换句。本地 60 条句子随机洗牌轮换，保留注音、词性和四种译文。在线句子保留原文、实际已有译文、来源和许可链接；缺少界面语言译文时隐藏译文，点击句子后才解析，不自动消耗模型额度。详见 [每日一句设计与数据来源](docs/daily-sentence.md)。
 
 <details>
 <summary>Umami 会记录什么</summary>

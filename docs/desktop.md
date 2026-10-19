@@ -118,7 +118,7 @@ Windows 的打包启动页使用 `http://tauri.localhost`（启用 HTTPS 时为 
 
 端口占用可用 macOS `lsof -nP -iTCP:<port> -sTCP:LISTEN`，或 Windows `netstat -ano` 查看；不要终止不属于本应用的进程。先退出旧应用后重试。缺少 `node` / `server.js` / 静态资源时，重新执行 Node 22 Web build 和资源组装；不要只替换主 exe 或只复制 server.js。
 
-未配置服务端 Key 时「今日一句」回退内置句属正常行为。模型功能需要在应用设置填写 Key；内网模型地址仍受现有服务端 `validateBaseUrl` 校验限制。
+「今日一句」无需密钥，联网时获取 Tatoeba 例句，超时或断网时使用内置句库。模型功能需要在应用设置填写 Key；内网模型地址仍受现有服务端 `validateBaseUrl` 校验限制。
 
 ## 验证与发布验收
 

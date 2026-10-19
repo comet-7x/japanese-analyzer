@@ -1,5 +1,7 @@
 // Simplified Chinese source text is the stable message key.
 export const messages = {
+  "译文来源": {"zh-TW": "譯文來源", "en": "Translation source", "ko": "번역 출처"},
+  "换一句": {"zh-TW": "換一句", "en": "Another sentence", "ko": "다른 문장"},
   "AI 查找原形": {"zh-TW": "AI 尋找原形", "en": "Find dictionary form with AI", "ko": "AI로 기본형 찾기"},
   "AI 推断原形": {"zh-TW": "AI 推斷原形", "en": "AI inferred dictionary form", "ko": "AI가 추정한 기본형"},
   "配置流式输出与深度推理。": {"zh-TW": "設定串流輸出與深度推理。", "en": "Configure streaming output and reasoning.", "ko": "스트리밍 출력과 추론을 설정합니다."},
