@@ -2,7 +2,6 @@
 
 import { analysisCache, sentenceCacheKey, localCorrectionCache, localCorrectionCacheKey } from './utils/sentenceCache';
 import { useReadingPreferences } from './hooks/useReadingPreferences';
-import ShareControl from './components/ShareControl';
 import DictionaryLookup from './components/DictionaryLookup';
 import ResegmentEditor from './components/ResegmentEditor';
 import { useAnalysisEditing } from './hooks/useAnalysisEditing';
@@ -147,7 +146,7 @@ export default function Home() {
   const userApiKey = activeService?.apiKey || '';
   const analysisConfigKey = sentenceCacheKey('', endpoint, locale, userApiKey, thinkingEnabled);
   const learningModel = useMemo(() => ({ endpoint, apiKey: userApiKey }), [endpoint, userApiKey]);
-  const { preferences, change: changePreference } = useReadingPreferences(text => { handleStartOver(); setDraft(text); setMode('analyze'); });
+  const { preferences, change: changePreference } = useReadingPreferences();
   const { showFurigana, showRomaji, viewMode } = preferences;
   const setShowFurigana = (value: boolean) => changePreference('showFurigana', value);
   const setShowRomaji = (value: boolean) => changePreference('showRomaji', value);
@@ -856,7 +855,6 @@ export default function Home() {
           <div className="app-column relative flex w-full min-w-0 max-w-[780px] flex-col gap-[22px]" data-home={isHome}>
             <nav className="learning-actions" aria-label={t('功能模式')}>
               <button className="display-chip" aria-pressed={mode === 'analyze'} onClick={() => { setMode('analyze'); handleCloseWordDetail(); }}>{t('句子解析')}</button>
-              <ShareControl text={draft} preferences={preferences} />
               <button className="display-chip" aria-pressed={mode === 'dictionary'} disabled={isAnalyzing} onClick={() => { if (!currentSentence && !dictionaryDraft) setDictionaryDraft(draft); setMode('dictionary'); setEditRange(null); handleCloseWordDetail(); }}>{t('查词')}</button>
             </nav>
             <div className={mode === 'dictionary' ? undefined : 'hidden'}>

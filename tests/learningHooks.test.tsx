@@ -4,7 +4,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { useDictionary } from '../app/hooks/useDictionary';
 import { useAnalysisEditing } from '../app/hooks/useAnalysisEditing';
 import { useReadingPreferences } from '../app/hooks/useReadingPreferences';
-import { makeShareLink, READING_PREFERENCES_KEY } from '../app/utils/readingPreferences';
+import { READING_PREFERENCES_KEY } from '../app/utils/readingPreferences';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const source = { id: 'test', name: 'test', version: '1', date: '2026-10-05', url: 'https://example.com', license: 'CC BY-SA 4.0', licenseUrl: 'https://example.com/license' };
@@ -106,29 +106,22 @@ async function main() {
     await act(async () => { renderer!.unmount(); }); renderer = undefined;
 
     const stored = new Map([[READING_PREFERENCES_KEY, JSON.stringify({ showFurigana: false, showRomaji: true, viewMode: 'reading' })]]);
-    const writes: string[] = []; let sharedText = '';
-    const listeners = new Map<string, () => void>();
-    const fakeWindow = { addEventListener: (name: string, listener: () => void) => listeners.set(name, listener), removeEventListener: (name: string) => listeners.delete(name), location: { hash: '' }, localStorage: { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => { writes.push(value); stored.set(key, value); } } };
+    const writes: string[] = [];
+    const fakeWindow = { localStorage: { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => { writes.push(value); stored.set(key, value); } } };
     Object.defineProperty(globalThis, 'window', { configurable: true, value: fakeWindow });
     let prefs!: ReturnType<typeof useReadingPreferences>;
-    function PreferencesHarness() { prefs = useReadingPreferences(text => { sharedText = text; }); return null; }
+    function PreferencesHarness() { prefs = useReadingPreferences(); return null; }
     await act(async () => { renderer = create(<PreferencesHarness />); });
     assert.equal(prefs.preferences.showRomaji, true); assert.equal(prefs.preferences.showFurigana, false); assert.equal(writes.length, 0);
     await act(async () => { prefs.change('showFurigana', true); });
     assert.equal(writes.length, 1); assert.equal(JSON.parse(writes[0]).showRomaji, true);
     await act(async () => { renderer!.unmount(); }); renderer = undefined;
-    const shared = { showFurigana: true, showRomaji: false, viewMode: 'lexical' as const };
-    fakeWindow.location.hash = new URL(makeShareLink('https://example.com', '駅の前', shared)).hash;
     await act(async () => { renderer = create(<PreferencesHarness />); });
-    assert.equal(sharedText, '駅の前'); assert.deepEqual(prefs.preferences, shared);
-    await act(async () => { prefs.change('showRomaji', true); });
-    assert.equal(writes.length, 1, 'Shared options and edits are session-only');
-    assert.equal(pending.length, 5, 'Opening shared text does not start an analysis request');
-    fakeWindow.location.hash = new URL(makeShareLink('https://example.com', '別の原文', shared)).hash;
-    await act(async () => { listeners.get('hashchange')?.(); });
-    assert.equal(sharedText, '別の原文', 'A shared fragment also works within an already open app');
-    assert.equal(writes.length, 1);
-    console.log('Learning hooks passed: late responses, versioned analysis workspaces, edit revisions, preferences hydration and shared-session isolation.');
+    assert.deepEqual(prefs.preferences, { showFurigana: true, showRomaji: true, viewMode: 'reading' }, 'Reading options persist across mounts');
+    await act(async () => { prefs.change('viewMode', 'lexical'); });
+    assert.equal(writes.length, 2);
+    assert.equal(JSON.parse(writes[1]).viewMode, 'lexical');
+    console.log('Learning hooks passed: late responses, versioned analysis workspaces, edit revisions, preferences hydration and persistence.');
   } finally {
     if (renderer) await act(async () => { renderer!.unmount(); });
     globalThis.fetch = originalFetch;

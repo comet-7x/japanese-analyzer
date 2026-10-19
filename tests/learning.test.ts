@@ -12,7 +12,7 @@ import { POST as conjugation } from '../app/api/conjugation/route';
 import { POST as translate } from '../app/api/dictionary/translate/route';
 import { POST as detail } from '../app/api/word-detail/route';
 import { applyTokenEdit, buildReadingGroups, type EditState } from '../app/utils/analysisEditing';
-import { parseReadingPreferences, makeShareLink, parseSharedText } from '../app/utils/readingPreferences';
+import { parseReadingPreferences } from '../app/utils/readingPreferences';
 import {
   externalDictionaryLinks,
   normalizeDictionaryKey,
@@ -113,12 +113,6 @@ async function main() {
     assert.throws(() => validateCandidates({ candidates: [candidate.candidates[0], candidate.candidates[0]] }, '答えにくい'));
     assert.throws(() => validateTranslations({ translations: [{ id: 'wrong', text: 'wrong' }] }, [{ id: '1' }]));
     assert.throws(() => validateConjugation({ analyses: [{ dictionaryForm: '食べる', steps: [{ form: '食べる', label: '原形' }], note: '' }], insufficient: false }, '食べた'));
-    const preferences = parseReadingPreferences(null);
-    const share = makeShareLink('https://example.com/', '駅の前\n𠮷 & # ? =', { ...preferences, viewMode: 'reading' });
-    assert.equal(parseSharedText(new URL(share).hash)?.text, '駅の前\n𠮷 & # ? =');
-    assert.equal(parseSharedText('#v=2&q=test'), null);
-    for (const address of ['http://localhost:49152', 'http://127.0.0.1:3000', 'tauri://localhost', 'javascript:alert(1)']) assert.throws(() => makeShareLink(address, '駅', preferences));
-    assert.throws(() => makeShareLink('https://example.com', '駅'.repeat(1000), preferences), /8 KiB/);
     assert.equal(parseReadingPreferences('invalid').showFurigana, true);
 
     delete process.env.CODE;
@@ -180,7 +174,7 @@ async function main() {
       assert.equal(outboundCalls, 0);
     } finally { dictionaryStore.lookup = builtinLookup; }
     assert.equal((await readFile(join(directory, 'manifest.json'), 'utf8')).includes('fixture'), true);
-    console.log('Learning tools passed: dictionary fixtures, built-in-only lookup, protected APIs, segmentation invariants, reading groups, translations, conjugation and sharing.');
+    console.log('Learning tools passed: dictionary fixtures, built-in-only lookup, protected APIs, segmentation invariants, reading groups, translations and conjugation.');
   } finally { globalThis.fetch = originalFetch; if (originalCode === undefined) delete process.env.CODE; else process.env.CODE = originalCode; await rm(directory, { recursive: true, force: true }); }
 }
 void main().catch(error => { console.error(error); process.exitCode = 1; });
