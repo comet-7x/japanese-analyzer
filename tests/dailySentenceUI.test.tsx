@@ -81,7 +81,7 @@ async function main() {
     assert.equal(pending.length, 0);
     await act(async () => { language.setLocale('en'); });
     await act(async () => { refresh().props.onClick(); });
-    assert.equal(renderer!.root.findAllByType('a').length, 4, 'English users can select the annotated Tatoeba pack offline');
+    assert.equal(renderer!.root.findAllByType('a').length, 0, 'Preset cards do not show source or license links');
     assert.equal(renderer!.root.findAllByProps({ className: 'daily-tokens' }).length, 1);
     assert.equal(renderer!.root.findAllByProps({ className: 'daily-translation' }).length, 1);
     const savedEnglish = text();
@@ -89,7 +89,7 @@ async function main() {
     assert.equal(text(), savedEnglish, 'Restoring the saved locale happens before selection, preserving the English sentence');
     await act(async () => { language.setLocale('zh-CN'); });
     assert.equal(text().split('：').at(-1), savedEnglish.split('：').at(-1), 'Locale changes keep the same four-language example');
-    assert.equal(renderer!.root.findAllByType('a').length, 2, 'Preset translations retain original attribution without a separate translation label');
+    assert.equal(renderer!.root.findAllByType('a').length, 0, 'Switching languages does not restore source or license links');
     assert.equal(JSON.stringify(renderer!.toJSON()).includes('项目补充译文'), false);
     await unmount(); resetValues(); navigatorMock.onLine = true;
     await mount();
@@ -120,7 +120,7 @@ async function main() {
     const online = text();
     assert.notEqual(online, manualLocal);
     assert.equal(renderer!.root.findAllByProps({ className: 'daily-tokens' }).length, 1);
-    assert.equal(renderer!.root.findAllByType('a').length, 4, 'Online selections retain original and translation attribution');
+    assert.equal(renderer!.root.findAllByType('a').length, 0, 'Background candidates use the same card without source links');
     assert.equal(pending.length, 1, 'Stored candidates are consumed without another network request');
     await act(async () => { button().props.onClick(); });
     assert.equal(analyzed, button().props['aria-label'].split('：').at(-1));

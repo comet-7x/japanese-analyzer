@@ -42,7 +42,7 @@
 
 新增的简中、繁中和韩语译文由项目基于日文原句补充，保存在 `scripts/daily-sentence/translations.tsv`（列为日文来源 ID、简中、繁中、韩语）。全部作为预设译文展示，不在卡片中额外显示补充译文标签。补充译文使用 CC BY 2.0 FR，数据中的 `provider: project` 仅用于记录来源，不伪造 Tatoeba 译文 ID 或作者。这些预设译文不是 Tatoeba 原生译文或独立人工审校保证。使用时不联网翻译，不消耗用户的模型额度。
 
-数据来自 [ManyThings 的 Tatoeba 日英导出](https://www.manythings.org/anki/)。该导出采用已识别的日语母语贡献者句子和维护者检查过的英语句子。项目选取日常短句，保留原文、译文及各自的 Tatoeba ID、作者和许可；这不代表 JLPT 分级或独立人工校对保证。原句与显示的英语译文分别提供来源页及许可链接。
+数据来自 [ManyThings 的 Tatoeba 日英导出](https://www.manythings.org/anki/)。该导出采用已识别的日语母语贡献者句子和维护者检查过的英语句子。项目选取日常短句，在句包元数据和许可文件中保留原文、译文及各自的 Tatoeba ID、作者和许可；这不代表 JLPT 分级或独立人工校对保证。首页卡片只展示预设原句、假名和译文，不显示来源与许可链接。
 
 许可为 CC BY 2.0 FR；归属说明见 `LICENSES/daily-sentences.md`，许可副本见 `LICENSES/CC-BY-2.0-FR.html`。原有 60 条项目编写的例句与第三方语料分开保存。语料不包含音频。
 

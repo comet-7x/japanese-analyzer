@@ -8,7 +8,6 @@ import {
   getJstDateKey,
   isCompleteDailySentence,
   secondsUntilJstMidnight,
-  sentenceLicenseUrl,
   type DailySentence as DailySentenceData,
 } from '../utils/dailySentences';
 import { Icon } from './Icons';
@@ -150,8 +149,6 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
   }
 
   const translation = sentence.translation[locale];
-  const source = sentence.source;
-  const translatedSource = source?.translations[locale];
 
   return (
     <div className="daily-sentence-card">
@@ -196,17 +193,6 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
         </span>
         {translation && <span className="daily-translation">{translation}</span>}
       </button>
-      {source && <div className="daily-source">
-        <a href={`https://tatoeba.org/en/sentences/show/${source.id}`} target="_blank" rel="noopener noreferrer">Tatoeba</a>
-        <span aria-hidden="true"> · </span>
-        <a href={sentenceLicenseUrl(source.license)} target="_blank" rel="noopener noreferrer">{source.license}</a>
-        {translation && translatedSource && !('provider' in translatedSource) && <>
-          <span aria-hidden="true"> · </span>
-          <a href={`https://tatoeba.org/en/sentences/show/${translatedSource.id}`} target="_blank" rel="noopener noreferrer">{t('译文来源')}</a>
-          <span aria-hidden="true"> · </span>
-          <a href={sentenceLicenseUrl(translatedSource.license)} target="_blank" rel="noopener noreferrer">{translatedSource.license}</a>
-        </>}
-      </div>}
     </div>
   );
 }

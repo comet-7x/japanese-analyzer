@@ -16,8 +16,9 @@ See [license copy](CC-BY-2.0-FR.html) and
 
 Attribution: ManyThings / Charles Kelly and Tatoeba contributors. Each original
 and translation retains its Tatoeba sentence ID, owner name and license inside
-the JSON. The app links to the original and displayed translation's Tatoeba
-pages. No audio is included. Original Japanese text and English translations
+the JSON. Source pages can be found at `https://tatoeba.org/en/sentences/show/{id}`
+using those IDs; the home-page card does not display attribution links.
+No audio is included. Original Japanese text and English translations
 are unchanged; the distribution is filtered and converted to JSON.
 Simplified Chinese, Traditional Chinese and Korean translations are added by
 the Japanese Analyzer project based on the Japanese originals and distributed

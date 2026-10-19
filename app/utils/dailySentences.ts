@@ -175,7 +175,7 @@ export function isCompleteDailySentence(sentence: DailySentence, locale: Locale)
     && !!sentence.translation[locale]?.trim();
 }
 
-/** Validate untrusted network/cache data before rendering or building source links. */
+/** Validate untrusted network/cache data before selecting or persisting a sentence. */
 export function isOnlineDailySentence(value: unknown): value is DailySentence & { source: NonNullable<DailySentence['source']> } {
   if (!value || typeof value !== 'object') return false;
   const item = value as DailySentence;
@@ -186,8 +186,4 @@ export function isOnlineDailySentence(value: unknown): value is DailySentence & 
   return Object.entries(item.translation).every(([locale, text]) => ['zh-CN', 'zh-TW', 'en', 'ko'].includes(locale)
     && typeof text === 'string' && text.trim().length > 0 && text.length <= 240 && !/[<>\r\n]/.test(text)
     && isTranslationAttribution(item.source!.translations[locale as Locale]));
-}
-
-export function sentenceLicenseUrl(license: SentenceLicense): string {
-  return license === 'CC0 1.0' ? 'https://creativecommons.org/publicdomain/zero/1.0/' : 'https://creativecommons.org/licenses/by/2.0/fr/';
 }

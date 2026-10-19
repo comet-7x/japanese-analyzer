@@ -3630,9 +3630,6 @@ body {
 @media (pointer: coarse) { .daily-refresh { min-height: 44px; padding-inline: 10px; } }
 @media (prefers-reduced-motion: reduce) { .daily-refresh[aria-busy="true"] .daily-refresh-icon { animation: none; } }
 .daily-plain-text { display: block; padding-block: 12px 8px; font-family: var(--font-japanese); font-size: 30px; font-weight: 500; line-height: 1.7; overflow-wrap: anywhere; }
-.daily-source { margin-top: 8px; padding-inline: 4px; color: var(--ink-3); font-size: 11px; line-height: 1.8; }
-.daily-source a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.daily-source a:hover { color: var(--primary); }
 .daily-tokens { display: flex; flex-wrap: wrap; align-items: flex-end; row-gap: 8px; }
 .daily-tokens .word-unit-wrapper {
   grid-template-rows: 20px auto 10px;

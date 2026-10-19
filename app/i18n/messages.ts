@@ -497,7 +497,6 @@ export const messages = {
   "编辑原文": {"zh-TW": "編輯原文", "en": "Edit text", "ko": "원문 편집"},
   "新句子": {"zh-TW": "新句子", "en": "New text", "ko": "새 문장"},
   "朗读": {"zh-TW": "朗讀", "en": "Listen", "ko": "듣기"},
-  "译文来源": {"zh-TW": "譯文來源", "en": "Translation source", "ko": "번역 출처"},
   "换一句": {"zh-TW": "換一句", "en": "Another sentence", "ko": "다른 문장"},
   "支持图片输入（多模态）": {"zh-TW":"支援圖片輸入（多模態）","en":"Supports image input (multimodal)","ko":"이미지 입력 지원 (멀티모달)"},
   "仅在该模型支持图片输入时开启；纯文本模型请保持关闭。": {"zh-TW":"僅在該模型支援圖片輸入時開啟；純文字模型請保持關閉。","en":"Enable only if this model accepts image input. Leave off for text-only models.","ko":"이 모델이 이미지 입력을 지원할 때만 켜세요. 텍스트 전용 모델은 꺼 두세요."},
