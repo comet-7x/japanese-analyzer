@@ -370,22 +370,13 @@ fn supervise(
             continue;
         }
         if healthy(&client, &url) {
+            // The launcher page owns navigation: it polls `server_status` and
+            // enters the app with its own loading animation (or waits for the
+            // user on first launch). Navigating from here would race that
+            // animation and cut the progress bar short, so we only expose the
+            // ready state via `running` for the page to observe.
             running = true;
             set_status(&status, "running", "就绪 / Ready", Some(url.clone()));
-            if let Some(window) = app.get_webview_window("main") {
-                // JSON encoding prevents script injection; origin is constructed solely from a u16 port.
-                let script = format!(
-                    "window.location.replace({})",
-                    serde_json::to_string(&url).unwrap()
-                );
-                if let Err(error) = window.eval(&script) {
-                    let _ = log
-                        .lock()
-                        .unwrap()
-                        .append(format!("Navigation failed: {error}\n").as_bytes());
-                    let _ = window.navigate(url.parse().unwrap());
-                }
-            }
         } else if started.elapsed() >= Duration::from_secs(30) {
             terminate(&mut child);
             set_status(
