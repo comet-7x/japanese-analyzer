@@ -96,9 +96,10 @@ export default function LoginModal({ isOpen, onLogin, error }: LoginModalProps) 
           {error && (
             <div
               className="flex items-start gap-2 rounded-[10px] p-3 text-sm"
+              role="alert"
               style={{
                 background: 'color-mix(in oklab, var(--pos-p) 10%, transparent)',
-                color: 'var(--ink-2)',
+                color: 'var(--error-text)',
               }}
             >
               <span

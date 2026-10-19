@@ -6,6 +6,7 @@ import { useSentenceTranslation } from '../hooks/useSentenceTranslation';
 import type { EndpointPayload } from '../services/api';
 import ThinkingIndicator from './ThinkingIndicator';
 import { Icon } from './Icons';
+import SparklesActivity from './SparklesActivity';
 import { AutoAnimateHeight } from '@/components/ui/auto-animate-height';
 import { FlowAnimatedMarkdown } from '@/components/ui/flow-animated-markdown';
 import { escapeHtmlForMarkdown, preserveLineBreaksForMarkdown } from '../utils/markdown';
@@ -23,6 +24,7 @@ interface TranslationSectionProps {
   onProviderChange: (provider: TranslationProviderId) => void;
   thinkingEnabled?: boolean;
   active?: boolean;
+  analysisReady?: boolean;
 }
 
 export default function TranslationSection({
@@ -37,15 +39,18 @@ export default function TranslationSection({
   onProviderChange,
   thinkingEnabled = false,
   active = true,
+  analysisReady = true,
 }: TranslationSectionProps) {
   const { t, locale, errorText } = useLanguage();
   const provider = settings.preferredProvider;
   const currentService = settings.services?.find((s) => s.id === provider);
   const myMemoryEmail = currentService?.email ?? settings.myMemoryEmail;
+  const resolvedProvider = (currentService?.provider || provider) as TranslationProviderId;
   const { translation, review, displayedTranslation, showReview, setShowReview, error, reviewError,
     isLoading, isReviewing, fromCache, translate, reviewTranslation } = useSentenceTranslation({
-    text: japaneseText, endpoint, apiKey: userApiKey, locale, useStream, trigger, analysisSignal,
-    provider: (currentService?.provider || provider) as TranslationProviderId, myMemoryEmail, thinkingEnabled, active,
+    text: japaneseText, endpoint, apiKey: userApiKey, locale, useStream, analysisSignal,
+    trigger: resolvedProvider === 'model' && !analysisReady ? 0 : trigger,
+    provider: resolvedProvider, myMemoryEmail, thinkingEnabled, active,
   });
   const [isVisible, setIsVisible] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -101,9 +106,13 @@ export default function TranslationSection({
         <span>{isLoading ? t("翻译中") : translation ? t("重新翻译") : t("翻译")}</span>
       </button>
       {provider !== 'model' && translation && (
-        <button className="nd-ghost-btn" disabled={isReviewing || !endpoint.model}
-          onClick={() => { if (!endpoint.model) { onConfigureModel?.(); return; } void reviewTranslation(true); }}>
-          {Icon.refresh}<span>{t(isReviewing ? '润色中…' : review ? '重新用模型润色' : '用模型润色')}</span>
+        <button className="nd-ghost-btn translation-review-button" disabled={isReviewing || !endpoint.model}
+          aria-busy={isReviewing} data-review-state={isReviewing ? 'loading' : review ? 'retry' : 'initial'}
+          onClick={() => { if (!endpoint.model) { onConfigureModel?.(); return; } setIsVisible(true); void reviewTranslation(true); }}>
+          <span className="translation-review-icon" aria-hidden="true">
+            {isReviewing ? <SparklesActivity /> : review ? Icon.refreshSparkles : Icon.sparkles}
+          </span>
+          <span>{t(isReviewing ? '润色中…' : review ? '重新用模型润色' : '用模型润色')}</span>
         </button>
       )}
       <button
@@ -127,7 +136,7 @@ export default function TranslationSection({
   );
 
   return (
-    <section id="fullTranslationCard" className="translation-section" data-collapsed={!isVisible}>
+    <section id="fullTranslationCard" className="translation-section" data-provider={resolvedProvider} data-reviewing={isReviewing} data-collapsed={!isVisible}>
       {/* 译文紧跟原句，标题只留给读屏；操作按钮悬停时出现 */}
       <h2 className="sr-only">{t("中文译文")}</h2>
 
@@ -188,8 +197,8 @@ export default function TranslationSection({
         </AutoAnimateHeight>
       </div>
 
-      {error && <p role="alert">{t("翻译时发生错误: {0}。", errorText(error))}</p>}
-      {reviewError && <p role="alert">{t('模型润色失败：{0}', errorText(reviewError))}</p>}
+      {error && <p role="alert">{errorText(error, '翻译未完成，请重试。')}</p>}
+      {reviewError && <p role="alert">{errorText(reviewError, '模型润色未完成，请重试。')}</p>}
       {fromCache && <p className="tool-note">{t('已使用缓存')}</p>}
       {actions}
     </section>

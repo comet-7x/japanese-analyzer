@@ -229,14 +229,16 @@ export default function AnalysisResult({
     return null;
   }
   const analyzedLength = tokens.reduce((length, token) => length + Array.from(token.word).length, 0);
-  const presentPosGroups = new Set(tokens
-    .filter((token) => token.pos !== '改行' && !isPunctuationToken(token))
-    .map((token) => getPosGroup(token.pos)));
-  const legendGroups = [...POS_LEGEND_GROUPS, 'o' as const].filter((group) => presentPosGroups.has(group));
   // 拖动中显示预览选区，否则显示已选中的短语
   const highlightRange = selection.preview ?? selectedRange;
   const units = readingGroups?.map(range => ({ index: range.start, range, token: range.start === range.end ? tokens[range.start] : { ...tokens[range.start], word: getPhraseText(tokens, range), furigana: getPhraseReading(tokens, range), romaji: tokens.slice(range.start, range.end + 1).map(t => t.romaji || '').join('') } }));
   const displayGroups = units ? groupReadingTokens(units.map(u => u.token)).map(g => g.map(u => units[u.index])) : groupReadingTokens(tokens).map(g => g.map(u => ({ ...u, range: { start: u.index, end: u.index } })));
+  const displayUnits = displayGroups.flat().filter(({ token }) => token.pos !== '改行' && !isPunctuationToken(token));
+  const presentPosGroups = new Set(displayUnits
+    .filter(({ range }) => range.start === range.end)
+    .map(({ token }) => getPosGroup(token.pos)));
+  const legendGroups = [...POS_LEGEND_GROUPS, 'o' as const].filter((group) => presentPosGroups.has(group));
+  const hasCombinedWords = displayUnits.some(({ range }) => range.start !== range.end);
 
   return (
     <section className="analysis-card relative">
@@ -316,7 +318,7 @@ export default function AnalysisResult({
                       )}
 
                       {/* 词性下划线 */}
-                      {!isPunct && <span className={`pos-underline ${getPosClass(token.pos)}`} />}
+                      {!isPunct && <span className={`pos-underline ${range.start !== range.end ? 'reading-group-underline' : getPosClass(token.pos)}`} />}
 
                       {/* 罗马音 */}
                       {!isPunct && (
@@ -339,13 +341,17 @@ export default function AnalysisResult({
 
       {/* 词性图例：放在正文下方作注脚 */}
       {/* 始终渲染以预留高度：解析中还没有词性时为空，避免第一个词出来时把译文往下推 */}
-      <div className="pos-legend" aria-hidden={legendGroups.length === 0}>
+      <div className="pos-legend" aria-hidden={legendGroups.length === 0 && !hasCombinedWords}>
         {legendGroups.map((g) => (
           <span key={g} className="legend-item">
             <span className="legend-swatch" style={{ background: POS_GROUP_COLORS[g] }} />
             {t(POS_GROUP_LABELS[g])}
           </span>
         ))}
+        {hasCombinedWords && <span className="legend-item">
+          <span className="legend-swatch" style={{ background: 'var(--reading-group)' }} />
+          {t('组合词')}
+        </span>}
       </div>
     </section>
   );

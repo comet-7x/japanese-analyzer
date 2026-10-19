@@ -1,5 +1,7 @@
 'use client';
 
+import { getModelPreferences } from './lib/aiModels';
+
 import { analysisCache, sentenceCacheKey, localCorrectionCache, localCorrectionCacheKey } from './utils/sentenceCache';
 import { useReadingPreferences } from './hooks/useReadingPreferences';
 import DictionaryLookup from './components/DictionaryLookup';
@@ -34,7 +36,6 @@ import { selectWordDetailContext } from './utils/wordDetailContext';
 import { getPhraseReading, getPhraseText, mergePhraseTokens, normalizePhraseRange, isPunctuationToken, type PhraseRange } from './utils/phraseRange';
 import { calculateMoraTimeline, getActiveTokenIndexAtTime, type TokenTimeCue } from './utils/moraTiming';
 import { createRequestMetrics, trackAnalyzeUsage, type AnalyzeUsageMetadata } from './utils/analytics';
-import { localizeError } from './i18n';
 import {
   createAnalysisSession,
   TokenData,
@@ -49,7 +50,7 @@ import { ReasoningSummaryController } from './utils/reasoningSummary';
 import { ReasoningTextStore } from './utils/reasoningTextStore';
 
 export default function Home() {
-  const { t, locale } = useLanguage();
+  const { t, locale, errorText } = useLanguage();
   const history = useAnalysisHistory();
   const [currentSentence, setCurrentSentence] = useState('');
   const editing = useAnalysisEditing();
@@ -85,10 +86,10 @@ export default function Home() {
   const [analysisEngine, setAnalysisEngine] = useState<AnalysisEngine>('model');
   const [localProgress, setLocalProgress] = useState<LocalProgress | null>(null);
   const [localNotice, setLocalNotice] = useState('');
+  const [localNoticeIsError, setLocalNoticeIsError] = useState(false);
   const activeAnalysisTypeRef = useRef<'model' | 'local' | 'correction'>('model');
   const [editNotice, setEditNotice] = useState('');
   const activeAnalysisKeyRef = useRef('');
-  const [useStream, setUseStream] = useState<boolean>(true);
 
   const [analysisSignal, setAnalysisSignal] = useState<AbortSignal>();
   const [translationTrigger, setTranslationTrigger] = useState(0);
@@ -105,7 +106,6 @@ export default function Home() {
   const [activeServiceId, setActiveServiceId] = useState('');
   const [activeModelId, setActiveModelId] = useState('');
   const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [thinkingEnabled, setThinkingEnabled] = useState(false);
   const activeService = useMemo(
     () => services.find((service) => service.id === activeServiceId) ?? services[0] ?? null,
     [services, activeServiceId]
@@ -114,6 +114,7 @@ export default function Home() {
     () => activeService?.models.find((model) => model.id === activeModelId) ?? activeService?.models[0] ?? null,
     [activeService, activeModelId]
   );
+  const { stream: useStream, thinkingEnabled } = getModelPreferences(activeModel);
   const endpoint: EndpointPayload = useMemo(
     () => activeService && activeModel
       ? { baseUrl: activeService.baseUrl, model: activeModel.model, caps: effectiveCaps(activeService, activeModel) }
@@ -319,13 +320,11 @@ export default function Home() {
     // Remove retired HTTP dictionary settings, including stored credentials.
     browserStorage.removeItem('japaneseAnalyzer:dictionary:v1');
     const storedAISettings = loadAISettingsFromStorage(browserStorage);
-    const storedUseStream = browserStorage.getItem('useStream');
 
     setServices(storedAISettings.services);
     setActiveServiceId(storedAISettings.activeServiceId);
     setActiveModelId(storedAISettings.activeModelId);
     setGeminiApiKey(storedAISettings.geminiApiKey);
-    setThinkingEnabled(storedAISettings.thinkingEnabled);
     setAnalysisEngine(browserStorage.getItem('japaneseAnalyzer:analysisEngine') === 'local' ? 'local' : 'model');
     setSpeechSettings(loadSpeechSettings(browserStorage));
     const storedTranslation = browserStorage.getItem(TRANSLATION_SERVICES_KEY);
@@ -335,10 +334,6 @@ export default function Home() {
       setTranslationSettings(readTranslationServiceSettings(null));
     }
 
-    // 只有当明确设置了值时才更新，否则保持默认值
-    if (storedUseStream !== null) {
-      setUseStream(storedUseStream === 'true');
-    }
   }, []);
 
   // 切换模型 / 保存设置后都要清掉的解析与思考状态
@@ -369,8 +364,6 @@ export default function Home() {
     activeModelId: string;
     geminiApiKey: string;
     speechSettings: SpeechSettings;
-    thinkingEnabled: boolean;
-    useStream: boolean;
   }) => {
     setTranslationSettings(settings.translationSettings);
     browserStorage.setItem(TRANSLATION_SERVICES_KEY, JSON.stringify(settings.translationSettings));
@@ -379,9 +372,7 @@ export default function Home() {
       activeServiceId: settings.activeServiceId,
       activeModelId: settings.activeModelId,
       geminiApiKey: settings.geminiApiKey,
-      thinkingEnabled: settings.thinkingEnabled,
     });
-    browserStorage.setItem('useStream', settings.useStream.toString());
     browserStorage.setItem(SPEECH_SETTINGS_KEY, JSON.stringify(settings.speechSettings));
     setSpeechSettings(settings.speechSettings);
 
@@ -389,8 +380,6 @@ export default function Home() {
     setActiveServiceId(settings.activeServiceId);
     setActiveModelId(settings.activeModelId);
     setGeminiApiKey(settings.geminiApiKey);
-    setThinkingEnabled(settings.thinkingEnabled);
-    setUseStream(settings.useStream);
     resetAnalysisState();
   };
 
@@ -403,7 +392,6 @@ export default function Home() {
       activeServiceId: serviceId,
       activeModelId: modelId,
       geminiApiKey,
-      thinkingEnabled,
     });
     resetAnalysisState();
   };
@@ -432,7 +420,7 @@ export default function Home() {
         setIsAuthenticated(true);
         browserStorage.removeItem('isAuthenticated');
       } else {
-        setAuthError(localizeError(data.message || "验证失败", locale));
+        setAuthError(errorText(data.message || "验证失败"));
       }
     } catch (error) {
       console.error('验证过程中出错:', error);
@@ -498,6 +486,7 @@ export default function Home() {
     activeAnalysisKeyRef.current = '';
     setLocalNotice(''); setEditNotice('');
     setDraft(text); setCurrentSentence(text);
+    setTranslationTrigger(value => value + 1);
     editing.startWorkspace(text, 'local', [], { status: 'running', validated: false, model: 'Sudachi', fromCache: false });
     setIsAnalyzing(true); setIsEditingInput(false); setAnalysisError('');
     try {
@@ -513,7 +502,6 @@ export default function Home() {
       if (cachedCorrection && cachedCorrection.length > 0) {
         editing.startVariant('local-corrected', cachedCorrection, { status: 'complete', validated: true, model: endpoint.model, fromCache: true }, true);
       }
-      setTranslationTrigger(value => value + 1);
     } catch (error) {
       if (current()) setAnalysisError(error instanceof Error ? error.message : '本地解析失败，请重试或切换模型解析。');
     } finally {
@@ -550,7 +538,7 @@ export default function Home() {
         editing.setVariantTokens('local-corrected', result.confirmedTokens, true);
         editing.updateVariant('local-corrected', { status: 'incomplete', validated: false, model: endpoint.model, progress: result, sourceRevision: revision });
         const error = result.chunks.find(chunk => chunk.error)?.error;
-        setAnalysisError(t('模型校正未完成，已保留原有分词：{0}', localizeError(error?.message ?? '未知错误', locale)));
+        setAnalysisError(t('模型校正未完成，已保留原有分词：{0}', errorText(error?.message ?? '未知错误')));
       }
     };
     try {
@@ -622,6 +610,7 @@ export default function Home() {
     setAnalysisError('');
     setDraft(text);
     setCurrentSentence(text);
+    setTranslationTrigger(value => value + 1);
     const deepseekThinkingActive = !!activeModel?.caps?.thinking && thinkingEnabled;
     reasoningTextStore.reset();
     hasDeepseekReasoningRef.current = false;
@@ -709,7 +698,6 @@ export default function Home() {
         analysisCache.set(cacheKey, result.confirmedTokens);
         metrics.succeed();
         history.record(text);
-        setTranslationTrigger(value => value + 1);
         analysisAbortControllerRef.current = null;
       } else if (result.status === 'failed') {
         editing.updateVariant('model', { status: 'failed', validated: false, progress: result });
@@ -906,8 +894,8 @@ export default function Home() {
                   }
                 }
               }
-            }} onClear={() => { void clearLocalDictionaryCache().then(() => setLocalNotice('已清除词典缓存。')).catch(error => setLocalNotice(error.message)); }} />
-            {analysisEngine === 'local' && localNotice && <p className="tool-note" role="status">{t(localNotice)}</p>}
+            }} onClear={() => { void clearLocalDictionaryCache().then(() => { setLocalNoticeIsError(false); setLocalNotice('已清除词典缓存。'); }).catch(error => { setLocalNoticeIsError(true); setLocalNotice(error.message); }); }} />
+            {analysisEngine === 'local' && localNotice && <p className="tool-note" role={localNoticeIsError ? 'alert' : 'status'}>{errorText(localNotice)}</p>}
             <InputSection
               originalText={currentSentence || draft}
               draft={draft}
@@ -930,6 +918,7 @@ export default function Home() {
                 activeServiceId={activeService?.id ?? ''}
                 activeModelId={activeModel?.id ?? ''}
                 onSelectModel={handleSelectModel}
+                onOpenSettings={() => setIsSettingsModalOpen(true)}
                 endpoint={endpoint}
                 speechService={activeSpeechService}
                 speechServices={speechSettings.services}
@@ -972,9 +961,10 @@ export default function Home() {
               <div className="nd-card">
                 <div
                   className="flex items-start gap-2 rounded-[10px] p-3 text-sm"
+                  role="alert"
                   style={{
                     background: 'color-mix(in oklab, var(--pos-p) 10%, transparent)',
-                    color: 'var(--ink-2)',
+                    color: 'var(--error-text)',
                   }}
                 >
                   <span
@@ -984,7 +974,7 @@ export default function Home() {
                   >
                     !
                   </span>
-                  <span>{t("解析错误：")}{localizeError(analysisError, locale)}</span>
+                  <span>{t("解析错误：")}{errorText(analysisError)}</span>
                 </div>
               </div>
             )}
@@ -1039,7 +1029,8 @@ export default function Home() {
                     userApiKey={userApiKey}
                     endpoint={endpoint}
                     useStream={useStream}
-                    trigger={!isAnalyzing && analysisValidated ? translationTrigger : 0}
+                    trigger={translationTrigger}
+                    analysisReady={!isAnalyzing && analysisValidated}
                     onConfigureModel={() => setIsSettingsModalOpen(true)}
                     analysisSignal={analysisSignal}
                     settings={translationSettings}
@@ -1077,8 +1068,6 @@ export default function Home() {
           activeModelId={activeModelId}
           geminiApiKey={geminiApiKey}
           speechSettings={speechSettings}
-          thinkingEnabled={thinkingEnabled}
-          useStream={useStream}
           onSaveSettings={handleSaveSettings}
           isModalOpen={isSettingsModalOpen}
           onModalClose={() => setIsSettingsModalOpen(!isSettingsModalOpen)}

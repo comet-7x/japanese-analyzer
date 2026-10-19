@@ -1,6 +1,7 @@
 'use client';
 
 import SettingsConfigLayer from './SettingsConfigLayer';
+import { ConfigAdvanced, ConfigInputTypes, ConfigField } from './ModelConfigFields';
 
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -685,148 +686,63 @@ function SpeechVoiceDialog({
     }
   };
 
-  return (
-    <SettingsConfigLayer onClose={onClose}>
-      <div
-        className="settings-config-backdrop"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-      >
-        <div className="settings-config-dialog" role="dialog" aria-modal="true" aria-label={t('音色配置')}>
-          <button type="button" className="settings-modal-close-button" onClick={onClose} aria-label={t('关闭设置')}>
-            {Icon.x}
-          </button>
-          <h3 className="m-0 mb-4 text-lg font-semibold">{isNew ? t('新增音色') : t('音色配置')}</h3>
-          <div className="space-y-3">
-            {provider.provider === 'edge' ? (
-              <>
-                <label className="block text-sm">
-                  {t('音色选择')}
-                  <select
-                    className="nd-input mt-1"
-                    value={draft.voice}
-                    onChange={(e) => {
-                      const selectedVoiceId = e.target.value;
-                      const def = EDGE_VOICE_DEFINITIONS.find((item) => item.voice === selectedVoiceId) || EDGE_VOICE_DEFINITIONS[0];
-                      update({
-                        voice: def.voice,
-                        name: t(def.name),
-                        model: 'edge-tts',
-                      });
-                    }}
-                  >
-                    {EDGE_VOICE_DEFINITIONS.map((opt) => (
-                      <option key={opt.voice} value={opt.voice}>
-                        {t(opt.labelKey)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-sm">
-                  {t('音色名称')}
-                  <input
-                    className="nd-input mt-1"
-                    value={draft.name}
-                    placeholder={draft.voice || 'Voice'}
-                    onChange={(e) => update({ name: e.target.value })}
-                  />
-                </label>
-              </>
-            ) : (
-              <>
-                <label className="block text-sm">
-                  {t('音色名称')}
-                  <input
-                    className="nd-input mt-1"
-                    value={draft.name}
-                    placeholder={draft.voice || 'Voice'}
-                    onChange={(e) => update({ name: e.target.value })}
-                  />
-                </label>
-                <label className="block text-sm">
-                  {t('语音模型')}
-                  <input
-                    className="nd-input mt-1"
-                    value={draft.model}
-                    placeholder="model name"
-                    onChange={(e) => update({ model: e.target.value })}
-                  />
-                </label>
-                <label className="block text-sm">
-                  {t('音色 ID')}
-                  <input
-                    list="speechVoiceOptions"
-                    className="nd-input mt-1"
-                    value={draft.voice}
-                    placeholder="voice identifier"
-                    onChange={(e) => update({ voice: e.target.value })}
-                  />
-                  <datalist id="speechVoiceOptions">
-                    {(SPEECH_VOICES[provider.provider] ?? []).map((voice) => (
-                      <option key={voice} value={voice} />
-                    ))}
-                  </datalist>
-                </label>
-              </>
-            )}
-            {provider.provider !== 'gemini' && (
-              <label className="block text-sm">
-                {t('语速倍率')}
-                <input
-                  type="number"
-                  min="0.5"
-                  max="2"
-                  step="0.1"
-                  className="nd-input mt-1"
-                  value={draft.speed}
-                  onChange={(e) => update({ speed: Number(e.target.value) })}
-                />
-              </label>
-            )}
-            <p className="m-0 text-xs leading-5" style={{ color: 'var(--ink-3)' }}>
-              {t('测试会合成一小段日语，可能产生少量费用。')}
-            </p>
-            <button
-              type="button"
-              className="nd-soft-btn"
-              disabled={!valid || (provider.provider !== 'edge' && !provider.apiKey.trim()) || testing}
-              onClick={preview}
-            >
-              {testing ? t('测试中…') : t('测试并试听')}
-            </button>
-            {error && (
-              <p role="alert" className="text-xs" style={{ color: 'var(--pos-p)' }}>
-                {error}
-              </p>
-            )}
-            {audio && (
-              <audio controls autoPlay src={audio} className="w-full" aria-label={t('语音测试结果')} />
-            )}
-          </div>
-          <div className="settings-actions">
-            <button type="button" className="nd-ghost-btn" onClick={onClose}>
-              {t('取消')}
-            </button>
-            <button
-              type="button"
-              className="nd-primary-btn"
-              disabled={!valid || !Number.isFinite(draft.speed) || draft.speed < 0.5 || draft.speed > 2}
-              onClick={() => {
-                onSave({
-                  ...draft,
-                  name: draft.name.trim() || draft.voice.trim(),
-                  model: draft.model.trim(),
-                  voice: draft.voice.trim(),
-                  speed: Number.isFinite(draft.speed) ? Math.min(2, Math.max(0.5, draft.speed)) : 1,
-                });
-              }}
-            >
-              {t('保存')}
-            </button>
-          </div>
+  const speedValid = provider.provider === 'gemini' || Number.isFinite(draft.speed) && draft.speed >= 0.5 && draft.speed <= 2;
+  const save = () => {
+    if (!valid || !speedValid) return;
+    onSave({ ...draft, name: draft.name.trim() || draft.voice.trim(), model: draft.model.trim(), voice: draft.voice.trim(), speed: provider.provider === 'gemini' ? 1 : draft.speed });
+  };
+
+  return <SettingsConfigLayer onClose={onClose}>
+    <div className="settings-config-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+      <form className="settings-config-dialog model-config-dialog" role="dialog" aria-modal="true" aria-label={t('音色配置')}
+        onSubmit={event => { event.preventDefault(); save(); }}>
+        <header className="model-config-header">
+          <button type="button" className="settings-modal-close-button" onClick={onClose} aria-label={t('关闭设置')}>{Icon.x}</button>
+          <h3>{isNew ? t('新增音色') : t('音色配置')}</h3>
+          <p className="model-config-hint">{t('属于「{0}」下的模型。', provider.name)}</p>
+        </header>
+        <div className="model-config-body model-config-fields">
+          <ConfigField id="speechCfgName" label={t('音色名称')}>
+            <input id="speechCfgName" className="nd-input" value={draft.name} placeholder={draft.voice || 'Voice'} onChange={event => update({ name: event.target.value })} />
+          </ConfigField>
+          <ConfigField id="speechCfgModel" label={t('模型 ID')}>
+            <input id="speechCfgModel" className="nd-input" value={draft.model} readOnly={provider.provider === 'edge'} required
+              onChange={event => update({ model: event.target.value })} />
+          </ConfigField>
+          <ConfigField id="speechCfgVoice" label={provider.provider === 'edge' ? t('音色选择') : t('音色 ID')}>
+            {provider.provider === 'edge' ? <select id="speechCfgVoice" className="nd-input" value={draft.voice}
+              onChange={event => {
+                const voice = EDGE_VOICE_DEFINITIONS.find(item => item.voice === event.target.value) || EDGE_VOICE_DEFINITIONS[0];
+                update({ voice: voice.voice, name: t(voice.name), model: 'edge-tts' });
+              }}>
+              {EDGE_VOICE_DEFINITIONS.map(voice => <option key={voice.voice} value={voice.voice}>{t(voice.labelKey)}</option>)}
+            </select> : <>
+              <input id="speechCfgVoice" list="speechVoiceOptions" className="nd-input" value={draft.voice} required onChange={event => update({ voice: event.target.value })} />
+              <datalist id="speechVoiceOptions">{(SPEECH_VOICES[provider.provider] ?? []).map(voice => <option key={voice} value={voice} />)}</datalist>
+            </>}
+          </ConfigField>
+          <ConfigAdvanced>
+            <ConfigInputTypes />
+            {provider.provider !== 'gemini' && <ConfigField id="speechCfgSpeed" label={t('语速倍率')}>
+              <input id="speechCfgSpeed" className="nd-input" type="number" min="0.5" max="2" step="0.1" value={draft.speed}
+                onChange={event => update({ speed: Number(event.target.value) })} aria-invalid={!speedValid} />
+            </ConfigField>}
+            <div>
+              <p className="model-config-hint">{t('测试会合成一小段日语，可能产生少量费用。')}</p>
+              <button type="button" className="nd-soft-btn mt-2" disabled={!valid || !speedValid || (provider.provider !== 'edge' && !provider.apiKey.trim()) || testing} onClick={preview}>
+                {testing ? t('测试中…') : t('测试并试听')}
+              </button>
+            </div>
+            {error && <p role="alert" className="model-config-error">{error}</p>}
+            {audio && <audio controls autoPlay src={audio} className="w-full" aria-label={t('语音测试结果')} />}
+          </ConfigAdvanced>
         </div>
-      </div>
-    </SettingsConfigLayer>
-  );
+        <footer className="settings-actions model-config-actions">
+          <button type="button" className="nd-ghost-btn model-config-reset" onClick={() => setDraft(initial)}>{t('重置表单')}</button>
+          <button type="button" className="nd-ghost-btn" onClick={onClose}>{t('取消')}</button>
+          <button type="submit" className="nd-primary-btn" disabled={!valid || !speedValid}>{t('保存')}</button>
+        </footer>
+      </form>
+    </div>
+  </SettingsConfigLayer>;
 }

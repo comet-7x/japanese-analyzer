@@ -5,6 +5,11 @@ export type StructuredOutputMode = 'json_schema' | 'json_object';
 
 /** 模型级能力位，决定该模型请求体里附加哪些字段 */
 export interface ModelCaps {
+  /** Optional limits declared by the user; upstream tokenization remains authoritative. */
+  contextWindow?: number;
+  maxOutputTokens?: number;
+  /** Whether this model accepts image input, independently of reasoning and output format. */
+  vision?: boolean;
   /** Chat Completions 的结构化输出方式。自定义模型默认使用兼容性更好的 json_object。 */
   structuredOutput?: StructuredOutputMode;
   /** 该模型支持 DeepSeek 风格的 thinking / reasoning_effort 参数 */
@@ -25,6 +30,7 @@ export interface ModelConfig {
   /** 上游模型名，例如 deepseek-chat / Qwen/Qwen3.8-27B */
   model: string;
   caps?: ModelCaps;
+  preferences?: { stream?: boolean; thinkingEnabled?: boolean };
 }
 
 /** 浏览器里持久化的一个模型服务商配置（可挂多个模型） */
@@ -44,6 +50,9 @@ export interface ProviderProfile {
 
 /** 客户端发给服务端的模型能力位。 */
 export interface ProviderCaps {
+  contextWindow?: number;
+  maxOutputTokens?: number;
+  vision?: boolean;
   structuredOutput?: StructuredOutputMode;
   /** @deprecated 接受旧客户端请求，服务端会立即换算为 structuredOutput。 */
   jsonSchema?: boolean;
@@ -69,13 +78,13 @@ export const PRESETS: readonly ProviderPreset[] = [
     id: 'openai',
     name: 'OpenAI',
     baseUrl: 'https://api.openai.com/v1',
-    models: [{ id: 'gpt-4o-mini', name: 'gpt-4o-mini', model: 'gpt-4o-mini', caps: { structuredOutput: 'json_schema' } }],
+    models: [{ id: 'gpt-4o-mini', name: 'gpt-4o-mini', model: 'gpt-4o-mini', caps: { structuredOutput: 'json_schema', vision: true } }],
   },
   {
     id: 'openrouter',
     name: 'OpenRouter',
     baseUrl: 'https://openrouter.ai/api/v1',
-    models: [{ id: 'openai-gpt-4o-mini', name: 'openai/gpt-4o-mini', model: 'openai/gpt-4o-mini', caps: { structuredOutput: 'json_object' } }],
+    models: [{ id: 'openai-gpt-4o-mini', name: 'openai/gpt-4o-mini', model: 'openai/gpt-4o-mini', caps: { structuredOutput: 'json_object', vision: true } }],
   },
   {
     id: 'qwen',
@@ -111,7 +120,7 @@ export const PRESETS: readonly ProviderPreset[] = [
     id: 'gemini',
     name: 'Gemini',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
-    models: [{ id: 'gemini-2.5-flash', name: 'gemini-2.5-flash', model: 'gemini-2.5-flash', caps: { structuredOutput: 'json_object' } }],
+    models: [{ id: 'gemini-2.5-flash', name: 'gemini-2.5-flash', model: 'gemini-2.5-flash', caps: { structuredOutput: 'json_object', vision: true } }],
   },
   {
     id: 'groq',
@@ -157,7 +166,40 @@ export function effectiveCaps(service: ProviderProfile, model: ModelConfig | nul
   const caps: ProviderCaps = { structuredOutput: model?.caps?.structuredOutput ?? legacyMode };
   if (model?.caps?.thinking === true) caps.thinking = true;
   if (model?.caps?.reasoningEffort) caps.reasoningEffort = model.caps.reasoningEffort;
+  if (supportsImageInput(model?.model ?? '', model?.caps)) caps.vision = true;
+  else if (model?.caps?.vision === false) caps.vision = false;
+  const { contextWindow, maxOutputTokens } = model?.caps ?? {};
+  if (isTokenLimit(contextWindow)) caps.contextWindow = contextWindow;
+  if (isTokenLimit(maxOutputTokens)) caps.maxOutputTokens = maxOutputTokens;
   return caps;
+}
+
+export function isTokenLimit(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+}
+
+export function getModelPreferences(model: ModelConfig | null | undefined) {
+  return {
+    stream: model?.preferences?.stream !== false,
+    thinkingEnabled: model?.caps?.thinking === true && model.preferences?.thinkingEnabled === true,
+  };
+}
+
+/** Copy legacy global defaults only into models that do not yet have their own preferences. */
+export function migrateModelPreferences(services: ProviderProfile[], defaults: { stream: boolean; thinkingEnabled: boolean }): ProviderProfile[] {
+  return services.map(service => ({ ...service, models: service.models.map(model => ({
+    ...model,
+    preferences: {
+      stream: model.preferences?.stream ?? defaults.stream,
+      thinkingEnabled: model.preferences?.thinkingEnabled ?? defaults.thinkingEnabled,
+    },
+  })) }));
+}
+
+/** Only verified preset names inherit vision. Unknown/custom models require an explicit capability setting. */
+export function supportsImageInput(model: string, caps?: Pick<ModelCaps, 'vision'>): boolean {
+  if (typeof caps?.vision === 'boolean') return caps.vision;
+  return PRESETS.some(preset => preset.models.some(item => item.model === model && item.caps?.vision === true));
 }
 
 /** 清洗一个未知的模型项；缺模型名的条目返回 null */
@@ -176,11 +218,23 @@ function sanitizeModel(raw: unknown, legacyMode: StructuredOutputMode = 'json_ob
       caps.reasoningEffort = rawCaps.reasoningEffort.trim();
     }
   } else caps.structuredOutput = legacyMode;
+  const rawCaps = item.caps && typeof item.caps === 'object' ? item.caps as Record<string, unknown> : {};
+  if (typeof rawCaps.vision === 'boolean') caps.vision = rawCaps.vision;
+  else if (supportsImageInput(model)) caps.vision = true;
+  if (isTokenLimit(rawCaps.contextWindow)) caps.contextWindow = rawCaps.contextWindow;
+  if (isTokenLimit(rawCaps.maxOutputTokens)) caps.maxOutputTokens = rawCaps.maxOutputTokens;
+  const preferences: NonNullable<ModelConfig['preferences']> = {};
+  if (item.preferences && typeof item.preferences === 'object') {
+    const rawPreferences = item.preferences as Record<string, unknown>;
+    if (typeof rawPreferences.stream === 'boolean') preferences.stream = rawPreferences.stream;
+    if (typeof rawPreferences.thinkingEnabled === 'boolean') preferences.thinkingEnabled = rawPreferences.thinkingEnabled;
+  }
   return {
     id: typeof item.id === 'string' && item.id.trim() ? item.id.trim() : createCustomModelId(),
     name: typeof item.name === 'string' && item.name.trim() ? item.name.trim() : model,
     model,
     caps,
+    ...(Object.keys(preferences).length ? { preferences } : {}),
   };
 }
 

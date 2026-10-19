@@ -5,6 +5,8 @@ import {
   sanitizeProfiles,
   resolveModelSelection,
   createCustomModelId,
+  supportsImageInput,
+  migrateModelPreferences,
   type ModelCaps,
   type ModelEndpoint,
   type ProviderCaps,
@@ -80,7 +82,8 @@ export interface StoredAISettings {
   activeModelId: string;
   /** Gemini TTS 专用密钥（与主模型配置分离） */
   geminiApiKey: string;
-  thinkingEnabled: boolean;
+  /** @deprecated Read/write compatibility for pre-model preferences. */
+  thinkingEnabled?: boolean;
 }
 
 export interface AnalyzeRequestOptions {
@@ -228,6 +231,7 @@ function migrateFlatProfiles(raw: unknown): ProviderProfile[] {
       structuredOutput: rawCaps.jsonSchema !== false ? 'json_schema' : 'json_object',
     };
     if (typeof rawCaps.thinking === 'boolean') caps.thinking = rawCaps.thinking;
+    if (typeof rawCaps.vision === 'boolean') caps.vision = rawCaps.vision;
     if (typeof rawCaps.reasoningEffort === 'string' && rawCaps.reasoningEffort.trim()) {
       caps.reasoningEffort = rawCaps.reasoningEffort.trim();
     }
@@ -289,6 +293,7 @@ function resolveActiveIds(services: ProviderProfile[], serviceId: unknown, model
 export function loadAISettingsFromStorage(storage: StorageLike): StoredAISettings {
   const geminiApiKey = storage.getItem('geminiApiKey') || '';
   const thinkingEnabled = storage.getItem('thinkingEnabled') === 'true';
+  const preferences = { thinkingEnabled, stream: storage.getItem('useStream') !== 'false' };
 
   const rawSettings = storage.getItem('providerSettings');
   if (rawSettings) {
@@ -296,14 +301,14 @@ export function loadAISettingsFromStorage(storage: StorageLike): StoredAISetting
       const parsed = JSON.parse(rawSettings) as { services?: unknown; profiles?: unknown; activeId?: unknown; activeServiceId?: unknown; activeModelId?: unknown };
       // 新结构：services（含 models）
       if (parsed.services !== undefined) {
-        const services = sanitizeProfiles(parsed.services);
+        const services = migrateModelPreferences(sanitizeProfiles(parsed.services), preferences);
         if (services.length > 0) {
           const { activeServiceId, activeModelId } = resolveActiveIds(services, parsed.activeServiceId, parsed.activeModelId);
           return { services, activeServiceId, activeModelId, geminiApiKey, thinkingEnabled };
         }
       }
       // 上一版平铺结构：profiles（一个 profile = 一个模型）
-      const services = migrateFlatProfiles(parsed.profiles);
+      const services = migrateModelPreferences(migrateFlatProfiles(parsed.profiles), preferences);
       if (services.length > 0) {
         // 旧 activeId 指向 service id
         const byId = typeof parsed.activeId === 'string' && services.find((s) => s.id === parsed.activeId);
@@ -326,6 +331,7 @@ export function loadAISettingsFromStorage(storage: StorageLike): StoredAISetting
   if (legacy.services.length > 0) {
     return {
       ...legacy,
+      services: migrateModelPreferences(legacy.services, { ...preferences, thinkingEnabled: thinkingEnabled || storage.getItem('deepseekThinkingEnabled') === 'true' }),
       thinkingEnabled: thinkingEnabled || storage.getItem('deepseekThinkingEnabled') === 'true',
     };
   }
@@ -341,15 +347,16 @@ export function loadAISettingsFromStorage(storage: StorageLike): StoredAISetting
 
 /** 把 service + models 结构写回存储，并清理旧键 */
 export function saveAISettingsToStorage(storage: StorageLike, settings: StoredAISettings): void {
-  const services = sanitizeProfiles(settings.services);
+  const services = migrateModelPreferences(sanitizeProfiles(settings.services), {
+    stream: storage.getItem('useStream') !== 'false', thinkingEnabled: settings.thinkingEnabled === true,
+  });
   // 先写新键，再清理旧键（geminiApiKey 既作新键也作旧键，最后统一写回）
   storage.setItem('providerSettings', JSON.stringify({
     services,
     activeServiceId: settings.activeServiceId,
     activeModelId: settings.activeModelId,
   }));
-  storage.setItem('thinkingEnabled', settings.thinkingEnabled ? 'true' : 'false');
-  for (const key of ['aiProvider', 'aiModel', 'deepseekApiKey', 'deepseekThinkingEnabled', 'geminiApiUrl', 'deepseekApiUrl', 'userApiUrl', 'userApiKey']) {
+  for (const key of ['thinkingEnabled', 'useStream', 'aiProvider', 'aiModel', 'deepseekApiKey', 'deepseekThinkingEnabled', 'geminiApiUrl', 'deepseekApiUrl', 'userApiUrl', 'userApiKey']) {
     try { storage.removeItem(key); } catch { /* 可选清理 */ }
   }
   storage.setItem('geminiApiKey', settings.geminiApiKey);
@@ -1368,6 +1375,7 @@ export async function extractTextFromImage(
   endpoint: EndpointPayload = { baseUrl: '', model: '' },
   signal?: AbortSignal
 ): Promise<string> {
+  if (!supportsImageInput(endpoint.model, endpoint.caps)) throw new Error('当前模型不支持图片解析，请切换到支持图片输入的多模态模型。');
   try {
     const apiUrl = getApiEndpoint('/image-to-text');
     const headers = getHeaders(userApiKey);
@@ -1416,6 +1424,10 @@ export async function streamExtractTextFromImage(
 ): Promise<void> {
   try {
     const apiUrl = getApiEndpoint('/image-to-text');
+    if (!supportsImageInput(endpoint.model, endpoint.caps)) {
+      onError(new Error('当前模型不支持图片解析，请切换到支持图片输入的多模态模型。'));
+      return;
+    }
     const headers = getHeaders(userApiKey);
 
     const response = await fetch(apiUrl, {

@@ -8,6 +8,8 @@ import {
   createCustomProfileId,
   resolveModelSelection,
   sanitizeProfiles,
+  migrateModelPreferences,
+  supportsImageInput,
   type ModelConfig,
   type ProviderProfile,
 } from '../lib/aiModels';
@@ -15,7 +17,6 @@ import ModelConfigDialog from './ModelConfigDialog';
 import ProviderConfigDialog from './ProviderConfigDialog';
 import { Icon } from './Icons';
 import { ProviderLogo } from './ProviderLogo';
-import { Switch } from '@/components/ui/switch';
 import SpeechServices from './SpeechServices';
 import DictionarySettings from './DictionarySettings';
 import TranslationSettings from './TranslationSettings';
@@ -23,7 +24,7 @@ import { isValidMyMemoryEmail, readTranslationServiceSettings, type TranslationS
 import SettingsConfigLayer from './SettingsConfigLayer';
 import { sanitizeSpeechSettings, type SpeechSettings } from '../lib/speechServices';
 
-export type SettingsTabId = 'models' | 'analysis' | 'translation' | 'dictionary' | 'speech';
+export type SettingsTabId = 'models' | 'translation' | 'dictionary' | 'speech';
 
 interface SettingsPayload {
   translationSettings: TranslationServiceSettings;
@@ -32,8 +33,6 @@ interface SettingsPayload {
   activeModelId: string;
   geminiApiKey: string;
   speechSettings: SpeechSettings;
-  thinkingEnabled: boolean;
-  useStream: boolean;
 }
 
 interface SettingsModalProps {
@@ -43,8 +42,6 @@ interface SettingsModalProps {
   activeModelId: string;
   geminiApiKey: string;
   speechSettings: SpeechSettings;
-  thinkingEnabled: boolean;
-  useStream: boolean;
   onSaveSettings: (settings: SettingsPayload) => void;
   isModalOpen: boolean;
   onModalClose: () => void;
@@ -78,8 +75,6 @@ interface SettingsSignatureInput {
   activeServiceId: string;
   activeModelId: string;
   speech: SpeechSettings;
-  thinking: boolean;
-  stream: boolean;
 }
 
 const getSettingsSignature = (input: SettingsSignatureInput) => {
@@ -89,8 +84,6 @@ const getSettingsSignature = (input: SettingsSignatureInput) => {
     activeModelId: input.activeModelId,
     translation: input.translation,
     speech: sanitizeSpeechSettings(input.speech),
-    thinking: input.thinking,
-    stream: input.stream,
   });
 };
 
@@ -101,8 +94,6 @@ export default function SettingsModal({
   activeModelId: initialActiveModelId,
   geminiApiKey,
   speechSettings: initialSpeechSettings,
-  thinkingEnabled: initialThinkingEnabled,
-  useStream,
   onSaveSettings,
   isModalOpen,
   onModalClose
@@ -116,8 +107,6 @@ export default function SettingsModal({
   const [collapsedServiceIds, setCollapsedServiceIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [speechSettings, setSpeechSettings] = useState(initialSpeechSettings);
-  const [thinkingEnabled, setThinkingEnabled] = useState(initialThinkingEnabled);
-  const [streamEnabled, setStreamEnabled] = useState(useStream);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [defaultMenuOpen, setDefaultMenuOpen] = useState(false);
@@ -149,10 +138,8 @@ export default function SettingsModal({
       activeModelId,
       translation: translationSettings,
       speech: speechSettings,
-      thinking: thinkingEnabled,
-      stream: streamEnabled,
     });
-  }, [services, activeServiceId, activeModelId, translationSettings, speechSettings, thinkingEnabled, streamEnabled]);
+  }, [services, activeServiceId, activeModelId, translationSettings, speechSettings]);
 
   const hasUnsavedChanges = Boolean(savedSignature && currentSignature !== savedSignature);
 
@@ -167,8 +154,6 @@ export default function SettingsModal({
     setCollapsedServiceIds(initialServices.filter((s) => first && s.id !== first.id).map((s) => s.id));
     setSearchQuery('');
     setSpeechSettings(initialSpeechSettings);
-    setThinkingEnabled(initialThinkingEnabled);
-    setStreamEnabled(useStream);
     setStatus('');
     setError('');
     setDefaultMenuOpen(false);
@@ -183,8 +168,6 @@ export default function SettingsModal({
         activeModelId: initialActiveModelId,
         translation: initialTranslationSettings,
         speech: initialSpeechSettings,
-        thinking: initialThinkingEnabled,
-        stream: useStream,
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -306,8 +289,9 @@ export default function SettingsModal({
       setStatus(''); setActiveTab('translation'); return;
     }
     const normalizedTranslation = readTranslationServiceSettings(JSON.stringify(translationSettings));
-    const valid = sanitizeProfiles(services);
+    const valid = migrateModelPreferences(sanitizeProfiles(services), { stream: true, thinkingEnabled: false });
     const { service, model } = resolveModelSelection(valid, activeServiceId, activeModelId);
+    setServices(valid);
 
     onSaveSettings({
       translationSettings: normalizedTranslation,
@@ -316,8 +300,6 @@ export default function SettingsModal({
       activeModelId: model?.id ?? '',
       geminiApiKey: speechSettings.services.find((item) => item.id === 'gemini')?.apiKey ?? geminiApiKey,
       speechSettings: sanitizeSpeechSettings(speechSettings)!,
-      thinkingEnabled,
-      useStream: streamEnabled,
     });
 
     const newSig = getSettingsSignature({
@@ -326,8 +308,6 @@ export default function SettingsModal({
       activeModelId: model?.id ?? '',
       translation: normalizedTranslation,
       speech: speechSettings,
-      thinking: thinkingEnabled,
-      stream: streamEnabled,
     });
     setSavedSignature(newSig);
     setStatus(t('设置已保存'));
@@ -337,8 +317,6 @@ export default function SettingsModal({
       setTimeout(() => onModalClose(), 900);
     }
   };
-
-  const isThinkingAvailable = !!activeModel?.caps?.thinking;
 
   const query = searchQuery.trim().toLowerCase();
   const matchesService = (service: ProviderProfile) => {
@@ -377,12 +355,6 @@ export default function SettingsModal({
       label: t('模型服务'),
       icon: Icon.desktop,
       desc: t('配置解析、翻译与朗读服务。'),
-    },
-    {
-      id: 'analysis',
-      label: t('解析与输出'),
-      icon: Icon.analysis,
-      desc: t('配置流式输出与深度推理。'),
     },
     {
       id: 'translation',
@@ -657,6 +629,7 @@ export default function SettingsModal({
                                         {model.caps?.thinking === true && (
                                           <span className="model-row-cap-badge">{t('深度思考')}</span>
                                         )}
+                                        {supportsImageInput(model.model, model.caps) && <span className="model-row-cap-badge">{t('图片输入')}</span>}
                                         {modelIsCurrent && (
                                           <span
                                             className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
@@ -729,53 +702,6 @@ export default function SettingsModal({
                     })}
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* 模块 2：解析与输出 */}
-            <div style={{ display: activeTab === 'analysis' ? 'flex' : 'none', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <span className="settings-card-group-label">{t('输出方式')}</span>
-                <div className="settings-card-group">
-                  <div className="settings-card-row">
-                    <div className="settings-card-row-info">
-                      <label htmlFor="useStreamToggle" className="settings-card-row-title cursor-pointer">
-                        {t('流式输出')}
-                      </label>
-                      <span className="settings-card-row-desc">
-                        {t('实时显示解析结果，网络不稳定时可关闭。')}
-                      </span>
-                    </div>
-                    <div className="settings-card-row-control">
-                      <Switch
-                        id="useStreamToggle"
-                        aria-label={t('流式输出')}
-                        checked={streamEnabled}
-                        onCheckedChange={setStreamEnabled}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="settings-card-row">
-                    <div className="settings-card-row-info">
-                      <span className="settings-card-row-title">{t('深度思考')}</span>
-                      <span className="settings-card-row-desc">{t('解析前先让模型展开推理。')}</span>
-                    </div>
-                    <div className="settings-card-row-control">
-                      {isThinkingAvailable ? (
-                        <Switch
-                          aria-label={t('深度思考')}
-                          checked={thinkingEnabled}
-                          onCheckedChange={setThinkingEnabled}
-                        />
-                      ) : (
-                        <span className="text-xs" style={{ color: 'var(--ink-3)' }}>
-                          {t('暂不可用')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -933,8 +859,7 @@ export default function SettingsModal({
       {isModalOpen && editingModelItem && (
         <ModelConfigDialog
           key={`${editingModelItem.service.id}:${editingModelItem.model.id}`}
-          serviceId={editingModelItem.service.id}
-          serviceName={editingModelItem.service.name || editingModelItem.service.id}
+          service={editingModelItem.service}
           model={editingModelItem.model}
           onSave={(serviceId, modelId, patch) => {
             if (editingModel?.isNew) {

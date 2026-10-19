@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
     const bodyError = requestBodyErrorResponse(error); if (bodyError) return bodyError;
     if (error instanceof ProviderConfigError) return NextResponse.json({ error: { message: error.message } }, { status: error.status });
     if (req.signal.aborted) return new Response(null, { status: 499 });
-    return NextResponse.json({ error: { message: error instanceof Error ? error.message : '译文校正失败。' } }, { status: 502 });
+    console.error('Translation review failed:', error);
+    return NextResponse.json({ error: { message: '模型润色未完成，请重试。' } }, { status: 502 });
   }
 }

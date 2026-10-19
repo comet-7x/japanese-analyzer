@@ -19,6 +19,7 @@ import {
 } from '../utils/analytics';
 import { Icon } from './Icons';
 import CopyTextButton from './CopyTextButton';
+import ImageCapabilityNotice from './ImageCapabilityNotice';
 import ModelSwitcher from './ModelSwitcher';
 import AnchoredPopover from './AnchoredPopover';
 import { ProviderLogo } from './ProviderLogo';
@@ -30,6 +31,7 @@ import { normalizePastedText } from '../utils/pastedText';
 import AnalysisHistory from './AnalysisHistory';
 import DailySentence from './DailySentence';
 import type { useAnalysisHistory } from '../hooks/useAnalysisHistory';
+import { supportsImageInput } from '../lib/aiModels';
 
 interface InputSectionProps {
   draft: string;
@@ -45,6 +47,7 @@ interface InputSectionProps {
   activeServiceId?: string;
   activeModelId?: string;
   onSelectModel?: (serviceId: string, modelId: string) => void;
+  onOpenSettings?: () => void;
   endpoint: EndpointPayload;
   speechService: SpeechService;
   speechServices: SpeechService[];
@@ -121,6 +124,7 @@ export default function InputSection({
   activeServiceId = '',
   activeModelId = '',
   onSelectModel,
+  onOpenSettings,
   endpoint,
   speechService,
   speechServices,
@@ -142,11 +146,12 @@ export default function InputSection({
   const ttsProvider = speechService.provider;
   const isLoading = isAnalyzing;
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showImageModelNotice, setShowImageModelNotice] = useState(false);
   const [ttsAudioUrl, setTtsAudioUrl] = useState<string | null>(null);
   const [ttsError, setTtsError] = useState('');
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
-  const [uploadStatusClass, setUploadStatusClass] = useState('');
+  const [uploadStatusIsError, setUploadStatusIsError] = useState(false);
   const [showTtsDropdown, setShowTtsDropdown] = useState(false);
   const [selectedGender, setSelectedGender] = useState<'male' | 'female'>('female');
   const [selectedRate, setSelectedRate] = useState(0);
@@ -214,6 +219,7 @@ export default function InputSection({
     onAudioCuesReady?.(null);
     window.speechSynthesis?.cancel();
     setTtsError('');
+    setShowImageModelNotice(false);
   }, [endpoint, locale, speechService, onAudioCuesReady]);
 
   useEffect(() => { setSelectedVoice(speechService.voice); }, [speechService]);
@@ -480,18 +486,36 @@ export default function InputSection({
   };
 
   // 处理图片识别的通用函数
+  const canReadImages = supportsImageInput(endpoint.model, endpoint.caps);
+  const checkImageModel = () => {
+    if (canReadImages) return true;
+    setUploadStatus('');
+    setShowImageModelNotice(true);
+    return false;
+  };
+  const reportImageError = (message: string) => {
+    const friendly = errorText(message);
+    if (friendly === t('当前模型不支持图片解析，请切换到支持图片输入的多模态模型。')) {
+      setUploadStatus(''); setShowImageModelNotice(true);
+    } else {
+      setUploadStatus(t('提取时发生错误: {0}。', friendly));
+      setUploadStatusIsError(true);
+    }
+    setIsImageUploading(false);
+  };
   const processImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setUploadStatus(t("请上传图片文件！"));
-      setUploadStatusClass('mt-2 text-sm');
+      setUploadStatusIsError(true);
       return;
     }
+    if (!checkImageModel()) return;
 
     cancelInputRequests();
     const request = imageRequest.current.start();
     setIsImageUploading(true);
     setUploadStatus(t("正在上传并识别图片中的文字..."));
-    setUploadStatusClass('mt-2 text-sm');
+    setUploadStatusIsError(false);
 
     try {
       // 压缩图片以减小数据大小
@@ -513,15 +537,13 @@ export default function InputSection({
               markImageRecognitionUsed();
               setIsImageUploading(false);
               setUploadStatus(t("文字提取成功！请确认后点击\"解析\"。"));
-              setUploadStatusClass('mt-2 text-sm');
+              setUploadStatusIsError(false);
             }
           },
           (error) => {
             if (!request.isCurrent()) return;
             console.error('Error during streaming image text extraction:', error);
-            setUploadStatus(t("提取时发生错误: {0}。", errorText(error.message || "未知错误")));
-            setUploadStatusClass('mt-2 text-sm');
-            setIsImageUploading(false);
+            reportImageError(error.message || '未知错误');
           },
            imageExtractionPrompt,
            userApiKey,
@@ -535,15 +557,13 @@ export default function InputSection({
         setInputText(extractedText);
         markImageRecognitionUsed();
         setUploadStatus(t("文字提取成功！请确认后点击\"解析\"。"));
-        setUploadStatusClass('mt-2 text-sm');
+        setUploadStatusIsError(false);
         setIsImageUploading(false);
       }
     } catch (error) {
       if (!request.isCurrent()) return;
       console.error('Error during image text extraction:', error);
-      setUploadStatus(t("提取时发生错误: {0}。", error instanceof Error ? errorText(error.message) : t("未知错误")));
-      setUploadStatusClass('mt-2 text-sm');
-      setIsImageUploading(false);
+      reportImageError(error instanceof Error ? error.message : '未知错误');
     }
   };
 
@@ -581,7 +601,7 @@ export default function InputSection({
     const file = files[0];
     if (file && file.type.startsWith('image/')) {
       setUploadStatus(t("检测到拖放的图片，正在识别..."));
-      setUploadStatusClass('mt-2 text-sm');
+      setUploadStatusIsError(false);
       await processImageFile(file);
     }
   };
@@ -609,7 +629,7 @@ export default function InputSection({
       const file = imageItem.getAsFile();
       if (file) {
         setUploadStatus(t("检测到粘贴的图片，正在识别..."));
-        setUploadStatusClass('mt-2 text-sm');
+        setUploadStatusIsError(false);
         await processImageFile(file);
       }
       return;
@@ -635,7 +655,7 @@ export default function InputSection({
       const file = imageItem.getAsFile();
       if (file) {
         setUploadStatus(t("检测到粘贴的图片，正在识别..."));
-        setUploadStatusClass('mt-2 text-sm');
+        setUploadStatusIsError(false);
         await processImageFile(file);
       }
       return;
@@ -804,6 +824,7 @@ export default function InputSection({
   return (
     // 阅读态整块吸顶：长文往下读时胶囊工具条一直在屏幕上方
     <div className={compact ? 'w-full input-section-sticky' : 'w-full'}>
+      {showImageModelNotice && <ImageCapabilityNotice model={endpoint.model} onClose={() => setShowImageModelNotice(false)} onOpenSettings={onOpenSettings} />}
       {!compact && showSuggestions && (
         <DailySentence onAnalyze={analyzeSuggestion} disabled={isAnalyzing || isImageUploading} />
       )}
@@ -913,7 +934,7 @@ export default function InputSection({
                   <button
                     id="uploadImageButton"
                     className="input-tool-button"
-                    onClick={() => document.getElementById('imageUploadInput')?.click()}
+                    onClick={() => { if (checkImageModel()) document.getElementById('imageUploadInput')?.click(); }}
                     disabled={isImageUploading}
                     title={t("上传图片提取文字")}
                     aria-label={t("上传图片提取文字")}
@@ -1113,8 +1134,8 @@ export default function InputSection({
         </div>
       )}
 
-      {uploadStatus && <div id="imageUploadStatus" className={uploadStatusClass}>{errorText(uploadStatus)}</div>}
-      {ttsError && <p role="alert" className="mt-3 text-sm" style={{ color: 'var(--pos-p)' }}>{ttsError}</p>}
+      {uploadStatus && <div id="imageUploadStatus" className="mt-2 text-sm" role={uploadStatusIsError ? 'alert' : 'status'}>{errorText(uploadStatus)}</div>}
+      {ttsError && <p role="alert" className="mt-3 text-sm" style={{ color: 'var(--error-text)' }}>{ttsError}</p>}
 
       {ttsAudioUrl && (
         <div className="mt-4">

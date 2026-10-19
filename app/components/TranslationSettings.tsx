@@ -395,7 +395,7 @@ function TranslationServiceDialog({
             )}
 
             {error && (
-              <p role="alert" className="text-xs" style={{ color: 'var(--danger, #ef4444)' }}>
+              <p role="alert" className="text-xs" style={{ color: 'var(--error-text)' }}>
                 {error}
               </p>
             )}

@@ -20,10 +20,11 @@ async function main() {
     draft: '猫がいる。', onDraftChange() {},
     history: { entries: [], storageUnavailable: false, record() {}, clear() {} },
     onAnalyze() { analyses++; }, onCancelAnalyze() { cancellations++; },
+    onOpenSettings() { settingsOpened++; },
     activeService: null, endpoint: { baseUrl: '', model: '' },
     speechService: SPEECH_PRESETS[0], speechServices: [...SPEECH_PRESETS], onSpeechServiceChange() {},
   };
-  let analyses = 0; let cancellations = 0; let cancelledEdits = 0;
+  let analyses = 0; let cancellations = 0; let cancelledEdits = 0; let settingsOpened = 0;
   const cancelEdit = () => { cancelledEdits++; };
   const view = (changes: Partial<React.ComponentProps<typeof InputSection>> = {}) => <LanguageProvider><InputSection {...props} {...changes} /></LanguageProvider>;
   let renderer: ReactTestRenderer | undefined;
@@ -54,6 +55,31 @@ async function main() {
     assert.equal(cancelledEdits, 4, 'Editing can close while the existing analysis continues');
     assert.equal(analyses, 0, 'Cancelling edits never starts a model request');
     assert.equal(cancellations, 0, 'Cancelling edits does not stop the existing analysis');
+    await act(async () => { renderer!.update(view()); });
+    const image = { type: 'image/png' };
+    const expectUnsupported = () => {
+      assert.ok(renderer!.root.findByProps({ role: 'alertdialog' }));
+      assert.ok(JSON.stringify(renderer!.toJSON()).includes('当前模型不支持图片解析，请切换到支持图片输入的多模态模型。'));
+      assert.equal(renderer!.root.findAllByProps({ id: 'imageUploadStatus' }).length, 0, 'Capability failures use a modal instead of a footer notice');
+    };
+    const dismissNotice = async () => {
+      await act(async () => { renderer!.root.findByProps({ role: 'alertdialog' }).props.onCancel({ preventDefault() {} }); });
+      assert.equal(renderer!.root.findAllByProps({ role: 'alertdialog' }).length, 0);
+    };
+    await act(async () => { renderer!.root.findByProps({ id: 'uploadImageButton' }).props.onClick(); });
+    expectUnsupported(); await dismissNotice();
+    await act(async () => { await renderer!.root.findByProps({ id: 'imageUploadInput' }).props.onChange({ target: { files: [image], value: 'image.png' } }); });
+    expectUnsupported(); await dismissNotice();
+    await act(async () => { await input().props.onDrop({ preventDefault() {}, dataTransfer: { files: [image] } }); });
+    expectUnsupported(); await dismissNotice();
+    await act(async () => { await input().props.onPaste({ preventDefault() {}, clipboardData: { items: [{ type: 'image/png', getAsFile: () => image }], getData: () => '' } }); });
+    expectUnsupported(); await dismissNotice();
+    await act(async () => { renderer!.root.findByProps({ id: 'uploadImageButton' }).props.onClick(); });
+    await act(async () => { renderer!.root.findByProps({ role: 'alertdialog' }).findAllByType('button').find(button => button.children.includes('打开设置'))!.props.onClick(); });
+    assert.equal(settingsOpened, 1, 'The capability notice offers a working settings shortcut');
+    assert.equal(renderer!.root.findAllByProps({ role: 'alertdialog' }).length, 0);
+    assert.equal(input().props.value, props.draft, 'Dismissing the notice preserves the original text');
+    assert.equal(analyses, 0, 'Unsupported images do not start text analysis');
     await act(async () => { renderer!.unmount(); }); renderer = undefined;
     await act(async () => { renderer = create(view({ compact: true, onCancelEdit: cancelEdit })); });
     assert.equal(Boolean(cancelButton()), false, 'Reading toolbar does not expose cancel editing');

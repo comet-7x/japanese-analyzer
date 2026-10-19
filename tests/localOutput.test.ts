@@ -136,7 +136,7 @@ export async function runLocalOutputTests() {
     const DONE=encoder.encode('data: [DONE]\n\n');
     const partialStreamCases: {name:string;run:(onChunk:(text:string,done:boolean)=>void,onError:(error:Error)=>void)=>Promise<void>;label:string;empty:string}[]=[
       {name:'翻译',run:(onChunk,onError)=>streamTranslateText('本を読んだ。',onChunk,onError,undefined,endpoint),label:'翻译结果',empty:'译文为空，请重试。'},
-      {name:'图片识别',run:(onChunk,onError)=>streamExtractTextFromImage('data:image/png;base64,dGVzdA==',onChunk,onError,undefined,undefined,endpoint),label:'图片文字提取',empty:'没有识别到图片中的文字，请换一张图片重试。'},
+      {name:'图片识别',run:(onChunk,onError)=>streamExtractTextFromImage('data:image/png;base64,dGVzdA==',onChunk,onError,undefined,undefined,{...endpoint,caps:{vision:true}}),label:'图片文字提取',empty:'没有识别到图片中的文字，请换一张图片重试。'},
     ];
     for(const {name,run,label,empty} of partialStreamCases){
       const collect=async ()=>{

@@ -17,7 +17,7 @@ export function DictionaryContent({ content }: { content: Content }) {
       {/* Local hash-verified images need no Next image optimization or remote fetch. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className={node.glyph ? 'dictionary-glyph' : undefined} src={`/api/dictionary/assets/${node.asset}`} alt={node.alt || t('词典字形或插图')} loading="lazy" onError={e => { e.currentTarget.hidden = true; const caption = e.currentTarget.nextElementSibling; if (caption) caption.removeAttribute('hidden'); }} />
-      <Caption hidden role="status">{t('词典图片暂不可用，请重试')}</Caption>
+      <Caption hidden role="status" className="status-error">{t('词典图片暂不可用，请重试')}</Caption>
     </Container>;
     }
     if (!allowed.has(node.tag)) return <span>{t('词典内容格式不受支持')}</span>;

@@ -1,9 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { createTranslator, localizeError, DEFAULT_LOCALE, LANGUAGE_STORAGE_KEY, normalizeLocale, type Locale, type Translator } from '../i18n';
+import { createTranslator, formatUserFacingError, DEFAULT_LOCALE, LANGUAGE_STORAGE_KEY, normalizeLocale, type Locale, type Translator } from '../i18n';
 
-const LanguageContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: Translator; errorText: (message: string) => string } | null>(null);
+const LanguageContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: Translator; errorText: (message: string, fallback?: string) => string } | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, updateLocale] = useState<Locale>(DEFAULT_LOCALE);
@@ -30,7 +30,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     applyLocale(next);
     try { localStorage.setItem(LANGUAGE_STORAGE_KEY, next); } catch { /* Session-only preference when storage is unavailable. */ }
   }, [applyLocale]);
-  const value = useMemo(() => ({ locale, setLocale, t: createTranslator(locale), errorText: (message: string) => localizeError(message, locale) }), [locale, setLocale]);
+  const value = useMemo(() => ({ locale, setLocale, t: createTranslator(locale), errorText: (message: string, fallback?: string) => formatUserFacingError(message, locale, fallback) }), [locale, setLocale]);
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 

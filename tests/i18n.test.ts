@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import ConjugationPanel from '../app/components/ConjugationPanel';
+import { LanguageProvider } from '../app/contexts/LanguageContext';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
 import { NextRequest } from 'next/server';
-import { createTranslator, LANGUAGE_LABELS, LOCALES, localizeError, normalizeLocale } from '../app/i18n';
+import { createTranslator, formatUserFacingError, LANGUAGE_LABELS, LOCALES, localizeError, normalizeLocale } from '../app/i18n';
 import { messages } from '../app/i18n/messages';
 import { getResponseLanguageInstruction } from '../app/lib/languagePrompts';
 import { getWordDetailSystemPrompt } from '../app/lib/wordDetailPrompt';
@@ -19,6 +23,9 @@ async function main() {
   assert.equal(normalizeLocale(undefined), 'zh-CN');
   assert.equal(normalizeLocale('invalid'), 'zh-CN');
   assert.deepEqual(Object.values(LANGUAGE_LABELS), ['简体中文', '繁體中文', 'English', '한국어']);
+  for (const [key, entry] of Object.entries(messages)) for (const locale of LOCALES.filter(locale => locale !== 'zh-CN')) {
+    assert.ok(entry[locale]?.trim(), `Missing ${locale} translation: ${key}`);
+  }
   assert.equal(normalizeLocale('ko'), 'ko');
   assert.equal(createTranslator('ko')('中文译文'), '한국어 번역');
   const checkUiTranslations = (path: string) => {
@@ -49,6 +56,52 @@ async function main() {
   assert.equal(localizeError('翻译结果连接已结束，但没有收到完整结束信号，请重新生成。', 'en'), 'The translation disconnected before completion. Please try again.');
   assert.equal(localizeError('图片文字提取连接已结束，但没有收到完整结束信号，请重新生成。', 'ko'), '이미지 글자 추출 완료 신호를 받기 전에 연결이 종료되었습니다. 다시 시도해 주세요.');
   assert.equal(localizeError('HTTP 429: upstream quota exceeded', 'zh-TW'), 'HTTP 429: upstream quota exceeded');
+  const technicalErrors = [
+    'Unexpected token `, "```json { "... is not valid JSON',
+    'JSON Parse error: Unexpected EOF',
+    'Expected property name or } in JSON at position 12',
+    '释义结果缺少 explanation 字段',
+    '解析结果被上游截断（finish_reason: length）。',
+    '模型校正结果未保留原文段落结构。',
+    'TypeError: Cannot read properties of undefined (reading content)',
+    '<html><body>Bad gateway</body></html>',
+    'An opaque upstream failure with private response content',
+    '未知错误',
+  ];
+  for (const locale of LOCALES) {
+    const t = createTranslator(locale);
+    for (const message of technicalErrors) {
+      assert.equal(formatUserFacingError(message, locale), t('暂时无法完成，请重试。'));
+      assert.equal(formatUserFacingError(message, locale, '模型润色未完成，请重试。'), t('模型润色未完成，请重试。'));
+    }
+    assert.equal(formatUserFacingError('未提供API密钥，请在设置中配置API密钥', locale), t('未提供API密钥，请在设置中配置API密钥'));
+    assert.equal(formatUserFacingError('HTTP 401: Incorrect API key provided: secret-key', locale), t('连接验证失败，请检查服务地址和 API 密钥。'));
+    assert.equal(formatUserFacingError('HTTP 429: upstream quota exceeded', locale), t('请求过于频繁或额度不足，请稍后重试或检查服务额度。'));
+    assert.equal(formatUserFacingError('TypeError: Failed to fetch', locale), t('网络连接失败，请检查网络后重试。'));
+    assert.equal(formatUserFacingError('Invalid content type. image_url is only supported by certain models.', locale), t('当前模型不支持图片解析，请切换到支持图片输入的多模态模型。'));
+    assert.equal(formatUserFacingError('当前模型不支持图片解析，请切换到支持图片输入的多模态模型。', locale), t('当前模型不支持图片解析，请切换到支持图片输入的多模态模型。'));
+    assert.equal(formatUserFacingError('TimeoutError: operation timed out', locale), t('请求超时，请重试。'));
+    assert.equal(formatUserFacingError('HTTP 503: private upstream details', locale), t('服务暂时不可用，请稍后重试。'));
+    assert.equal(formatUserFacingError('服务被上游内容安全策略中止（finish_reason: content_filter）。', locale), t('服务未能处理这段内容，请调整原文后重试。'));
+    const success = t('文字提取成功！请确认后点击"解析"。');
+    assert.equal(formatUserFacingError(success, locale), success, 'Shared status rendering preserves successful upload messages');
+    const wrapped = t('模型校正未完成，已保留原有分词：{0}', t('暂时无法完成，请重试。'));
+    assert.equal(formatUserFacingError(wrapped, locale), wrapped, 'A translated wrapper is safe to render again');
+    assert.ok(!formatUserFacingError('Unexpected end of JSON input', locale).includes('JSON'));
+  }
+  const previousReact = Object.getOwnPropertyDescriptor(globalThis, 'React');
+  Object.defineProperty(globalThis, 'React', { configurable: true, value: React });
+  try {
+    const markup = renderToStaticMarkup(React.createElement(LanguageProvider, null, React.createElement(ConjugationPanel, {
+      tool: { result: null, loading: false, error: technicalErrors[0], load: async () => null },
+      onLoad: async () => null, open: true, onOpenChange() {},
+    })));
+    assert.ok(markup.includes('暂时无法完成，请重试。'), 'Actual tool panels use the safe error formatter');
+    assert.ok(!/Unexpected|```|JSON/.test(markup), 'Raw exception and response fragments are absent from the rendered interface');
+  } finally {
+    if (previousReact) Object.defineProperty(globalThis, 'React', previousReact); else Reflect.deleteProperty(globalThis, 'React');
+  }
+
   assert.equal(localizeError('流式解析失败：上游流式响应空闲超时，请重试。', 'en'), 'Streaming analysis failed: The upstream stream stopped responding. Please try again.');
   const traditionalWordDetailPrompt = getWordDetailSystemPrompt('zh-TW');
   assert.match(traditionalWordDetailPrompt, /"chineseTranslation":"貓"/);
@@ -75,7 +128,7 @@ async function main() {
     translate: { text: '本を読む。\n図書館で勉強する。', ...endpointBody },
     wordDetail: { task: 'analyze', kind: 'word', word: '本', pos: '名詞', sentence: '本を読む。', furigana: 'ほん', ...endpointBody },
     chat: { messages: [{ role: 'user', content: 'Explain を' }], ...endpointBody },
-    imageToText: { imageData: 'data:image/png;base64,dGVzdA==', ...endpointBody },
+    imageToText: { imageData: 'data:image/png;base64,dGVzdA==', ...endpointBody, caps: { vision: true } },
     summary: { reasoningSnippet: 'Checking the verb conjugation and particle attachment.', ...endpointBody },
   };
   const handlers = { analyze, translate, wordDetail, chat, imageToText, summary };

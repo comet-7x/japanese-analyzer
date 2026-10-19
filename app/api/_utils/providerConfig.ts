@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import {
   normalizeEndpointUrl,
+  isTokenLimit,
   type ModelEndpoint,
   type ProviderCaps,
 } from '../../lib/aiModels';
@@ -9,7 +10,7 @@ import { SCHOOL_POS } from '../../lib/learningTools';
 
 export type { ProviderCaps, ModelEndpoint } from '../../lib/aiModels';
 
-export type StructuredOutputKind = 'analysisTokens' | 'wordDetail' | 'phraseDetail' | 'selectionTranslation' | 'selectionAnalysisWord' | 'selectionAnalysisPhrase' | 'dailySentence' | 'resegment' | 'conjugation' | 'dictionaryTranslation' | 'translationReview' | 'localCorrection' | 'connectionProbe';
+export type StructuredOutputKind = 'analysisTokens' | 'wordDetail' | 'phraseDetail' | 'selectionTranslation' | 'selectionAnalysisWord' | 'selectionAnalysisPhrase' | 'resegment' | 'conjugation' | 'dictionaryTranslation' | 'translationReview' | 'localCorrection' | 'connectionProbe';
 
 /** 解析后的上游调用配置：端点 + 密钥 + 能力位 */
 export interface ResolvedProviderConfig extends ModelEndpoint {
@@ -32,44 +33,6 @@ function getBearerToken(req: NextRequest): string {
   return authHeader ? authHeader.replace('Bearer ', '').trim() : '';
 }
 
-/** 服务端自发请求（如今日一句）使用的固定端点配置 */
-export interface ServerProviderConfig {
-  name: string;
-  apiUrl: string;
-  apiKey: string;
-  model: string;
-  caps: ProviderCaps;
-}
-
-/** 仅供服务端自发的请求（无用户上下文）使用：按环境变量探测可用的模型服务 */
-export function resolveServerProviderConfig(): ServerProviderConfig | null {
-  const candidates: ServerProviderConfig[] = [];
-
-  // 显式覆盖：今日一句专用端点
-  const dsUrl = process.env.DAILY_SENTENCE_API_URL?.trim();
-  const dsKey = process.env.DAILY_SENTENCE_API_KEY?.trim();
-  const dsModel = process.env.DAILY_SENTENCE_API_MODEL?.trim();
-  if (dsKey && dsModel && dsUrl) {
-    candidates.push({ name: 'daily-sentence', apiUrl: normalizeEndpointUrl(dsUrl), apiKey: dsKey, model: dsModel, caps: { structuredOutput: 'json_object' } });
-  }
-
-  // 复用既有 DeepSeek 端点（结构化输出用 json_object 降级，兼容性最好）
-  const deepseekKey = process.env.DEEPSEEK_API_KEY?.trim();
-  if (deepseekKey) {
-    const deepseekUrl = process.env.DEEPSEEK_API_URL?.trim() || 'https://api.deepseek.com';
-    candidates.push({ name: 'deepseek', apiUrl: normalizeEndpointUrl(deepseekUrl), apiKey: deepseekKey, model: process.env.DEEPSEEK_MODEL_NAME?.trim() || 'deepseek-chat', caps: { structuredOutput: 'json_object' } });
-  }
-
-  // 复用既有 Gemini 端点
-  const geminiKey = process.env.GEMINI_API_KEY?.trim();
-  if (geminiKey) {
-    const geminiUrl = process.env.GEMINI_API_URL?.trim() || 'https://generativelanguage.googleapis.com/v1beta/openai';
-    candidates.push({ name: 'gemini', apiUrl: normalizeEndpointUrl(geminiUrl), apiKey: geminiKey, model: process.env.GEMINI_MODEL_NAME?.trim() || 'gemini-flash-latest', caps: {} });
-  }
-
-  return candidates[0] ?? null;
-}
-
 function normalizeCaps(value: unknown): ProviderCaps {
   if (!value || typeof value !== 'object') return {};
   const item = value as Record<string, unknown>;
@@ -77,6 +40,10 @@ function normalizeCaps(value: unknown): ProviderCaps {
   if (item.structuredOutput === 'json_schema' || item.structuredOutput === 'json_object') caps.structuredOutput = item.structuredOutput;
   else if (typeof item.jsonSchema === 'boolean') caps.structuredOutput = item.jsonSchema ? 'json_schema' : 'json_object';
   if (typeof item.thinking === 'boolean') caps.thinking = item.thinking;
+  if (typeof item.vision === 'boolean') caps.vision = item.vision;
+  if (isTokenLimit(item.contextWindow)) caps.contextWindow = item.contextWindow;
+  if (isTokenLimit(item.maxOutputTokens)) caps.maxOutputTokens = item.maxOutputTokens;
+  if (typeof item.reasoningEffort === 'string' && item.reasoningEffort.trim()) caps.reasoningEffort = item.reasoningEffort.trim();
   return caps;
 }
 
@@ -174,26 +141,6 @@ const phraseDetailSchema = {
   additionalProperties: false,
 } as const;
 
-const dailySentenceSchema = {
-  type: 'object',
-  properties: {
-    text: { type: 'string' },
-    translations: {
-      type: 'object',
-      properties: {
-        'zh-CN': { type: 'string' },
-        'zh-TW': { type: 'string' },
-        en: { type: 'string' },
-        ko: { type: 'string' },
-      },
-      required: ['zh-CN', 'zh-TW', 'en', 'ko'],
-      additionalProperties: false,
-    },
-  },
-  required: ['text', 'translations'],
-  additionalProperties: false,
-} as const;
-
 const textSchema = { type: 'string' } as const;
 const objectSchema = (properties: Record<string, unknown>) => ({ type: 'object', properties, required: Object.keys(properties), additionalProperties: false });
 const arraySchema = (items: unknown) => ({ type: 'array', items });
@@ -233,10 +180,6 @@ const structuredOutputSchemas = {
   phraseDetail: {
     name: 'japanese_phrase_detail',
     schema: phraseDetailSchema,
-  },
-  dailySentence: {
-    name: 'japanese_daily_sentence',
-    schema: dailySentenceSchema,
   },
 } as const;
 
@@ -282,12 +225,28 @@ export function buildCompletionPayload(
   const reasoningFormat = typeof payload.model === 'string' && /(?:^|\/)MiniMax-M[23]/i.test(payload.model)
     ? { reasoning_split: true } : {};
 
+  let maxTokens = isTokenLimit(payload.max_tokens) ? payload.max_tokens : undefined;
+  if (isTokenLimit(caps.maxOutputTokens)) maxTokens = Math.min(maxTokens ?? caps.maxOutputTokens, caps.maxOutputTokens);
+  if (isTokenLimit(caps.contextWindow)) {
+    // Conservative text budget: UTF-8 bytes plus schema and message framing.
+    // Image tokenization varies by provider, so image requests only cap output.
+    const messages = Array.isArray(payload.messages) ? payload.messages : [];
+    const hasImages = messages.some(message => Array.isArray(message?.content)
+      && message.content.some((part: { type?: string }) => part.type === 'image_url'));
+    const inputBudget = hasImages ? 0 : new TextEncoder().encode(JSON.stringify({ messages, ...responseFormat })).length + 256;
+    const available = caps.contextWindow - inputBudget;
+    if (available <= 0) throw new ProviderConfigError('内容超过当前模型的上下文窗口，请缩短内容或调大模型配置。');
+    maxTokens = Math.min(maxTokens ?? 8192, available);
+  }
+  const outputLimit = maxTokens === undefined ? {} : { max_tokens: maxTokens };
+
   if (caps.thinking === true) {
     const thinkingEnabled = options.enableThinking === true;
     return {
       ...payload,
       ...responseFormat,
       ...reasoningFormat,
+      ...outputLimit,
       thinking: { type: thinkingEnabled ? 'enabled' : 'disabled' },
       // reasoning_effort 的合法取值因厂商而异，只发送用户为该服务声明的值，
       // 未声明时省略、由服务商使用自身默认值。
@@ -301,5 +260,6 @@ export function buildCompletionPayload(
     ...payload,
     ...responseFormat,
     ...reasoningFormat,
+    ...outputLimit,
   };
 }

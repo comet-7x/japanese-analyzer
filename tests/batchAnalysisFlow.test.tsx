@@ -344,6 +344,35 @@ async function main() {
       wordButton.props.onClick();
     });
     assert.equal(clickedWord, '猫', 'Single word click must properly fire onWordClick without being blocked by selection');
+    const readingTokens = [
+      { word: '猫', pos: '名詞', furigana: 'ねこ' },
+      { word: 'が', pos: '助詞' },
+      { word: 'いる', pos: '動詞' },
+      { word: '。', pos: '記号' },
+    ];
+    let selectedReadingRange: number[] | undefined;
+    const readingView = (grouped: boolean) => <LanguageProvider>
+      <AnalysisResult tokens={readingTokens}
+        readingGroups={grouped ? [{ start: 0, end: 1 }, { start: 2, end: 2 }, { start: 3, end: 3 }] : undefined}
+        showFurigana showRomaji={false} showDisplayOptions={false}
+        onShowFuriganaChange={() => {}} onShowRomajiChange={() => {}}
+        onWordClick={() => {}} selectedIndex={null}
+        onRangeSelect={(start, end) => { selectedReadingRange = [start, end]; }} />
+    </LanguageProvider>;
+    await act(async () => { analysisResultRenderer!.update(readingView(true)); });
+    assert.equal(analysisResultRenderer!.root.findAllByProps({ className: 'pos-underline reading-group-underline' }).length, 1);
+    assert.equal(analysisResultRenderer!.root.findAllByProps({ className: 'pos-underline pos-group-n' }).length, 0,
+      'A reading group does not inherit its first word’s part-of-speech color');
+    assert.equal(analysisResultRenderer!.root.findAllByProps({ className: 'pos-underline pos-group-v' }).length, 1);
+    assert.equal(textOf(analysisResultRenderer!.root.findByProps({ className: 'pos-legend' })), '动词组合词',
+      'Legend describes visible words and the combined group, rather than hidden constituent parts of speech');
+    const groupedWord = analysisResultRenderer!.root.findAllByProps({ className: 'word-token' }).find(node => textOf(node) === '猫が')!;
+    await act(async () => { groupedWord.props.onClick(); });
+    assert.deepEqual(selectedReadingRange, [0, 1], 'Combined words retain their original selection range');
+    await act(async () => { analysisResultRenderer!.update(readingView(false)); });
+    assert.equal(analysisResultRenderer!.root.findAllByProps({ className: 'pos-underline reading-group-underline' }).length, 0);
+    assert.equal(textOf(analysisResultRenderer!.root.findByProps({ className: 'pos-legend' })), '名词动词助词',
+      'Morphology view keeps the original colors and legend');
     await act(async () => {
       analysisResultRenderer!.unmount();
     });

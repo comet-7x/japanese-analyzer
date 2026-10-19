@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const schemaUnsupported = requestedFormat === 'json_schema' && [400, 404, 422].includes(response.status);
       diagnostic({ outcome: 'rejected', reason: schemaUnsupported ? 'schema_unsupported' : 'upstream_http_error', status: response.status });
-      return NextResponse.json({ error: { message: schemaUnsupported ? '该模型或网关不支持严格结构化输出，请在模型设置中改用 JSON 模式。' : response.error.message,
+      return NextResponse.json({ error: { message: schemaUnsupported ? '当前接口不支持已配置的格式，请在模型设置中重新检测接口支持。' : response.error.message,
         code: schemaUnsupported ? 'schema_unsupported' : 'upstream_http_error' } }, { status: response.status });
     }
     const rawRequestId = response.response.headers.get('x-request-id')

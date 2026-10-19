@@ -59,7 +59,7 @@ function Entry({ entry, tags, model, match, showSource, unavailable, word, lemma
           {block.url && <a className="tool-note" href={block.url} target="_blank" rel="noreferrer">{t('查看来源词条')}</a>}
         </div>)}
         <p className="tool-note dictionary-localized-source"><a href={localization.source.url} target="_blank" rel="noreferrer">{localization.source.name}</a> · {localization.source.version}<br />{t('发布：{0} · 上游数据：{1}', localization.source.date, localization.upstreamDate)} · <a href={localization.source.licenseUrl} target="_blank" rel="noreferrer">{localization.source.license}</a></p>
-      </> : <p className="tool-note">{t(unavailable ? '当前语言词典暂不可用，原文仍可查询。' : '暂无当前语言的内置解释，可以查看原文或使用 AI 翻译。')}</p>}
+      </> : <p className={unavailable ? 'tool-note status-error' : 'tool-note'}>{t(unavailable ? '当前语言词典暂不可用，原文仍可查询。' : '暂无当前语言的内置解释，可以查看原文或使用 AI 翻译。')}</p>}
     </section>}
     <details className="dictionary-original" open={originalOpen} onToggle={e => setOriginalOpen(e.currentTarget.open)}>
       <summary>{t(entry.source.id === 'jmdict' ? '英文原文' : '词典原文')}</summary>

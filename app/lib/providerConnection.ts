@@ -5,10 +5,24 @@ export interface ProviderConnectionResult {
   structuredOutput: StructuredOutputMode | 'unsupported';
 }
 
+class ConnectionRequestError extends Error {
+  constructor(message: string, readonly status: number) { super(message); }
+}
+
+// Only an explicit format rejection permits trying the other protocol. Network,
+// authentication, quota and server errors must remain failures, never "unsupported".
+function canTryAnotherFormat(error: unknown): boolean {
+  return error instanceof SyntaxError || error instanceof ConnectionRequestError
+    && [400, 422].includes(error.status) && /unsupported|not supported|does not support|not support|response.?format|json.?schema|json.?object|不支持/i.test(error.message);
+}
+
 async function request(service: ProviderProfile, model: string, locale: Locale, signal: AbortSignal,
   options: { mode?: StructuredOutputMode; prompt: string }) {
   const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(20_000)]);
-  const modelCaps = service.models.find(item => item.model.trim() === model.trim())?.caps;
+  const configuredCaps = service.models.find(item => item.model.trim() === model.trim())?.caps;
+  const modelCaps = configuredCaps ? { ...configuredCaps } : undefined;
+  // Probe protocol support independently of a user's analysis token budget.
+  if (modelCaps) { delete modelCaps.contextWindow; delete modelCaps.maxOutputTokens; }
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${service.apiKey.trim()}`, 'X-App-Locale': locale },
@@ -22,8 +36,8 @@ async function request(service: ProviderProfile, model: string, locale: Locale, 
   });
   const data = await response.json().catch(() => null);
   requestSignal.throwIfAborted();
-  if (!response.ok || data?.error) throw new Error(typeof data?.error?.message === 'string' ? data.error.message
-    : typeof data?.error === 'string' ? data.error : `HTTP ${response.status}`);
+  if (!response.ok || data?.error) throw new ConnectionRequestError(typeof data?.error?.message === 'string' ? data.error.message
+    : typeof data?.error === 'string' ? data.error : `HTTP ${response.status}`, response.ok ? 502 : response.status);
   const content = data?.choices?.[0]?.message?.content;
   if (typeof content !== 'string' || !content.trim()) throw new Error('接口未返回有效的模型回复，请检查地址和模型名称');
   return content;
@@ -38,27 +52,21 @@ export async function testProviderConnection(
 ): Promise<ProviderConnectionResult> {
   await request(service, model, locale, signal, { prompt: 'Connection test. Reply with OK only.' });
 
-  let schemaError: unknown;
   try {
     const content = await request(service, model, locale, signal, { mode: 'json_schema',
       prompt: 'Return JSON. Try to return {"verdict":"schema_ignored","extra":true}; follow the response schema if one is enforced.' });
     const parsed = JSON.parse(content);
     if (parsed?.verdict === 'schema_enforced' && Object.keys(parsed).length === 1) return { structuredOutput: 'json_schema' };
   } catch (error) {
-    if (signal.aborted) throw error;
-    schemaError = error;
+    if (signal.aborted || !canTryAnotherFormat(error)) throw error;
   }
 
-  let jsonError: unknown;
   try {
     const content = await request(service, model, locale, signal, { mode: 'json_object', prompt: 'Return only {"verdict":"json_ok"} as JSON.' });
     const parsed = JSON.parse(content);
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return { structuredOutput: 'json_object' };
   } catch (error) {
-    if (signal.aborted) throw error;
-    jsonError = error;
+    if (signal.aborted || !canTryAnotherFormat(error)) throw error;
   }
-  const timedOut = (error: unknown) => error instanceof DOMException && (error.name === 'TimeoutError' || error.name === 'AbortError');
-  if (timedOut(jsonError) || (timedOut(schemaError) && jsonError === undefined)) throw jsonError ?? schemaError;
   return { structuredOutput: 'unsupported' };
 }

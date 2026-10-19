@@ -71,6 +71,23 @@ async function main() {
       text: '一行目\n\n二行目', draft: '第一段\n\n第二段', provider: 'mymemory', ...endpoint,
     }, { Authorization: 'Bearer model-key' }));
     assert.equal(invalid.status, 502, 'A review cannot alter the source line-break structure');
+    const logError = console.error;
+    const logged: unknown[] = [];
+    console.error = (...args) => { logged.push(args[1]); };
+    try {
+      for (const content of ['```json {"translation":"secret upstream text"} ```', '{"translation":', '<html>private gateway response</html>']) {
+        globalThis.fetch = async () => Response.json({ choices: [{ message: { content }, finish_reason: 'stop' }] });
+        const malformed = await reviewTranslation(request('http://localhost/api/translate/review', {
+          text: '駅', draft: '车站', provider: 'mymemory', ...endpoint,
+        }, { Authorization: 'Bearer model-key' }));
+        assert.equal(malformed.status, 502);
+        const body = await malformed.json();
+        assert.equal(body.error.message, '模型润色未完成，请重试。');
+        assert.ok(!JSON.stringify(body).includes(content), 'The response does not expose a raw model fragment');
+      }
+      assert.equal(logged.length, 3);
+      assert.ok(logged.every(error => error instanceof SyntaxError), 'Original parser failures remain available in server logs');
+    } finally { console.error = logError; }
     console.log('Translation routes passed: removed-provider rejection, quota propagation and reviewed paragraph preservation.');
   } finally {
     globalThis.fetch = originalFetch;
