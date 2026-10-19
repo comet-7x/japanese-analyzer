@@ -6,7 +6,6 @@ import { LanguageProvider, useLanguage } from '../app/contexts/LanguageContext';
 import { getJstDateKey } from '../app/utils/dailySentences';
 import { DAILY_POOL_KEY } from '../app/services/dailySentenceClient';
 import { bundledSentencePack } from '../app/utils/bundledSentencePack';
-import { parseDailySentenceCandidates } from '../app/api/_utils/dailySentence';
 import { DAILY_SENTENCE_CLIENT_TIMEOUT_MS, DAILY_SENTENCE_PACK_TIMEOUT_MS } from '../app/utils/dailySentencePolicy';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -52,16 +51,17 @@ async function main() {
     pending.push({ signal, resolve, reject });
     if (!ignoreAbort) signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
   });
-  const onlineBatch = (date: string, id = 100, text = '今日は図書館で本を読みます。') => ({ date, sentences: parseDailySentenceCandidates({ data: [{
-    id, text, lang: 'jpn', license: 'CC BY 2.0 FR', is_unapproved: false,
-    translations: [{ id: 200, text: '今天在图书馆看书。', lang: 'cmn', script: 'Hans', license: 'CC BY 2.0 FR', is_direct: true, is_unapproved: false }],
-  }] }, date).map(sentence => ({ ...sentence, tokens: [{ word: text, pos: '名詞', furigana: {
-    '今日は図書館で本を読みます。': 'きょうはとしょかんでほんをよみます',
-    '明日は友達と公園に行きます。': 'あしたはともだちとこうえんにいきます',
-    '週末は家族と映画を見ます。': 'しゅうまつはかぞくとえいがをみます',
-    '駅まで歩いて十分かかります。': 'えきまであるいてじゅっぷんかかります',
-    '毎日少しずつ日本語を勉強しています。': 'まいにちすこしずつにほんごをべんきょうしています',
-  }[text] }] })) });
+  const onlineBatch = (date: string, id = 100, text = '今日は図書館で本を読みます。') => ({ date, sentences: [{
+    date, text, translation: { 'zh-CN': '今天在图书馆看书。' },
+    source: { provider: 'tatoeba', id, license: 'CC BY 2.0 FR', translations: { 'zh-CN': { id: 200, license: 'CC BY 2.0 FR' } } },
+    tokens: [{ word: text, pos: '名詞', furigana: {
+      '今日は図書館で本を読みます。': 'きょうはとしょかんでほんをよみます',
+      '明日は友達と公園に行きます。': 'あしたはともだちとこうえんにいきます',
+      '週末は家族と映画を見ます。': 'しゅうまつはかぞくとえいがをみます',
+      '駅まで歩いて十分かかります。': 'えきまであるいてじゅっぷんかかります',
+      '毎日少しずつ日本語を勉強しています。': 'まいにちすこしずつにほんごをべんきょうしています',
+    }[text] }],
+  }] });
   let renderer: ReactTestRenderer | undefined;
   let language!: ReturnType<typeof useLanguage>;
   let analyzed = '';
@@ -89,8 +89,8 @@ async function main() {
     assert.equal(text(), savedEnglish, 'Restoring the saved locale happens before selection, preserving the English sentence');
     await act(async () => { language.setLocale('zh-CN'); });
     assert.equal(text().split('：').at(-1), savedEnglish.split('：').at(-1), 'Locale changes keep the same four-language example');
-    assert.equal(renderer!.root.findAllByType('a').length, 3, 'Project translations do not invent a Tatoeba translation link');
-    assert.equal(renderer!.root.findAllByProps({ className: 'daily-source' })[0].findAllByType('span').some(node => node.children.includes('项目补充译文')), true);
+    assert.equal(renderer!.root.findAllByType('a').length, 2, 'Preset translations retain original attribution without a separate translation label');
+    assert.equal(JSON.stringify(renderer!.toJSON()).includes('项目补充译文'), false);
     await unmount(); resetValues(); navigatorMock.onLine = true;
     await mount();
     const initial = text();

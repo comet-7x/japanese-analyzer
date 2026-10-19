@@ -27,9 +27,7 @@ export async function warmDevelopmentRoutes(baseUrl, { signal, timeoutMs = 45_00
     try {
       const status = await requestRoute(new URL(path, baseUrl), requestSignal);
       results.push({ path, status });
-      if (path.startsWith('/api/daily-sentence') && status === 503) {
-        log('[dev] 每日一句已编译；在线句源暂不可用，页面会使用本地句子。');
-      } else if (status === 401) {
+      if (status === 401) {
         log(`[dev] 已预热 ${path}（保留访问验证）。`);
       } else if (status >= 400) {
         log(`[dev] 预热 ${path} 返回 HTTP ${status}；开发服务继续运行。`);

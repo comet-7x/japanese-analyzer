@@ -14,7 +14,7 @@ async function withServer(handler, run) {
   }
 }
 
-test('warmup consumes complete responses once and keeps auth and online fallback behavior', async () => {
+test('warmup consumes complete responses once and reports auth and route errors accurately', async () => {
   const paths = [];
   const messages = [];
   await withServer((req, res) => {
@@ -30,7 +30,8 @@ test('warmup consumes complete responses once and keeps auth and online fallback
     assert.deepEqual(paths, ['/', '/api/auth', '/api/daily-sentence?locale=zh-CN']);
     assert.deepEqual(results.map(result => result.status), [200, 401, 503]);
     assert.ok(messages.some(message => message.includes('保留访问验证')));
-    assert.ok(messages.some(message => message.includes('本地句子')));
+    assert.ok(messages.some(message => message.includes('HTTP 503')));
+    assert.ok(!messages.some(message => message.includes('在线句源')));
     assert.equal(messages.at(-1), '[dev] 启动预热结束。');
   });
 });

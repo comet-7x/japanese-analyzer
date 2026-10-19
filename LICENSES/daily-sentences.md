@@ -23,7 +23,7 @@ Simplified Chinese, Traditional Chinese and Korean translations are added by
 the Japanese Analyzer project based on the Japanese originals and distributed
 under CC BY 2.0 France with the original contributors' attribution retained.
 They are stored in `scripts/daily-sentence/translations.tsv`, marked as
-`provider: project`, and labeled as project translations in the app; they are
+`provider: project`, and displayed as preset translations without an extra label; they are
 not Tatoeba translations and have no invented Tatoeba IDs or author names.
 This does not claim independent human proofreading.
 Token boundaries, parts of speech and kana

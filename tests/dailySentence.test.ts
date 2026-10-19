@@ -1,19 +1,17 @@
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
-import { parseDailySentenceCandidates } from '../app/api/_utils/dailySentence';
 import { GET } from '../app/api/daily-sentence/route';
-import { DAILY_SENTENCES, getDayNumber, getJstDateKey, hasDailySentenceReadings, isCompleteDailySentence, isOnlineDailySentence, secondsUntilJstMidnight } from '../app/utils/dailySentences';
+import { DAILY_SENTENCES, getDayNumber, getJstDateKey, hasDailySentenceReadings, isCompleteDailySentence, isOnlineDailySentence, secondsUntilJstMidnight, type DailySentence } from '../app/utils/dailySentences';
 import { createDailySentencePool, DAILY_DECK_KEY, DAILY_ONLINE_KEY, DAILY_POOL_KEY, getLocalDailySentence } from '../app/services/dailySentenceClient';
 import { LOCALES } from '../app/i18n';
 
 const date = '2026-09-24';
-const remoteRow = (id = 123, text = '今日は図書館で本を読みます。') => ({
-  id, text, lang: 'jpn', license: 'CC BY 2.0 FR', is_unapproved: false,
-  translations: [
-    { id: id + 1000, text: '今天在图书馆看书。', lang: 'cmn', script: 'Hans', license: 'CC BY 2.0 FR', is_direct: true, is_unapproved: false },
-    { id: id + 2000, text: '今天在圖書館看書。', lang: 'cmn', script: 'Hant', license: 'CC BY 2.0 FR', is_direct: true, is_unapproved: false },
-    { id: id + 3000, text: 'I will read at the library today.', lang: 'eng', license: 'CC0 1.0', is_direct: true, is_unapproved: false },
-  ],
+const cachedSentence = (id = 123, text = '今日は図書館で本を読みます。'): DailySentence => ({
+  date, text, tokens: [], translation: { 'zh-CN': '今天在图书馆看书。', 'zh-TW': '今天在圖書館看書。', en: 'I will read at the library today.' },
+  source: { provider: 'tatoeba', id, license: 'CC BY 2.0 FR', translations: {
+    'zh-CN': { id: id + 1000, license: 'CC BY 2.0 FR' }, 'zh-TW': { id: id + 2000, license: 'CC BY 2.0 FR' },
+    en: { id: id + 3000, license: 'CC0 1.0' },
+  } },
 });
 
 async function main() {
@@ -56,7 +54,7 @@ async function main() {
   assert.equal(new Set(refreshed).size, 60, 'Same-day refresh consumes the shuffled deck without repeating');
   assert.notEqual(getLocalDailySentence(date, blocked, () => 0, { refresh: true, exclude: refreshed[0] }).text, refreshed[0]);
 
-  const sentences = parseDailySentenceCandidates({ data: [remoteRow(), remoteRow()] }, date);
+  const sentences = [cachedSentence()];
   assert.equal(isCompleteDailySentence(sentences[0], 'en'), false, 'A raw API result remains a candidate until annotated');
   assert.equal(hasDailySentenceReadings({ text: '本。', tokens: [{ word: '本', pos: '名詞', furigana: 'hon' }, { word: '。', pos: '記号' }] }), false);
   assert.equal(hasDailySentenceReadings({ text: '本。', tokens: [{ word: '本', pos: '名詞', furigana: 'ほん' }] }), false);
@@ -67,15 +65,11 @@ async function main() {
   assert.equal(isOnlineDailySentence({ ...sentences[0], source: { ...sentences[0].source, id: -1 } }), false);
   assert.equal(isOnlineDailySentence({ ...sentences[0], translation: { en: 42 } }), false);
   for (const bad of [
-    { ...remoteRow(), lang: 'eng' }, { ...remoteRow(), is_unapproved: true }, { ...remoteRow(), id: -2 },
-    { ...remoteRow(), license: 'unknown' }, remoteRow(1, '<script>alert(1)</script>'), remoteRow(1, '今日は図書館です。明日は休みです。'),
-    remoteRow(1, 'これは https://example.com です。'), remoteRow(1, '短い。'),
-  ]) assert.equal(parseDailySentenceCandidates({ data: [bad] }, date).length, 0);
-  const unsafeTranslations = parseDailySentenceCandidates({ data: [{ ...remoteRow(), translations: [
-    { ...remoteRow().translations[0], is_direct: false }, { ...remoteRow().translations[1], text: '<b>text</b>' },
-    { ...remoteRow().translations[2], license: 'unknown' },
-  ] }] }, date);
-  assert.deepEqual(unsafeTranslations[0].translation, {});
+    { ...sentences[0], source: { ...sentences[0].source, license: 'unknown' } },
+    { ...sentences[0], translation: { en: '<b>text</b>' } },
+    cachedSentence(1, '<script>alert(1)</script>'), cachedSentence(1, '今日は図書館です。明日は休みです。'),
+    cachedSentence(1, 'これは https://example.com です。'), cachedSentence(1, '短い。'),
+  ]) assert.equal(isOnlineDailySentence(bad), false);
 
   const poolValues = new Map<string, string>();
   const poolStorage = { getItem: (key: string) => poolValues.get(key) ?? null, setItem: (key: string, value: string) => { poolValues.set(key, value); } };
@@ -84,8 +78,7 @@ async function main() {
   const pool = makePool();
   assert.equal(pool.syncDelay(date, 'zh-CN'), 0);
   const initial = pool.take(date, 'zh-CN');
-  const batch = { date, sentences: parseDailySentenceCandidates({ data: DAILY_SENTENCES.slice(0, 12).map((item, index) => remoteRow(index + 500, item.text)) }, date)
-    .map(sentence => ({ ...sentence, tokens: DAILY_SENTENCES.find(local => local.text === sentence.text)!.tokens })) };
+  const batch = { date, sentences: DAILY_SENTENCES.slice(0, 12).map((item, index) => ({ ...cachedSentence(index + 500, item.text), tokens: item.tokens })) };
   assert.equal(pool.addBatch(batch, date, 'zh-CN'), true);
   assert.equal(pool.current(date, 'zh-CN')?.text, initial.text, 'A fetched batch never selects or replaces the displayed sentence');
   assert.equal(pool.syncDelay(date, 'zh-CN'), 86_400_000, 'A sufficiently stocked pool checks for updates after a day');
