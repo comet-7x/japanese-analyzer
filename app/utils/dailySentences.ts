@@ -149,12 +149,31 @@ export function isSentenceAttribution(value: unknown): value is SentenceAttribut
   return Number.isSafeInteger(item.id) && item.id > 0 && isSentenceLicense(item.license);
 }
 
+/** Readings must cover every kanji and tokens must reconstruct the original exactly. */
+export function hasDailySentenceReadings(value: unknown): value is Pick<DailySentence, 'text' | 'tokens'> {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as DailySentence;
+  return typeof item.text === 'string' && Array.isArray(item.tokens) && item.tokens.length > 0
+    && item.tokens.length <= item.text.length && item.tokens.every(token => token && typeof token.word === 'string'
+      && token.word.length > 0 && typeof token.pos === 'string'
+      && (token.furigana === undefined || (typeof token.furigana === 'string' && token.furigana.length <= 160
+        && (token.furigana === '' || /^[\p{Script=Hiragana}\p{Script=Katakana}ー]+$/u.test(token.furigana))))
+      && (!/[\p{Script=Han}々]/u.test(token.word) || !!token.furigana))
+    && item.tokens.map(token => token.word).join('') === item.text;
+}
+
+/** A candidate becomes a learning example only with readings and the requested translation. */
+export function isCompleteDailySentence(sentence: DailySentence, locale: Locale): boolean {
+  return hasDailySentenceReadings(sentence) && typeof sentence.translation?.[locale] === 'string'
+    && !!sentence.translation[locale]?.trim();
+}
+
 /** Validate untrusted network/cache data before rendering or building source links. */
 export function isOnlineDailySentence(value: unknown): value is DailySentence & { source: NonNullable<DailySentence['source']> } {
   if (!value || typeof value !== 'object') return false;
   const item = value as DailySentence;
   if (!isDailySentenceText(item.text) || typeof item.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(item.date)
-    || !Array.isArray(item.tokens) || item.tokens.length !== 0 || !item.source || item.source.provider !== 'tatoeba'
+    || !Array.isArray(item.tokens) || (item.tokens.length !== 0 && !hasDailySentenceReadings(item)) || !item.source || item.source.provider !== 'tatoeba'
     || !isSentenceAttribution(item.source) || !item.source.translations || typeof item.source.translations !== 'object'
     || !item.translation || typeof item.translation !== 'object' || Array.isArray(item.translation)) return false;
   return Object.entries(item.translation).every(([locale, text]) => ['zh-CN', 'zh-TW', 'en', 'ko'].includes(locale)

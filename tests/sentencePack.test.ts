@@ -5,6 +5,8 @@ import { parseSentencePack, sentencePackBatch, MAX_SENTENCE_PACK_BYTES, type Sen
 import { createSentencePackStore, verifySentencePack } from '../app/api/_utils/sentencePackStore';
 import { buildSentencePack, digest } from '../scripts/daily-sentence/build';
 import { createDailySentencePool, DAILY_POOL_KEY } from '../app/services/dailySentenceClient';
+import { hasDailySentenceReadings, isCompleteDailySentence } from '../app/utils/dailySentences';
+import { annotateSentence } from '../scripts/daily-sentence/readings';
 
 function revision(date: string, sentences = bundledSentencePack.sentences): SentencePack {
   const sha256 = digest(JSON.stringify(sentences));
@@ -14,9 +16,12 @@ function revision(date: string, sentences = bundledSentencePack.sentences): Sent
 async function main() {
   const pack = verifySentencePack(bundledSentencePack);
   assert.equal(pack.sentences.length, 92);
+  assert.ok(pack.sentences.every(sentence => hasDailySentenceReadings(sentence) && isCompleteDailySentence(sentence, 'en')));
+  assert.equal(pack.sentences.find(sentence => sentence.source?.id === 187853)?.tokens.find(token => token.word === '何')?.furigana, 'なん');
+  assert.equal(pack.sentences.find(sentence => sentence.source?.id === 234717)?.tokens.find(token => token.word === '空い')?.furigana, 'すい');
   assert.ok(pack.sentences.every(sentence => sentence.translation.en && sentence.source?.owner && sentence.source.translations.en?.owner));
   assert.throws(() => verifySentencePack({ ...pack, sentences: pack.sentences.slice(1) }), /checksum/);
-  assert.throws(() => parseSentencePack({ ...pack, schemaVersion: 2 }), /metadata/);
+  assert.throws(() => parseSentencePack({ ...pack, schemaVersion: 1 }), /metadata/);
   assert.throws(() => parseSentencePack({ ...pack, publishedAt: '2026-02-31' }));
   assert.throws(() => parseSentencePack(revision('2026-10-20', [pack.sentences[0], pack.sentences[0]])), /duplicate/);
   assert.throws(() => parseSentencePack(revision('2026-10-20', [{ ...pack.sentences[0], text: '<script>' }])));
@@ -25,10 +30,12 @@ async function main() {
   const archive = zipSync({ 'jpn.txt': strToU8(line + '\n') });
   const lock = { schemaVersion: 1, date: '2026-10-20', url: 'https://www.manythings.org/anki/jpn-eng.zip',
     sha256: digest(archive), approved: [{ id: 222, sha256: digest(line) }] };
-  assert.equal(buildSentencePack(archive, lock).sentences[0].source?.translations.en?.id, 111);
-  assert.throws(() => buildSentencePack(new Uint8Array(), lock), /archive checksum/);
-  assert.throws(() => buildSentencePack(archive, { ...lock, approved: [{ id: 222, sha256: 'changed' }] }), /changed/);
-  assert.throws(() => buildSentencePack(archive, { ...lock, approved: [{ id: 333, sha256: digest(line) }] }), /Missing/);
+  assert.equal((await buildSentencePack(archive, lock)).sentences[0].source?.translations.en?.id, 111);
+  await assert.rejects(buildSentencePack(new Uint8Array(), lock), /archive checksum/);
+  await assert.rejects(buildSentencePack(archive, { ...lock, approved: [{ id: 222, sha256: 'changed' }] }), /changed/);
+  await assert.rejects(buildSentencePack(archive, { ...lock, approved: [{ id: 333, sha256: digest(line) }] }), /Missing/);
+  assert.throws(() => parseSentencePack(revision('2026-10-20', [{ ...pack.sentences[0], tokens: [] }])), /Invalid/);
+  assert.throws(() => parseSentencePack(revision('2026-10-20', [{ ...pack.sentences[0], translation: {} }])), /Invalid/);
 
   const values = new Map<string, string>();
   const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
@@ -41,11 +48,29 @@ async function main() {
   restored.installPack(pack, '2026-10-28');
   assert.notEqual(restored.take('2026-10-28', 'en').text, selected.text);
   assert.ok(JSON.parse(values.get(DAILY_POOL_KEY)!).candidates.length > 0, 'Bundled snapshot candidates remain usable beyond a week offline');
-  const newer = revision('2026-10-29', [{ ...pack.sentences[0], text: '今日は友達と図書館に行きます。', source: { ...pack.sentences[0].source!, id: 999_999 } }]);
+  const nextText = '今日は友達と図書館に行きます。';
+  const newer = revision('2026-10-29', [{ ...pack.sentences[0], text: nextText, tokens: await annotateSentence(nextText), source: { ...pack.sentences[0].source!, id: 999_999 } }]);
   restored.addBatch(sentencePackBatch(newer, '2026-10-29'), '2026-10-29', 'en');
   assert.equal(JSON.parse(values.get(DAILY_POOL_KEY)!).candidates.length, 1, 'A new snapshot removes retired entries');
   restored.installPack(pack, '2026-10-29');
   assert.equal(JSON.parse(values.get(DAILY_POOL_KEY)!).packVersion, newer.version, 'An older bundled pack cannot replace a cached update');
+
+  values.clear();
+  const legacy = { ...pack.sentences[0], tokens: [], date: '2026-10-19' };
+  values.set(DAILY_POOL_KEY, JSON.stringify({ current: legacy, candidates: [{ ...pack.sentences[1], tokens: [], date: '2026-10-19' }],
+    history: [{ date: '2026-10-19', id: legacy.source!.id, text: legacy.text }], packIds: pack.sentences.map(sentence => sentence.source!.id),
+    packVersion: '2026-10-19-34262d4c8ba8', packPublishedAt: pack.publishedAt }));
+  const upgraded = createDailySentencePool(storage, () => .5);
+  assert.equal(upgraded.current('2026-10-19', 'en'), null, 'An incomplete saved choice is never restored');
+  upgraded.installPack(pack, '2026-10-19');
+  assert.equal(JSON.parse(values.get(DAILY_POOL_KEY)!).packVersion, pack.version, 'Schema 2 upgrades the same-day unannotated pack');
+  const ready = upgraded.take('2026-10-19', 'en');
+  assert.ok(ready.source && isCompleteDailySentence(ready, 'en'));
+  assert.notEqual(ready.text, legacy.text, 'An annotation upgrade retains consumed history');
+  assert.equal(upgraded.current('2026-10-19', 'zh-CN'), null, 'A saved English-only sentence cannot be restored in Chinese');
+  const chinese = upgraded.take('2026-10-19', 'zh-CN');
+  assert.ok(!chinese.source && isCompleteDailySentence(chinese, 'zh-CN'));
+  assert.ok(JSON.parse(values.get(DAILY_POOL_KEY)!).candidates.length > 0, 'Missing locale translations do not consume English candidates');
 
   let clock = Date.parse('2026-10-21'); let calls = 0;
   let resolve!: (response: Response) => void;

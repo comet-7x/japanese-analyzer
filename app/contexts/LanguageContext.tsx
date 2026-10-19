@@ -3,10 +3,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createTranslator, formatUserFacingError, DEFAULT_LOCALE, LANGUAGE_STORAGE_KEY, normalizeLocale, type Locale, type Translator } from '../i18n';
 
-const LanguageContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void; t: Translator; errorText: (message: string, fallback?: string) => string } | null>(null);
+const LanguageContext = createContext<{ locale: Locale; localeReady: boolean; setLocale: (locale: Locale) => void; t: Translator; errorText: (message: string, fallback?: string) => string } | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, updateLocale] = useState<Locale>(DEFAULT_LOCALE);
+  const [localeReady, setLocaleReady] = useState(false);
   const applyLocale = useCallback((value: Locale) => {
     document.documentElement.lang = value;
     const t = createTranslator(value);
@@ -18,6 +19,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try { applyLocale(normalizeLocale(localStorage.getItem(LANGUAGE_STORAGE_KEY))); }
     catch { applyLocale(DEFAULT_LOCALE); }
+    setLocaleReady(true);
     const onStorage = (event: StorageEvent) => {
       if (event.key === LANGUAGE_STORAGE_KEY || event.key === null) applyLocale(normalizeLocale(event.newValue));
     };
@@ -30,7 +32,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     applyLocale(next);
     try { localStorage.setItem(LANGUAGE_STORAGE_KEY, next); } catch { /* Session-only preference when storage is unavailable. */ }
   }, [applyLocale]);
-  const value = useMemo(() => ({ locale, setLocale, t: createTranslator(locale), errorText: (message: string, fallback?: string) => formatUserFacingError(message, locale, fallback) }), [locale, setLocale]);
+  const value = useMemo(() => ({ locale, localeReady, setLocale, t: createTranslator(locale), errorText: (message: string, fallback?: string) => formatUserFacingError(message, locale, fallback) }), [locale, localeReady, setLocale]);
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 

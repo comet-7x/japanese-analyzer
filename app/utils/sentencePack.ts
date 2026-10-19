@@ -1,9 +1,9 @@
-import { isOnlineDailySentence, type DailySentence } from './dailySentences';
+import { hasDailySentenceReadings, isOnlineDailySentence, type DailySentence } from './dailySentences';
 
 export const MAX_SENTENCE_PACK_SIZE = 500;
 export const MAX_SENTENCE_PACK_BYTES = 1_000_000;
 export interface SentencePack {
-  schemaVersion: 1;
+  schemaVersion: 2;
   version: string;
   publishedAt: string;
   sha256: string;
@@ -14,7 +14,7 @@ export interface SentencePack {
 export function parseSentencePack(value: unknown): SentencePack {
   if (!value || typeof value !== 'object') throw new Error('Invalid sentence pack');
   const pack = value as SentencePack;
-  if (pack.schemaVersion !== 1 || !/^\d{4}-\d{2}-\d{2}$/.test(pack.publishedAt)
+  if (pack.schemaVersion !== 2 || !/^\d{4}-\d{2}-\d{2}$/.test(pack.publishedAt)
     || new Date(`${pack.publishedAt}T00:00:00Z`).toISOString().slice(0, 10) !== pack.publishedAt
     || !/^[a-f0-9]{64}$/.test(pack.sha256) || pack.version !== `${pack.publishedAt}-${pack.sha256.slice(0, 12)}`
     || !pack.source || pack.source.license !== 'CC BY 2.0 FR' || !/^[a-f0-9]{64}$/.test(pack.source.sha256)
@@ -24,7 +24,8 @@ export function parseSentencePack(value: unknown): SentencePack {
   }
   const ids = new Set<number>(); const texts = new Set<string>();
   for (const sentence of pack.sentences) {
-    if (!isOnlineDailySentence({ ...sentence, date: pack.publishedAt })
+    if (!isOnlineDailySentence({ ...sentence, date: pack.publishedAt }) || !hasDailySentenceReadings(sentence)
+      || !Object.keys(sentence.translation).length
       || ids.has(sentence.source!.id) || texts.has(sentence.text)) throw new Error('Invalid or duplicate packed sentence');
     ids.add(sentence.source!.id); texts.add(sentence.text);
   }
@@ -32,6 +33,6 @@ export function parseSentencePack(value: unknown): SentencePack {
 }
 
 export function sentencePackBatch(pack: SentencePack, date: string) {
-  return { date, packVersion: pack.version, packPublishedAt: pack.publishedAt,
+  return { date, packSchemaVersion: pack.schemaVersion, packVersion: pack.version, packPublishedAt: pack.publishedAt,
     sentences: pack.sentences.map(sentence => ({ ...sentence, date })) };
 }

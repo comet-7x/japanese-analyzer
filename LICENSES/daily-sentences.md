@@ -19,7 +19,11 @@ and translation retains its Tatoeba sentence ID, owner name and license inside
 the JSON. The app links to the original and displayed translation's Tatoeba
 pages. No audio or third-party translations beyond the selected English pairs
 are included. Sentence text and translations are unchanged; the distribution
-is filtered and converted to JSON.
+is filtered and converted to JSON. Token boundaries, parts of speech and kana
+readings are added by this project at build time using Kuromoji 0.1.2 / IPADIC,
+with sentence-specific contextual reading corrections. These annotations are
+not original Tatoeba transcriptions or a guarantee of independent proofreading.
+See [Kuromoji's dictionary notice](kuromoji-IPADIC-NOTICE.md).
 
 `scripts/daily-sentence/source.lock.json` records the source URL, archive SHA-256,
 retrieval date and exact approved row fingerprints. `scripts/daily-sentence/approved.tsv`

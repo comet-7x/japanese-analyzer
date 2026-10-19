@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 1,
-  "version": "2026-10-19-34262d4c8ba8",
+  "schemaVersion": 2,
+  "version": "2026-10-19-1d424cb980fe",
   "publishedAt": "2026-10-19",
-  "sha256": "34262d4c8ba8b6b27b18c9211d53c876f61207703a886ff086d73479f6f347d2",
+  "sha256": "1d424cb980fee500caae5c330d604b23d4d3af99490234ccfd0e79c8991b8142",
   "source": {
     "url": "https://www.manythings.org/anki/jpn-eng.zip",
     "sha256": "af9e98121df9ce9c8a258bf81033905cb38f31bbc26432f3354d8ace316f20ee",
@@ -11,7 +11,50 @@
   "sentences": [
     {
       "text": "誰にも分からないよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "誰",
+          "pos": "代名詞",
+          "furigana": "だれ",
+          "romaji": "dare"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "も",
+          "pos": "助詞",
+          "furigana": "も",
+          "romaji": "mo"
+        },
+        {
+          "word": "分から",
+          "pos": "動詞",
+          "furigana": "わから",
+          "romaji": "wakara"
+        },
+        {
+          "word": "ない",
+          "pos": "助動詞",
+          "furigana": "ない",
+          "romaji": "nai"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Who knows?"
       },
@@ -31,7 +74,38 @@
     },
     {
       "text": "有難うございました。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "有難う",
+          "pos": "感動詞",
+          "furigana": "ありがとう",
+          "romaji": "arigatou"
+        },
+        {
+          "word": "ござい",
+          "pos": "助動詞",
+          "furigana": "ござい",
+          "romaji": "gozai"
+        },
+        {
+          "word": "まし",
+          "pos": "助動詞",
+          "furigana": "まし",
+          "romaji": "mashi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Thank you."
       },
@@ -51,7 +125,50 @@
     },
     {
       "text": "満タンにしてください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "満",
+          "pos": "名詞",
+          "furigana": "まん",
+          "romaji": "man"
+        },
+        {
+          "word": "タン",
+          "pos": "名詞",
+          "furigana": "たん",
+          "romaji": "tan"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Fill it up."
       },
@@ -71,7 +188,50 @@
     },
     {
       "text": "満タンでお願いします。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "満",
+          "pos": "名詞",
+          "furigana": "まん",
+          "romaji": "man"
+        },
+        {
+          "word": "タン",
+          "pos": "名詞",
+          "furigana": "たん",
+          "romaji": "tan"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "お願い",
+          "pos": "名詞",
+          "furigana": "おねがい",
+          "romaji": "onegai"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Fill her up."
       },
@@ -91,7 +251,44 @@
     },
     {
       "text": "万事上手くいってます。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "万事",
+          "pos": "名詞",
+          "furigana": "ばんじ",
+          "romaji": "banji"
+        },
+        {
+          "word": "上手く",
+          "pos": "形容詞",
+          "furigana": "うまく",
+          "romaji": "umaku"
+        },
+        {
+          "word": "いっ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "All is well."
       },
@@ -111,7 +308,44 @@
     },
     {
       "text": "僕はジャズが好きだ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "僕",
+          "pos": "代名詞",
+          "furigana": "ぼく",
+          "romaji": "boku"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "ジャズ",
+          "pos": "名詞",
+          "furigana": "じゃず",
+          "romaji": "jazu"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好きだ",
+          "pos": "形容動詞",
+          "furigana": "すきだ",
+          "romaji": "sukida"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I like jazz."
       },
@@ -131,7 +365,44 @@
     },
     {
       "text": "彼女はにっこり笑った。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "彼女",
+          "pos": "代名詞",
+          "furigana": "かのじょ",
+          "romaji": "kanojo"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "にっこり",
+          "pos": "副詞",
+          "furigana": "にっこり",
+          "romaji": "nikkori"
+        },
+        {
+          "word": "笑っ",
+          "pos": "動詞",
+          "furigana": "わらっ",
+          "romaji": "warat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "She smiled."
       },
@@ -151,7 +422,44 @@
     },
     {
       "text": "彼は立ち上がりました。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "立ち上がり",
+          "pos": "動詞",
+          "furigana": "たちあがり",
+          "romaji": "tachiagari"
+        },
+        {
+          "word": "まし",
+          "pos": "助動詞",
+          "furigana": "まし",
+          "romaji": "mashi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "He stood up."
       },
@@ -171,7 +479,50 @@
     },
     {
       "text": "彼は来る事が出来る。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "来る",
+          "pos": "動詞",
+          "furigana": "くる",
+          "romaji": "kuru"
+        },
+        {
+          "word": "事",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "出来る",
+          "pos": "動詞",
+          "furigana": "できる",
+          "romaji": "dekiru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "He can come."
       },
@@ -191,7 +542,56 @@
     },
     {
       "text": "彼は背が高いですか。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "背",
+          "pos": "名詞",
+          "furigana": "せ",
+          "romaji": "se"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "高い",
+          "pos": "形容詞",
+          "furigana": "たかい",
+          "romaji": "takai"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "か",
+          "pos": "助詞",
+          "furigana": "か",
+          "romaji": "ka"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Is he tall?"
       },
@@ -211,7 +611,50 @@
     },
     {
       "text": "彼は私と同い年です。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "と",
+          "pos": "助詞",
+          "furigana": "と",
+          "romaji": "to"
+        },
+        {
+          "word": "同い年",
+          "pos": "名詞",
+          "furigana": "おないどし",
+          "romaji": "onaidoshi"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "He's my age."
       },
@@ -231,7 +674,56 @@
     },
     {
       "text": "彼は外出しています。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "外出",
+          "pos": "名詞",
+          "furigana": "がいしゅつ",
+          "romaji": "gaishutsu"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "He's not in."
       },
@@ -251,7 +743,56 @@
     },
     {
       "text": "道に迷ってしまいました。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "道",
+          "pos": "名詞",
+          "furigana": "みち",
+          "romaji": "michi"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "迷っ",
+          "pos": "動詞",
+          "furigana": "まよっ",
+          "romaji": "mayot"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "しまい",
+          "pos": "動詞",
+          "furigana": "しまい",
+          "romaji": "shimai"
+        },
+        {
+          "word": "まし",
+          "pos": "助動詞",
+          "furigana": "まし",
+          "romaji": "mashi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I'm lost."
       },
@@ -271,7 +812,44 @@
     },
     {
       "text": "精一杯やってみなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "精一杯",
+          "pos": "副詞",
+          "furigana": "せいいっぱい",
+          "romaji": "seiippai"
+        },
+        {
+          "word": "やっ",
+          "pos": "動詞",
+          "furigana": "やっ",
+          "romaji": "yat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Try hard."
       },
@@ -291,7 +869,50 @@
     },
     {
       "text": "心配しなくていいよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "心配",
+          "pos": "名詞",
+          "furigana": "しんぱい",
+          "romaji": "shinpai"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "なく",
+          "pos": "助動詞",
+          "furigana": "なく",
+          "romaji": "naku"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いい",
+          "pos": "形容詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Don't worry."
       },
@@ -311,7 +932,62 @@
     },
     {
       "text": "時のたつのは早いものだ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "時",
+          "pos": "名詞",
+          "furigana": "とき",
+          "romaji": "toki"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "たつ",
+          "pos": "動詞",
+          "furigana": "たつ",
+          "romaji": "tatsu"
+        },
+        {
+          "word": "の",
+          "pos": "名詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "早い",
+          "pos": "形容詞",
+          "furigana": "はやい",
+          "romaji": "hayai"
+        },
+        {
+          "word": "もの",
+          "pos": "名詞",
+          "furigana": "もの",
+          "romaji": "mono"
+        },
+        {
+          "word": "だ",
+          "pos": "助動詞",
+          "furigana": "だ",
+          "romaji": "da"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Time flies."
       },
@@ -331,7 +1007,50 @@
     },
     {
       "text": "私は走ることができる。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "走る",
+          "pos": "動詞",
+          "furigana": "はしる",
+          "romaji": "hashiru"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "できる",
+          "pos": "動詞",
+          "furigana": "できる",
+          "romaji": "dekiru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I can run."
       },
@@ -351,7 +1070,50 @@
     },
     {
       "text": "私は笑ってしまった。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "笑っ",
+          "pos": "動詞",
+          "furigana": "わらっ",
+          "romaji": "warat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "しまっ",
+          "pos": "動詞",
+          "furigana": "しまっ",
+          "romaji": "shimat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I laughed."
       },
@@ -371,7 +1133,56 @@
     },
     {
       "text": "私は覚悟ができている。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "覚悟",
+          "pos": "名詞",
+          "furigana": "かくご",
+          "romaji": "kakugo"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "でき",
+          "pos": "動詞",
+          "furigana": "でき",
+          "romaji": "deki"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いる",
+          "pos": "動詞",
+          "furigana": "いる",
+          "romaji": "iru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I am ready."
       },
@@ -391,7 +1202,56 @@
     },
     {
       "text": "私は泳ぐことが出来ます。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "泳ぐ",
+          "pos": "動詞",
+          "furigana": "およぐ",
+          "romaji": "oyogu"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "出来",
+          "pos": "動詞",
+          "furigana": "でき",
+          "romaji": "deki"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I can swim."
       },
@@ -411,7 +1271,50 @@
     },
     {
       "text": "私はどちらも好きです。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "どちら",
+          "pos": "代名詞",
+          "furigana": "どちら",
+          "romaji": "dochira"
+        },
+        {
+          "word": "も",
+          "pos": "助詞",
+          "furigana": "も",
+          "romaji": "mo"
+        },
+        {
+          "word": "好き",
+          "pos": "名詞",
+          "furigana": "すき",
+          "romaji": "suki"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I like both."
       },
@@ -431,7 +1334,50 @@
     },
     {
       "text": "私はそう言いました。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "そう",
+          "pos": "副詞",
+          "furigana": "そう",
+          "romaji": "sou"
+        },
+        {
+          "word": "言い",
+          "pos": "動詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "まし",
+          "pos": "助動詞",
+          "furigana": "まし",
+          "romaji": "mashi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I said so."
       },
@@ -451,7 +1397,56 @@
     },
     {
       "text": "私はそうは思いません。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "そう",
+          "pos": "副詞",
+          "furigana": "そう",
+          "romaji": "sou"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "思い",
+          "pos": "動詞",
+          "furigana": "おもい",
+          "romaji": "omoi"
+        },
+        {
+          "word": "ませ",
+          "pos": "助動詞",
+          "furigana": "ませ",
+          "romaji": "mase"
+        },
+        {
+          "word": "ん",
+          "pos": "助動詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I disagree."
       },
@@ -471,7 +1466,44 @@
     },
     {
       "text": "私はケーキが好きだ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "ケーキ",
+          "pos": "名詞",
+          "furigana": "けーき",
+          "romaji": "keeki"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好きだ",
+          "pos": "形容動詞",
+          "furigana": "すきだ",
+          "romaji": "sukida"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I like cake."
       },
@@ -491,7 +1523,50 @@
     },
     {
       "text": "私はお茶が好きです。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "お茶",
+          "pos": "名詞",
+          "furigana": "おちゃ",
+          "romaji": "ocha"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好き",
+          "pos": "名詞",
+          "furigana": "すき",
+          "romaji": "suki"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I like tea."
       },
@@ -511,7 +1586,50 @@
     },
     {
       "text": "私の質問に答えなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "質問",
+          "pos": "名詞",
+          "furigana": "しつもん",
+          "romaji": "shitsumon"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "答え",
+          "pos": "動詞",
+          "furigana": "こたえ",
+          "romaji": "kotae"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Answer me."
       },
@@ -531,7 +1649,50 @@
     },
     {
       "text": "本気で言ってるんです。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "本気",
+          "pos": "名詞",
+          "furigana": "ほんき",
+          "romaji": "honki"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "言っ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "てる",
+          "pos": "動詞",
+          "furigana": "てる",
+          "romaji": "teru"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I mean it."
       },
@@ -551,7 +1712,50 @@
     },
     {
       "text": "私に行かせてください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "行か",
+          "pos": "動詞",
+          "furigana": "いか",
+          "romaji": "ika"
+        },
+        {
+          "word": "せ",
+          "pos": "動詞",
+          "furigana": "せ",
+          "romaji": "se"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Let me go!"
       },
@@ -571,7 +1775,50 @@
     },
     {
       "text": "私がちゃんとやりますから。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "ちゃんと",
+          "pos": "副詞",
+          "furigana": "ちゃんと",
+          "romaji": "chanto"
+        },
+        {
+          "word": "やり",
+          "pos": "動詞",
+          "furigana": "やり",
+          "romaji": "yari"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "から",
+          "pos": "助詞",
+          "furigana": "から",
+          "romaji": "kara"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I'll do it."
       },
@@ -591,7 +1838,50 @@
     },
     {
       "text": "今すぐそれをやりなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "今",
+          "pos": "名詞",
+          "furigana": "いま",
+          "romaji": "ima"
+        },
+        {
+          "word": "すぐ",
+          "pos": "副詞",
+          "furigana": "すぐ",
+          "romaji": "sugu"
+        },
+        {
+          "word": "それ",
+          "pos": "代名詞",
+          "furigana": "それ",
+          "romaji": "sore"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "やり",
+          "pos": "動詞",
+          "furigana": "やり",
+          "romaji": "yari"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Do it now."
       },
@@ -611,7 +1901,62 @@
     },
     {
       "text": "君のことが好きなんだ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "君",
+          "pos": "代名詞",
+          "furigana": "きみ",
+          "romaji": "kimi"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好き",
+          "pos": "名詞",
+          "furigana": "すき",
+          "romaji": "suki"
+        },
+        {
+          "word": "な",
+          "pos": "助動詞",
+          "furigana": "な",
+          "romaji": "na"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "だ",
+          "pos": "助動詞",
+          "furigana": "だ",
+          "romaji": "da"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I like you."
       },
@@ -631,7 +1976,56 @@
     },
     {
       "text": "君がいなくて寂しいよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "君",
+          "pos": "代名詞",
+          "furigana": "きみ",
+          "romaji": "kimi"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "なく",
+          "pos": "助動詞",
+          "furigana": "なく",
+          "romaji": "naku"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "寂しい",
+          "pos": "形容詞",
+          "furigana": "さびしい",
+          "romaji": "sabishii"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I miss you."
       },
@@ -651,7 +2045,50 @@
     },
     {
       "text": "顔と手を洗いなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "顔",
+          "pos": "名詞",
+          "furigana": "かお",
+          "romaji": "kao"
+        },
+        {
+          "word": "と",
+          "pos": "助詞",
+          "furigana": "と",
+          "romaji": "to"
+        },
+        {
+          "word": "手",
+          "pos": "名詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "洗い",
+          "pos": "動詞",
+          "furigana": "あらい",
+          "romaji": "arai"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Wash up."
       },
@@ -671,7 +2108,44 @@
     },
     {
       "text": "楽しんでいってください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "楽しん",
+          "pos": "動詞",
+          "furigana": "たのしん",
+          "romaji": "tanoshin"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "いっ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Have fun."
       },
@@ -691,7 +2165,38 @@
     },
     {
       "text": "皆さんお乗りください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "皆さん",
+          "pos": "名詞",
+          "furigana": "みなさん",
+          "romaji": "minasan"
+        },
+        {
+          "word": "お",
+          "pos": "名詞",
+          "furigana": "お",
+          "romaji": "o"
+        },
+        {
+          "word": "乗り",
+          "pos": "動詞",
+          "furigana": "のり",
+          "romaji": "nori"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "All aboard!"
       },
@@ -711,7 +2216,56 @@
     },
     {
       "text": "何ていったんですか。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "何",
+          "pos": "代名詞",
+          "furigana": "なん",
+          "romaji": "nan"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いっ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "か",
+          "pos": "助詞",
+          "furigana": "か",
+          "romaji": "ka"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Pardon me?"
       },
@@ -731,7 +2285,50 @@
     },
     {
       "text": "意見が一致している。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "意見",
+          "pos": "名詞",
+          "furigana": "いけん",
+          "romaji": "iken"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "一致",
+          "pos": "名詞",
+          "furigana": "いっち",
+          "romaji": "itchi"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いる",
+          "pos": "動詞",
+          "furigana": "いる",
+          "romaji": "iru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "We agree."
       },
@@ -751,7 +2348,32 @@
     },
     {
       "text": "はっきり言いなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "はっきり",
+          "pos": "副詞",
+          "furigana": "はっきり",
+          "romaji": "hakkiri"
+        },
+        {
+          "word": "言い",
+          "pos": "動詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Speak up!"
       },
@@ -771,7 +2393,44 @@
     },
     {
       "text": "なんて可愛いんでしょう。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "なんて",
+          "pos": "助詞",
+          "furigana": "なんて",
+          "romaji": "nante"
+        },
+        {
+          "word": "可愛い",
+          "pos": "形容詞",
+          "furigana": "かわいい",
+          "romaji": "kawaii"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "でしょ",
+          "pos": "助動詞",
+          "furigana": "でしょ",
+          "romaji": "desho"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "How cute!"
       },
@@ -791,7 +2450,38 @@
     },
     {
       "text": "どうぞお話し下さい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "どうぞ",
+          "pos": "副詞",
+          "furigana": "どうぞ",
+          "romaji": "douzo"
+        },
+        {
+          "word": "お話",
+          "pos": "名詞",
+          "furigana": "おはなし",
+          "romaji": "ohanashi"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "下さい",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Go ahead."
       },
@@ -811,7 +2501,38 @@
     },
     {
       "text": "もう一度お願いします。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "もう一度",
+          "pos": "副詞",
+          "furigana": "もういちど",
+          "romaji": "mouichido"
+        },
+        {
+          "word": "お願い",
+          "pos": "名詞",
+          "furigana": "おねがい",
+          "romaji": "onegai"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Excuse me?"
       },
@@ -831,7 +2552,38 @@
     },
     {
       "text": "しっかり勉強しなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "しっかり",
+          "pos": "副詞",
+          "furigana": "しっかり",
+          "romaji": "shikkari"
+        },
+        {
+          "word": "勉強",
+          "pos": "名詞",
+          "furigana": "べんきょう",
+          "romaji": "benkyou"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Study hard."
       },
@@ -851,7 +2603,44 @@
     },
     {
       "text": "さあどうぞお入りください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "さあ",
+          "pos": "感動詞",
+          "furigana": "さあ",
+          "romaji": "saa"
+        },
+        {
+          "word": "どうぞ",
+          "pos": "副詞",
+          "furigana": "どうぞ",
+          "romaji": "douzo"
+        },
+        {
+          "word": "お",
+          "pos": "名詞",
+          "furigana": "お",
+          "romaji": "o"
+        },
+        {
+          "word": "入り",
+          "pos": "動詞",
+          "furigana": "はいり",
+          "romaji": "hairi"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Do come in."
       },
@@ -871,7 +2660,50 @@
     },
     {
       "text": "さあ、入って入って。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "さあ",
+          "pos": "感動詞",
+          "furigana": "さあ",
+          "romaji": "saa"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "入っ",
+          "pos": "動詞",
+          "furigana": "はいっ",
+          "romaji": "hait"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "入っ",
+          "pos": "動詞",
+          "furigana": "はいっ",
+          "romaji": "hait"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Come on in!"
       },
@@ -891,7 +2723,56 @@
     },
     {
       "text": "お話ししたいことがあります。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "お話し",
+          "pos": "名詞",
+          "furigana": "おはなし",
+          "romaji": "ohanashi"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "たい",
+          "pos": "助動詞",
+          "furigana": "たい",
+          "romaji": "tai"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "あり",
+          "pos": "動詞",
+          "furigana": "あり",
+          "romaji": "ari"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Can we talk?"
       },
@@ -911,7 +2792,38 @@
     },
     {
       "text": "お腹がいっぱいです。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "お腹",
+          "pos": "名詞",
+          "furigana": "おなか",
+          "romaji": "onaka"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "いっぱい",
+          "pos": "副詞",
+          "furigana": "いっぱい",
+          "romaji": "ippai"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I'm full."
       },
@@ -931,7 +2843,50 @@
     },
     {
       "text": "ああ、お腹が空いた。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "ああ",
+          "pos": "感動詞",
+          "furigana": "ああ",
+          "romaji": "aa"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "お腹",
+          "pos": "名詞",
+          "furigana": "おなか",
+          "romaji": "onaka"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "空い",
+          "pos": "動詞",
+          "furigana": "すい",
+          "romaji": "sui"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I'm hungry!"
       },
@@ -951,7 +2906,50 @@
     },
     {
       "text": "私はここで食べます。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "ここ",
+          "pos": "代名詞",
+          "furigana": "ここ",
+          "romaji": "koko"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "食べ",
+          "pos": "動詞",
+          "furigana": "たべ",
+          "romaji": "tabe"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I eat here."
       },
@@ -971,7 +2969,62 @@
     },
     {
       "text": "私はあなたを愛しています。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "あなた",
+          "pos": "代名詞",
+          "furigana": "あなた",
+          "romaji": "anata"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "愛し",
+          "pos": "動詞",
+          "furigana": "あいし",
+          "romaji": "aishi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I love you."
       },
@@ -991,7 +3044,56 @@
     },
     {
       "text": "少し静かにしていなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "少し",
+          "pos": "副詞",
+          "furigana": "すこし",
+          "romaji": "sukoshi"
+        },
+        {
+          "word": "静か",
+          "pos": "名詞",
+          "furigana": "しずか",
+          "romaji": "shizuka"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Be quiet."
       },
@@ -1011,7 +3113,44 @@
     },
     {
       "text": "もう一度やってみて。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "もう一度",
+          "pos": "副詞",
+          "furigana": "もういちど",
+          "romaji": "mouichido"
+        },
+        {
+          "word": "やっ",
+          "pos": "動詞",
+          "furigana": "やっ",
+          "romaji": "yat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Try again."
       },
@@ -1031,7 +3170,56 @@
     },
     {
       "text": "そのことを確信している。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "その",
+          "pos": "連体詞",
+          "furigana": "その",
+          "romaji": "sono"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "確信",
+          "pos": "名詞",
+          "furigana": "かくしん",
+          "romaji": "kakushin"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いる",
+          "pos": "動詞",
+          "furigana": "いる",
+          "romaji": "iru"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I am sure."
       },
@@ -1051,7 +3239,56 @@
     },
     {
       "text": "私も参加させてください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "も",
+          "pos": "助詞",
+          "furigana": "も",
+          "romaji": "mo"
+        },
+        {
+          "word": "参加",
+          "pos": "名詞",
+          "furigana": "さんか",
+          "romaji": "sanka"
+        },
+        {
+          "word": "さ",
+          "pos": "動詞",
+          "furigana": "さ",
+          "romaji": "sa"
+        },
+        {
+          "word": "せ",
+          "pos": "動詞",
+          "furigana": "せ",
+          "romaji": "se"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Let me in."
       },
@@ -1071,7 +3308,62 @@
     },
     {
       "text": "私たちは努力しております。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "たち",
+          "pos": "名詞",
+          "furigana": "たち",
+          "romaji": "tachi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "努力",
+          "pos": "名詞",
+          "furigana": "どりょく",
+          "romaji": "doryoku"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "おり",
+          "pos": "動詞",
+          "furigana": "おり",
+          "romaji": "ori"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "We try."
       },
@@ -1091,7 +3383,56 @@
     },
     {
       "text": "手は空いていますよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "手",
+          "pos": "名詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "空い",
+          "pos": "動詞",
+          "furigana": "あい",
+          "romaji": "ai"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I'm free."
       },
@@ -1111,7 +3452,50 @@
     },
     {
       "text": "家に戻ってきなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "家",
+          "pos": "名詞",
+          "furigana": "いえ",
+          "romaji": "ie"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "戻っ",
+          "pos": "動詞",
+          "furigana": "もどっ",
+          "romaji": "modot"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "き",
+          "pos": "動詞",
+          "furigana": "き",
+          "romaji": "ki"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Come home."
       },
@@ -1131,7 +3515,44 @@
     },
     {
       "text": "優しくしてあげなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "優しく",
+          "pos": "形容詞",
+          "furigana": "やさしく",
+          "romaji": "yasashiku"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "あげ",
+          "pos": "動詞",
+          "furigana": "あげ",
+          "romaji": "age"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Be nice."
       },
@@ -1151,7 +3572,74 @@
     },
     {
       "text": "誰にでもいいから訊いてみてください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "誰",
+          "pos": "代名詞",
+          "furigana": "だれ",
+          "romaji": "dare"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "でも",
+          "pos": "助詞",
+          "furigana": "でも",
+          "romaji": "demo"
+        },
+        {
+          "word": "いい",
+          "pos": "形容詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "から",
+          "pos": "助詞",
+          "furigana": "から",
+          "romaji": "kara"
+        },
+        {
+          "word": "訊い",
+          "pos": "動詞",
+          "furigana": "きい",
+          "romaji": "kii"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Ask anybody."
       },
@@ -1171,7 +3659,38 @@
     },
     {
       "text": "起き上がるの手伝って。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "起き上がる",
+          "pos": "動詞",
+          "furigana": "おきあがる",
+          "romaji": "okiagaru"
+        },
+        {
+          "word": "の",
+          "pos": "名詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "手伝っ",
+          "pos": "動詞",
+          "furigana": "てつだっ",
+          "romaji": "tetsudat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Help me up."
       },
@@ -1191,7 +3710,50 @@
     },
     {
       "text": "私は単刀直入なんです。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "単刀直入",
+          "pos": "名詞",
+          "furigana": "たんとうちょくにゅう",
+          "romaji": "tantouchokunyuu"
+        },
+        {
+          "word": "な",
+          "pos": "助動詞",
+          "furigana": "な",
+          "romaji": "na"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I'm direct."
       },
@@ -1211,7 +3773,56 @@
     },
     {
       "text": "私は読むことができます。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "読む",
+          "pos": "動詞",
+          "furigana": "よむ",
+          "romaji": "yomu"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "でき",
+          "pos": "動詞",
+          "furigana": "でき",
+          "romaji": "deki"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I can read."
       },
@@ -1231,7 +3842,38 @@
     },
     {
       "text": "私は引っ込み思案です。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "引っ込み思案",
+          "pos": "名詞",
+          "furigana": "ひっこみじあん",
+          "romaji": "hikkomijian"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I'm shy."
       },
@@ -1251,7 +3893,38 @@
     },
     {
       "text": "あったかくしてなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "あったかく",
+          "pos": "形容詞",
+          "furigana": "あったかく",
+          "romaji": "attakaku"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Keep warm."
       },
@@ -1271,7 +3944,44 @@
     },
     {
       "text": "どなたさまでしょうか。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "どなた",
+          "pos": "代名詞",
+          "furigana": "どなた",
+          "romaji": "donata"
+        },
+        {
+          "word": "さま",
+          "pos": "名詞",
+          "furigana": "さま",
+          "romaji": "sama"
+        },
+        {
+          "word": "でしょ",
+          "pos": "助動詞",
+          "furigana": "でしょ",
+          "romaji": "desho"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "か",
+          "pos": "助詞",
+          "furigana": "か",
+          "romaji": "ka"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Who is it?"
       },
@@ -1291,7 +4001,50 @@
     },
     {
       "text": "ほら、ここにあるよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "ほら",
+          "pos": "感動詞",
+          "furigana": "ほら",
+          "romaji": "hora"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "ここ",
+          "pos": "代名詞",
+          "furigana": "ここ",
+          "romaji": "koko"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "ある",
+          "pos": "動詞",
+          "furigana": "ある",
+          "romaji": "aru"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Here it is."
       },
@@ -1311,7 +4064,56 @@
     },
     {
       "text": "私も年をとったなあ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "も",
+          "pos": "助詞",
+          "furigana": "も",
+          "romaji": "mo"
+        },
+        {
+          "word": "年",
+          "pos": "名詞",
+          "furigana": "とし",
+          "romaji": "toshi"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "とっ",
+          "pos": "動詞",
+          "furigana": "とっ",
+          "romaji": "tot"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "なあ",
+          "pos": "助詞",
+          "furigana": "なあ",
+          "romaji": "naa"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I feel old."
       },
@@ -1331,7 +4133,50 @@
     },
     {
       "text": "あなたが必要なんです。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "あなた",
+          "pos": "代名詞",
+          "furigana": "あなた",
+          "romaji": "anata"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "必要",
+          "pos": "名詞",
+          "furigana": "ひつよう",
+          "romaji": "hitsuyou"
+        },
+        {
+          "word": "な",
+          "pos": "助動詞",
+          "furigana": "な",
+          "romaji": "na"
+        },
+        {
+          "word": "ん",
+          "pos": "名詞",
+          "furigana": "ん",
+          "romaji": "n"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I need you."
       },
@@ -1351,7 +4196,32 @@
     },
     {
       "text": "とにかく落ち着いて。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "とにかく",
+          "pos": "副詞",
+          "furigana": "とにかく",
+          "romaji": "tonikaku"
+        },
+        {
+          "word": "落ち着い",
+          "pos": "動詞",
+          "furigana": "おちつい",
+          "romaji": "ochitsui"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Just relax."
       },
@@ -1371,7 +4241,38 @@
     },
     {
       "text": "寄りかかっていいよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "寄りかかっ",
+          "pos": "動詞",
+          "furigana": "よりかかっ",
+          "romaji": "yorikakat"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "いい",
+          "pos": "形容詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Lean on me."
       },
@@ -1391,7 +4292,56 @@
     },
     {
       "text": "さあ、みんなで歌いましょう。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "さあ",
+          "pos": "感動詞",
+          "furigana": "さあ",
+          "romaji": "saa"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "みんな",
+          "pos": "代名詞",
+          "furigana": "みんな",
+          "romaji": "minna"
+        },
+        {
+          "word": "で",
+          "pos": "助詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "歌い",
+          "pos": "動詞",
+          "furigana": "うたい",
+          "romaji": "utai"
+        },
+        {
+          "word": "ましょ",
+          "pos": "助動詞",
+          "furigana": "ましょ",
+          "romaji": "masho"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Sing along."
       },
@@ -1411,7 +4361,50 @@
     },
     {
       "text": "私は青色が好きです。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "青色",
+          "pos": "名詞",
+          "furigana": "あおいろ",
+          "romaji": "aoiro"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "好き",
+          "pos": "名詞",
+          "furigana": "すき",
+          "romaji": "suki"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I like blue."
       },
@@ -1431,7 +4424,44 @@
     },
     {
       "text": "僕はリラックスした。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "僕",
+          "pos": "代名詞",
+          "furigana": "ぼく",
+          "romaji": "boku"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "リラックス",
+          "pos": "名詞",
+          "furigana": "りらっくす",
+          "romaji": "rirakkusu"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I relaxed."
       },
@@ -1451,7 +4481,38 @@
     },
     {
       "text": "上記をご覧ください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "上記",
+          "pos": "名詞",
+          "furigana": "じょうき",
+          "romaji": "jouki"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "ご覧",
+          "pos": "名詞",
+          "furigana": "ごらん",
+          "romaji": "goran"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "See above."
       },
@@ -1471,7 +4532,68 @@
     },
     {
       "text": "私って、運が良かったのよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "って",
+          "pos": "助詞",
+          "furigana": "って",
+          "romaji": "tte"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "運",
+          "pos": "名詞",
+          "furigana": "うん",
+          "romaji": "un"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "良かっ",
+          "pos": "形容詞",
+          "furigana": "よかっ",
+          "romaji": "yokat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I got lucky."
       },
@@ -1491,7 +4613,32 @@
     },
     {
       "text": "少しお待ちください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "少し",
+          "pos": "副詞",
+          "furigana": "すこし",
+          "romaji": "sukoshi"
+        },
+        {
+          "word": "お待ち",
+          "pos": "名詞",
+          "furigana": "おまち",
+          "romaji": "omachi"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Wait a bit."
       },
@@ -1511,7 +4658,38 @@
     },
     {
       "text": "たくさん食べちゃった。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "たくさん",
+          "pos": "名詞",
+          "furigana": "たくさん",
+          "romaji": "takusan"
+        },
+        {
+          "word": "食べ",
+          "pos": "動詞",
+          "furigana": "たべ",
+          "romaji": "tabe"
+        },
+        {
+          "word": "ちゃっ",
+          "pos": "動詞",
+          "furigana": "ちゃっ",
+          "romaji": "chat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I ate a lot."
       },
@@ -1531,7 +4709,50 @@
     },
     {
       "text": "僕らは恥ずかしがり屋です。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "僕ら",
+          "pos": "代名詞",
+          "furigana": "ぼくら",
+          "romaji": "bokura"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "恥ずかし",
+          "pos": "形容詞",
+          "furigana": "はずかし",
+          "romaji": "hazukashi"
+        },
+        {
+          "word": "がり",
+          "pos": "動詞",
+          "furigana": "がり",
+          "romaji": "gari"
+        },
+        {
+          "word": "屋",
+          "pos": "名詞",
+          "furigana": "や",
+          "romaji": "ya"
+        },
+        {
+          "word": "です",
+          "pos": "助動詞",
+          "furigana": "です",
+          "romaji": "desu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "We're shy."
       },
@@ -1551,7 +4772,62 @@
     },
     {
       "text": "私は運転することができます。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "運転",
+          "pos": "名詞",
+          "furigana": "うんてん",
+          "romaji": "unten"
+        },
+        {
+          "word": "する",
+          "pos": "動詞",
+          "furigana": "する",
+          "romaji": "suru"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "でき",
+          "pos": "動詞",
+          "furigana": "でき",
+          "romaji": "deki"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I can drive."
       },
@@ -1571,7 +4847,38 @@
     },
     {
       "text": "どうぞお召し上がりください。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "どうぞ",
+          "pos": "副詞",
+          "furigana": "どうぞ",
+          "romaji": "douzo"
+        },
+        {
+          "word": "お",
+          "pos": "名詞",
+          "furigana": "お",
+          "romaji": "o"
+        },
+        {
+          "word": "召し上がり",
+          "pos": "動詞",
+          "furigana": "めしあがり",
+          "romaji": "meshiagari"
+        },
+        {
+          "word": "ください",
+          "pos": "動詞",
+          "furigana": "ください",
+          "romaji": "kudasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Please eat."
       },
@@ -1591,7 +4898,32 @@
     },
     {
       "text": "ありがとうございます。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "ありがとう",
+          "pos": "感動詞",
+          "furigana": "ありがとう",
+          "romaji": "arigatou"
+        },
+        {
+          "word": "ござい",
+          "pos": "助動詞",
+          "furigana": "ござい",
+          "romaji": "gozai"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Thank you."
       },
@@ -1611,7 +4943,44 @@
     },
     {
       "text": "そうでなきゃいいけど。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "そう",
+          "pos": "副詞",
+          "furigana": "そう",
+          "romaji": "sou"
+        },
+        {
+          "word": "で",
+          "pos": "助動詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "なきゃ",
+          "pos": "助動詞",
+          "furigana": "なきゃ",
+          "romaji": "nakya"
+        },
+        {
+          "word": "いい",
+          "pos": "形容詞",
+          "furigana": "いい",
+          "romaji": "ii"
+        },
+        {
+          "word": "けど",
+          "pos": "助詞",
+          "furigana": "けど",
+          "romaji": "kedo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I hope not."
       },
@@ -1631,7 +5000,44 @@
     },
     {
       "text": "あくびが出ちゃった。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "あくび",
+          "pos": "名詞",
+          "furigana": "あくび",
+          "romaji": "akubi"
+        },
+        {
+          "word": "が",
+          "pos": "助詞",
+          "furigana": "が",
+          "romaji": "ga"
+        },
+        {
+          "word": "出",
+          "pos": "動詞",
+          "furigana": "で",
+          "romaji": "de"
+        },
+        {
+          "word": "ちゃっ",
+          "pos": "動詞",
+          "furigana": "ちゃっ",
+          "romaji": "chat"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I yawned."
       },
@@ -1651,7 +5057,44 @@
     },
     {
       "text": "ストップって言ってね。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "ストップ",
+          "pos": "名詞",
+          "furigana": "すとっぷ",
+          "romaji": "sutoppu"
+        },
+        {
+          "word": "って",
+          "pos": "助詞",
+          "furigana": "って",
+          "romaji": "tte"
+        },
+        {
+          "word": "言っ",
+          "pos": "動詞",
+          "furigana": "いっ",
+          "romaji": "it"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ね",
+          "pos": "助詞",
+          "furigana": "ね",
+          "romaji": "ne"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Say when."
       },
@@ -1671,7 +5114,62 @@
     },
     {
       "text": "周りの人に聞いてみて。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "周り",
+          "pos": "名詞",
+          "furigana": "まわり",
+          "romaji": "mawari"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "人",
+          "pos": "名詞",
+          "furigana": "ひと",
+          "romaji": "hito"
+        },
+        {
+          "word": "に",
+          "pos": "助詞",
+          "furigana": "に",
+          "romaji": "ni"
+        },
+        {
+          "word": "聞い",
+          "pos": "動詞",
+          "furigana": "きい",
+          "romaji": "kii"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Ask around."
       },
@@ -1691,7 +5189,44 @@
     },
     {
       "text": "僕、ジャンプできるよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "僕",
+          "pos": "代名詞",
+          "furigana": "ぼく",
+          "romaji": "boku"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "ジャンプ",
+          "pos": "名詞",
+          "furigana": "じゃんぷ",
+          "romaji": "janpu"
+        },
+        {
+          "word": "できる",
+          "pos": "動詞",
+          "furigana": "できる",
+          "romaji": "dekiru"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I can jump."
       },
@@ -1711,7 +5246,62 @@
     },
     {
       "text": "彼のことは知ってますよ。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "彼",
+          "pos": "代名詞",
+          "furigana": "かれ",
+          "romaji": "kare"
+        },
+        {
+          "word": "の",
+          "pos": "助詞",
+          "furigana": "の",
+          "romaji": "no"
+        },
+        {
+          "word": "こと",
+          "pos": "名詞",
+          "furigana": "こと",
+          "romaji": "koto"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "知っ",
+          "pos": "動詞",
+          "furigana": "しっ",
+          "romaji": "shit"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "よ",
+          "pos": "助詞",
+          "furigana": "よ",
+          "romaji": "yo"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I know him."
       },
@@ -1731,7 +5321,56 @@
     },
     {
       "text": "お米を栽培しています。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "お米",
+          "pos": "名詞",
+          "furigana": "おこめ",
+          "romaji": "okome"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "栽培",
+          "pos": "名詞",
+          "furigana": "さいばい",
+          "romaji": "saibai"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "い",
+          "pos": "動詞",
+          "furigana": "い",
+          "romaji": "i"
+        },
+        {
+          "word": "ます",
+          "pos": "助動詞",
+          "furigana": "ます",
+          "romaji": "masu"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I grow rice."
       },
@@ -1751,7 +5390,50 @@
     },
     {
       "text": "私たちは仲直りした。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "私",
+          "pos": "代名詞",
+          "furigana": "わたし",
+          "romaji": "watashi"
+        },
+        {
+          "word": "たち",
+          "pos": "名詞",
+          "furigana": "たち",
+          "romaji": "tachi"
+        },
+        {
+          "word": "は",
+          "pos": "助詞",
+          "furigana": "は",
+          "romaji": "wa"
+        },
+        {
+          "word": "仲直り",
+          "pos": "名詞",
+          "furigana": "なかなおり",
+          "romaji": "nakanaori"
+        },
+        {
+          "word": "し",
+          "pos": "動詞",
+          "furigana": "し",
+          "romaji": "shi"
+        },
+        {
+          "word": "た",
+          "pos": "助動詞",
+          "furigana": "た",
+          "romaji": "ta"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "We made up."
       },
@@ -1771,7 +5453,26 @@
     },
     {
       "text": "ちょっとすみません。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "ちょっと",
+          "pos": "副詞",
+          "furigana": "ちょっと",
+          "romaji": "chotto"
+        },
+        {
+          "word": "すみません",
+          "pos": "感動詞",
+          "furigana": "すみません",
+          "romaji": "sumimasen"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Excuse me."
       },
@@ -1791,7 +5492,44 @@
     },
     {
       "text": "そりゃそうだろうな。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "そりゃ",
+          "pos": "接続詞",
+          "furigana": "そりゃ",
+          "romaji": "sorya"
+        },
+        {
+          "word": "そう",
+          "pos": "名詞",
+          "furigana": "そう",
+          "romaji": "sou"
+        },
+        {
+          "word": "だろ",
+          "pos": "助動詞",
+          "furigana": "だろ",
+          "romaji": "daro"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "な",
+          "pos": "助詞",
+          "furigana": "な",
+          "romaji": "na"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "I guess so."
       },
@@ -1811,7 +5549,50 @@
     },
     {
       "text": "さ、話してみなさい。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "さ",
+          "pos": "助詞",
+          "furigana": "さ",
+          "romaji": "sa"
+        },
+        {
+          "word": "、",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        },
+        {
+          "word": "話し",
+          "pos": "動詞",
+          "furigana": "はなし",
+          "romaji": "hanashi"
+        },
+        {
+          "word": "て",
+          "pos": "助詞",
+          "furigana": "て",
+          "romaji": "te"
+        },
+        {
+          "word": "み",
+          "pos": "動詞",
+          "furigana": "み",
+          "romaji": "mi"
+        },
+        {
+          "word": "なさい",
+          "pos": "動詞",
+          "furigana": "なさい",
+          "romaji": "nasai"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Let's talk."
       },
@@ -1831,7 +5612,44 @@
     },
     {
       "text": "勉強を頑張りましょう。",
-      "tokens": [],
+      "tokens": [
+        {
+          "word": "勉強",
+          "pos": "名詞",
+          "furigana": "べんきょう",
+          "romaji": "benkyou"
+        },
+        {
+          "word": "を",
+          "pos": "助詞",
+          "furigana": "を",
+          "romaji": "o"
+        },
+        {
+          "word": "頑張り",
+          "pos": "動詞",
+          "furigana": "がんばり",
+          "romaji": "ganbari"
+        },
+        {
+          "word": "ましょ",
+          "pos": "助動詞",
+          "furigana": "ましょ",
+          "romaji": "masho"
+        },
+        {
+          "word": "う",
+          "pos": "助動詞",
+          "furigana": "う",
+          "romaji": "u"
+        },
+        {
+          "word": "。",
+          "pos": "記号",
+          "furigana": "",
+          "romaji": ""
+        }
+      ],
       "translation": {
         "en": "Study hard."
       },

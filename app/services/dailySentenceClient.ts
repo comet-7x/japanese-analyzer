@@ -1,5 +1,5 @@
 import { LOCALES, type Locale } from '../i18n';
-import { DAILY_SENTENCES, getDayNumber, getFallbackDailySentence, isOnlineDailySentence, type DailySentence } from '../utils/dailySentences';
+import { DAILY_SENTENCES, getDayNumber, getFallbackDailySentence, isCompleteDailySentence, isOnlineDailySentence, type DailySentence } from '../utils/dailySentences';
 import { browserStorage } from '../utils/storage';
 import { MAX_SENTENCE_PACK_SIZE, type SentencePack } from '../utils/sentencePack';
 
@@ -55,6 +55,7 @@ interface PoolState {
   failures: Partial<Record<Locale, number>>;
   packVersion?: string;
   packPublishedAt?: string;
+  packSchemaVersion?: number;
   packIds: number[];
 }
 
@@ -79,6 +80,7 @@ export function createDailySentencePool(storage: Storage = browserStorage, rando
     syncedAt: timestamps(source?.syncedAt), retryAt: timestamps(source?.retryAt), failures: timestamps(source?.failures),
     packVersion: typeof source?.packVersion === 'string' ? source.packVersion : undefined,
     packPublishedAt: typeof source?.packPublishedAt === 'string' ? source.packPublishedAt : undefined,
+    packSchemaVersion: source?.packSchemaVersion === 2 ? 2 : 1,
     packIds: Array.isArray(source?.packIds) ? source.packIds.filter(id => Number.isSafeInteger(id) && id > 0).slice(0, MAX_SENTENCE_PACK_SIZE) : [],
   };
   const save = () => { write(DAILY_POOL_KEY, state, storage); };
@@ -96,7 +98,8 @@ export function createDailySentencePool(storage: Storage = browserStorage, rando
   const nextSyncAt = (date: string, locale: Locale) => {
     prune(date);
     const last = Math.min(state.syncedAt[locale] ?? 0, now());
-    const due = state.candidates.length <= POOL_LOW_WATER ? last + SYNC_INTERVAL_MS : last + DAY_MS;
+    const ready = state.candidates.filter(sentence => isCompleteDailySentence(sentence, locale)).length;
+    const due = ready <= POOL_LOW_WATER ? last + SYNC_INTERVAL_MS : last + DAY_MS;
     // Bound persisted deadlines so clock changes or corrupted storage cannot disable sync indefinitely.
     return Math.max(due, Math.min(state.retryAt[locale] ?? 0, now() + 6 * 60 * 60_000));
   };
@@ -107,23 +110,25 @@ export function createDailySentencePool(storage: Storage = browserStorage, rando
     }
     return candidates;
   };
-  const install = (sentences: DailySentence[], date: string, version: string, publishedAt: string) => {
-    if (state.packVersion === version || (state.packPublishedAt && state.packPublishedAt >= publishedAt)) return;
+  const install = (sentences: DailySentence[], date: string, version: string, publishedAt: string, schemaVersion: number) => {
+    if (state.packVersion === version || (state.packPublishedAt && (state.packPublishedAt > publishedAt
+      || (state.packPublishedAt === publishedAt && (state.packSchemaVersion ?? 1) >= schemaVersion)))) return;
     state.candidates = state.candidates.filter(sentence => !state.packIds.includes(sentence.source!.id));
     state.packIds = sentences.map(sentence => sentence.source!.id);
-    state.packVersion = version; state.packPublishedAt = publishedAt;
+    state.packVersion = version; state.packPublishedAt = publishedAt; state.packSchemaVersion = schemaVersion;
     state.candidates.unshift(...shuffle(sentences));
     prune(date); state.candidates = state.candidates.slice(0, MAX_SENTENCE_PACK_SIZE); save();
   };
   return {
     installPack(pack: SentencePack, date: string) {
-      install(pack.sentences.map(sentence => ({ ...sentence, date })), date, pack.version, pack.publishedAt);
+      install(pack.sentences.map(sentence => ({ ...sentence, date })), date, pack.version, pack.publishedAt, pack.schemaVersion);
     },
-    current(date: string) { return state.current?.date === date ? state.current : null; },
+    current(date: string, locale: Locale) {
+      return state.current?.date === date && isCompleteDailySentence(state.current, locale) ? state.current : null;
+    },
     take(date: string, locale: Locale, exclude = ''): DailySentence {
       prune(date);
-      const eligible = state.candidates.filter(sentence => sentence.text !== exclude);
-      const selected = eligible.find(sentence => sentence.translation[locale]) ?? eligible[0];
+      const selected = state.candidates.find(sentence => sentence.text !== exclude && isCompleteDailySentence(sentence, locale));
       const sentence = selected ? { ...selected, date }
         : getLocalDailySentence(date, storage, random, { refresh: !!exclude, exclude });
       state.current = sentence;
@@ -134,13 +139,13 @@ export function createDailySentencePool(storage: Storage = browserStorage, rando
     },
     addBatch(value: unknown, date: string, locale: Locale): boolean {
       if (!value || typeof value !== 'object') return false;
-      const batch = value as { date?: unknown; sentences?: unknown; packVersion?: unknown; packPublishedAt?: unknown };
+      const batch = value as { date?: unknown; sentences?: unknown; packVersion?: unknown; packPublishedAt?: unknown; packSchemaVersion?: unknown };
       if (batch.date !== date || !Array.isArray(batch.sentences)) return false;
       const candidates = batch.sentences.slice(0, MAX_SENTENCE_PACK_SIZE).filter(isOnlineDailySentence).filter(sentence => sentence.date === date);
       if (!candidates.length) return false;
       if (typeof batch.packVersion === 'string' && /^\d{4}-\d{2}-\d{2}-[a-f0-9]{12}$/.test(batch.packVersion)
         && typeof batch.packPublishedAt === 'string' && batch.packVersion.startsWith(`${batch.packPublishedAt}-`)) {
-        install(candidates, date, batch.packVersion, batch.packPublishedAt);
+        install(candidates, date, batch.packVersion, batch.packPublishedAt, batch.packSchemaVersion === 2 ? 2 : 1);
       } else {
         state.candidates.push(...shuffle(candidates));
         prune(date); state.candidates = state.candidates.slice(0, MAX_SENTENCE_PACK_SIZE);

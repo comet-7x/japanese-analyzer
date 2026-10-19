@@ -55,7 +55,13 @@ async function main() {
   const onlineBatch = (date: string, id = 100, text = '今日は図書館で本を読みます。') => ({ date, sentences: parseDailySentenceCandidates({ data: [{
     id, text, lang: 'jpn', license: 'CC BY 2.0 FR', is_unapproved: false,
     translations: [{ id: 200, text: '今天在图书馆看书。', lang: 'cmn', script: 'Hans', license: 'CC BY 2.0 FR', is_direct: true, is_unapproved: false }],
-  }] }, date) });
+  }] }, date).map(sentence => ({ ...sentence, tokens: [{ word: text, pos: '名詞', furigana: {
+    '今日は図書館で本を読みます。': 'きょうはとしょかんでほんをよみます',
+    '明日は友達と公園に行きます。': 'あしたはともだちとこうえんにいきます',
+    '週末は家族と映画を見ます。': 'しゅうまつはかぞくとえいがをみます',
+    '駅まで歩いて十分かかります。': 'えきまであるいてじゅっぷんかかります',
+    '毎日少しずつ日本語を勉強しています。': 'まいにちすこしずつにほんごをべんきょうしています',
+  }[text] }] })) });
   let renderer: ReactTestRenderer | undefined;
   let language!: ReturnType<typeof useLanguage>;
   let analyzed = '';
@@ -70,8 +76,19 @@ async function main() {
     assert.ok(DAILY_SENTENCE_CLIENT_TIMEOUT_MS > DAILY_SENTENCE_PACK_TIMEOUT_MS);
     navigatorMock.onLine = false;
     await mount();
-    assert.equal(renderer!.root.findAllByProps({ className: 'daily-plain-text' }).length, 1, 'Fresh offline installs can select a bundled corpus sentence');
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-tokens' }).length, 1, 'Fresh offline installs always have readings');
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-translation' }).length, 1, 'Fresh offline installs always have the current locale translation');
     assert.equal(pending.length, 0);
+    await act(async () => { language.setLocale('en'); });
+    await act(async () => { refresh().props.onClick(); });
+    assert.equal(renderer!.root.findAllByType('a').length, 4, 'English users can select the annotated Tatoeba pack offline');
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-tokens' }).length, 1);
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-translation' }).length, 1);
+    const savedEnglish = text();
+    await unmount(); await mount();
+    assert.equal(text(), savedEnglish, 'Restoring the saved locale happens before selection, preserving the English sentence');
+    await act(async () => { language.setLocale('zh-CN'); });
+    assert.equal(renderer!.root.findAllByType('a').length, 0, 'A locale change replaces an English-only selection with a complete local example');
     await unmount(); resetValues(); navigatorMock.onLine = true;
     await mount();
     const initial = text();
@@ -100,7 +117,7 @@ async function main() {
     await act(async () => { refresh().props.onClick(); });
     const online = text();
     assert.notEqual(online, manualLocal);
-    assert.equal(renderer!.root.findAllByProps({ className: 'daily-plain-text' }).length, 1);
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-tokens' }).length, 1);
     assert.equal(renderer!.root.findAllByType('a').length, 4, 'Online selections retain original and translation attribution');
     assert.equal(pending.length, 1, 'Stored candidates are consumed without another network request');
     await act(async () => { button().props.onClick(); });
@@ -114,11 +131,11 @@ async function main() {
     await act(async () => { refresh().props.onClick(); });
     const offlineOnline = text();
     assert.notEqual(offlineOnline, online, 'Previously downloaded candidates also work offline');
-    assert.equal(renderer!.root.findAllByProps({ className: 'daily-plain-text' }).length, 1);
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-tokens' }).length, 1);
     assert.equal(pending.length, 1);
     await act(async () => { language.setLocale('ko'); });
-    assert.ok(text().endsWith(offlineOnline.split('：').at(-1)!));
-    assert.equal(renderer!.root.findAllByProps({ className: 'daily-translation' }).length, 0, 'Missing translations never display another language');
+    assert.ok(!text().endsWith(offlineOnline.split('：').at(-1)!));
+    assert.equal(renderer!.root.findAllByProps({ className: 'daily-translation' }).length, 1, 'A missing locale translation triggers a complete local fallback');
     await unmount();
 
     // Blocked writes retain the pool and its consumed history in memory across language changes.
@@ -130,7 +147,7 @@ async function main() {
     const blockedOnline = text();
     assert.notEqual(blockedOnline, blockedLocal);
     await act(async () => { language.setLocale('en'); });
-    assert.ok(text().endsWith(blockedOnline.split('：').at(-1)!));
+    assert.ok(!text().endsWith(blockedOnline.split('：').at(-1)!));
     await act(async () => { refresh().props.onClick(); });
     assert.notEqual(text(), blockedOnline, 'Unwritable storage cannot reuse the consumed online choice');
     writesBlocked = false;

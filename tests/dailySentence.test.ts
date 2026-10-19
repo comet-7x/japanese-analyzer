@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { parseDailySentenceCandidates } from '../app/api/_utils/dailySentence';
 import { GET } from '../app/api/daily-sentence/route';
-import { DAILY_SENTENCES, getDayNumber, getJstDateKey, isOnlineDailySentence, secondsUntilJstMidnight } from '../app/utils/dailySentences';
+import { DAILY_SENTENCES, getDayNumber, getJstDateKey, hasDailySentenceReadings, isCompleteDailySentence, isOnlineDailySentence, secondsUntilJstMidnight } from '../app/utils/dailySentences';
 import { createDailySentencePool, DAILY_DECK_KEY, DAILY_ONLINE_KEY, DAILY_POOL_KEY, getLocalDailySentence } from '../app/services/dailySentenceClient';
 import { LOCALES } from '../app/i18n';
 
@@ -57,6 +57,9 @@ async function main() {
   assert.notEqual(getLocalDailySentence(date, blocked, () => 0, { refresh: true, exclude: refreshed[0] }).text, refreshed[0]);
 
   const sentences = parseDailySentenceCandidates({ data: [remoteRow(), remoteRow()] }, date);
+  assert.equal(isCompleteDailySentence(sentences[0], 'en'), false, 'A raw API result remains a candidate until annotated');
+  assert.equal(hasDailySentenceReadings({ text: '本。', tokens: [{ word: '本', pos: '名詞', furigana: 'hon' }, { word: '。', pos: '記号' }] }), false);
+  assert.equal(hasDailySentenceReadings({ text: '本。', tokens: [{ word: '本', pos: '名詞', furigana: 'ほん' }] }), false);
   assert.equal(sentences.length, 1);
   assert.equal(sentences[0].translation['zh-TW'], '今天在圖書館看書。');
   assert.equal(sentences[0].source?.translations.en?.license, 'CC0 1.0');
@@ -81,24 +84,25 @@ async function main() {
   const pool = makePool();
   assert.equal(pool.syncDelay(date, 'zh-CN'), 0);
   const initial = pool.take(date, 'zh-CN');
-  const batch = { date, sentences: parseDailySentenceCandidates({ data: DAILY_SENTENCES.slice(0, 12).map((item, index) => remoteRow(index + 500, item.text)) }, date) };
+  const batch = { date, sentences: parseDailySentenceCandidates({ data: DAILY_SENTENCES.slice(0, 12).map((item, index) => remoteRow(index + 500, item.text)) }, date)
+    .map(sentence => ({ ...sentence, tokens: DAILY_SENTENCES.find(local => local.text === sentence.text)!.tokens })) };
   assert.equal(pool.addBatch(batch, date, 'zh-CN'), true);
-  assert.equal(pool.current(date)?.text, initial.text, 'A fetched batch never selects or replaces the displayed sentence');
+  assert.equal(pool.current(date, 'zh-CN')?.text, initial.text, 'A fetched batch never selects or replaces the displayed sentence');
   assert.equal(pool.syncDelay(date, 'zh-CN'), 86_400_000, 'A sufficiently stocked pool checks for updates after a day');
   const online = pool.take(date, 'zh-CN', initial.text);
   assert.ok(online.source);
   assert.notEqual(online.text, initial.text);
-  assert.equal(makePool().current(date)?.text, online.text, 'Current choice survives reload');
+  assert.equal(makePool().current(date, 'zh-CN')?.text, online.text, 'Current choice survives reload');
   const used = new Set([initial.text, online.text]);
   for (let i = 0; i < 10; i++) {
-    const next = pool.take(date, 'zh-CN', pool.current(date)!.text);
+    const next = pool.take(date, 'zh-CN', pool.current(date, 'zh-CN')!.text);
     if (!next.source) break;
     assert.ok(!used.has(next.text), 'Candidate pool consumes each sentence once');
     used.add(next.text);
   }
   assert.ok(pool.syncDelay(date, 'zh-CN') <= 15 * 60_000, 'Low stock permits replenishment after a cooldown');
-  const localChoice = pool.take(date, 'zh-CN', pool.current(date)!.text);
-  assert.equal(makePool().current(date)?.text, localChoice.text);
+  const localChoice = pool.take(date, 'zh-CN', pool.current(date, 'zh-CN')!.text);
+  assert.equal(makePool().current(date, 'zh-CN')?.text, localChoice.text);
   pool.failed('en');
   assert.equal(makePool().syncDelay(date, 'en'), 15 * 60_000, 'Failure backoff persists across page reloads');
   clock += 15 * 60_000;
@@ -116,11 +120,11 @@ async function main() {
   poolValues.clear();
   poolValues.set(DAILY_ONLINE_KEY, JSON.stringify({ sentence: sentences[0], history: [{ date, id: 123, text: sentences[0].text }] }));
   const migrated = makePool();
-  assert.equal(migrated.current(date)?.source?.id, 123, 'Existing v2 choice and history migrate');
+  assert.equal(migrated.current(date, 'en'), null, 'Incomplete legacy choices are not restored');
   assert.equal(migrated.addBatch({ date, sentences }, date, 'en'), true);
   assert.equal(migrated.take(date, 'en', sentences[0].text).source, undefined, 'Migration retains seen IDs and text');
   assert.ok(poolValues.has(DAILY_POOL_KEY));
-  assert.equal(makePool().current(date)?.source, undefined, 'A saved local choice takes priority over legacy online cache');
+  assert.equal(makePool().current(date, 'en')?.source, undefined, 'A saved local choice takes priority over legacy online cache');
   poolValues.clear();
   const aging = makePool();
   aging.addBatch(batch, date, 'zh-CN');
@@ -129,6 +133,14 @@ async function main() {
   assert.equal(makePool().take('2026-10-02', 'zh-CN').source, undefined, 'Candidate packs expire after seven days');
   poolValues.set(DAILY_POOL_KEY, '{');
   assert.ok(makePool().take(date, 'en').text, 'Corrupt storage falls back safely');
+
+  poolValues.clear();
+  const incomplete = makePool();
+  assert.equal(incomplete.addBatch({ date, sentences }, date, 'en'), true);
+  assert.equal(incomplete.take(date, 'en').source, undefined, 'Raw API candidates without readings cannot be displayed');
+  const noTranslation = { ...batch.sentences[0], translation: {} };
+  assert.equal(incomplete.addBatch({ date, sentences: [noTranslation] }, date, 'ko'), true);
+  assert.ok(isCompleteDailySentence(incomplete.take(date, 'ko'), 'ko'), 'Missing locale translations fall back to complete local examples');
 
   const originalFetch = globalThis.fetch;
   const code = process.env.CODE;

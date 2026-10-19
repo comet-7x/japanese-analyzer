@@ -6,6 +6,7 @@ import { getPosClass } from '../utils/helpers';
 import { getApiEndpoint } from '../services/api';
 import {
   getJstDateKey,
+  isCompleteDailySentence,
   secondsUntilJstMidnight,
   sentenceLicenseUrl,
   type DailySentence as DailySentenceData,
@@ -46,7 +47,7 @@ async function fetchOnlineBatch(date: string, locale: Locale, signal: AbortSigna
 
 /** 首页「今日一句」：用解析结果的样子展示一句日语，点击即解析 */
 export default function DailySentence({ onAnalyze, disabled = false }: DailySentenceProps) {
-  const { t, locale } = useLanguage();
+  const { t, locale, localeReady } = useLanguage();
   const [sentence, setSentence] = useState<DailySentenceData | null>(null);
   const currentSentence = useRef<DailySentenceData | null>(null);
   const requests = useRef(new LatestRequest());
@@ -78,11 +79,13 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
   }, []);
 
   useEffect(() => {
+    if (!localeReady) return;
     const deck = pool.current ??= createDailySentencePool();
     deck.installPack(bundledSentencePack, dateKey);
     const requestManager = requests.current;
-    const initial = (currentSentence.current?.date === dateKey ? currentSentence.current : null)
-      ?? deck.current(dateKey) ?? deck.take(dateKey, locale);
+    const previous = currentSentence.current;
+    const initial = (previous?.date === dateKey && isCompleteDailySentence(previous, locale) ? previous : null)
+      ?? deck.current(dateKey, locale) ?? deck.take(dateKey, locale);
     display(initial);
     let disposed = false;
     let pending = false;
@@ -119,7 +122,7 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
       syncInBackground.current = () => {};
       requestManager.cancel();
     };
-  }, [dateKey, locale, display]);
+  }, [dateKey, locale, localeReady, display]);
 
   const refreshSentence = () => {
     const previous = currentSentence.current;
@@ -136,7 +139,7 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
     }
   };
 
-  if (!sentence) {
+  if (!localeReady || !sentence || !isCompleteDailySentence(sentence, locale)) {
     return (
       <div className="daily-sentence-placeholder" aria-hidden="true">
         <span className="daily-label">{t("今日一句")}</span>
@@ -176,7 +179,7 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
         disabled={disabled}
         aria-label={`${t("解析这句")}：${sentence.text}`}
       >
-        {sentence.tokens.length ? <span className="daily-tokens" lang="ja" aria-hidden="true">
+        <span className="daily-tokens" lang="ja" aria-hidden="true">
           {sentence.tokens.map((token, index) => {
             const isPunct = token.pos === '記号';
             const furigana = token.furigana && token.furigana !== token.word
@@ -190,7 +193,7 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
               </span>
             );
           })}
-        </span> : <span className="daily-plain-text" lang="ja" aria-hidden="true">{sentence.text}</span>}
+        </span>
         {translation && <span className="daily-translation">{translation}</span>}
       </button>
       {source && <div className="daily-source">

@@ -10,6 +10,9 @@ on:
     paths:
       - 'app/data/daily-sentences.json'
       - 'app/utils/sentencePack.ts'
+      - 'app/utils/dailySentences.ts'
+      - 'app/utils/localTokens.ts'
+      - 'app/utils/romaji.ts'
       - 'scripts/daily-sentence/**'
       - 'tests/sentencePack.test.ts'
 permissions:
