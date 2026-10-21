@@ -78,3 +78,9 @@ See LICENSES/Wiktionary-data.md and LICENSES/CC-BY-SA-4.0.txt.
 Generated and vendored dictionary data retain their original licenses,
 independently of this application's AGPL license. Pinned source versions,
 dates, URLs and hashes are recorded in dictionary.locales.lock.json.
+
+Live2D interface icons
+----------------------
+Grip, Hand, Book Open and Circle User Round SVG paths are adapted from Lucide
+(https://lucide.dev/). Copyright Lucide Icons and Contributors; ISC/MIT terms
+are preserved in LICENSES/Lucide-LICENSE.txt.

@@ -63,3 +63,6 @@ next-env.d.ts
 /.dictionary-cache/
 /data/dictionary/
 /data/local-analyzer/
+
+# Live2D Cubism Core is proprietary; obtain and package it under its own terms.
+/public/live2d/core/live2dcubismcore.min.js

@@ -40,10 +40,10 @@ export function ResourceAssignment({ action, profile, caps, onChange, onDone }: 
     {purpose === 'tap' && !targets.length && <p>{t('模型没有点击区域，请在互动设置中添加区域。')}</p>}
     {conflict && <p role="status">{t('此触发方式已有指定资源，确认后将替换。')}</p>}
     <div className="live2d-action-buttons">
-      <button type="button" className="nd-btn" disabled={purpose === 'tap' && !targets.length} onClick={() => apply()}>{t(purpose === 'idle' ? '只播放此动作' : replace ? '确认替换' : '添加用途')}</button>
+      <button type="button" className="nd-primary-btn" disabled={purpose === 'tap' && !targets.length} onClick={() => apply()}>{t(purpose === 'idle' ? '只播放此动作' : replace ? '确认替换' : '添加用途')}</button>
       {purpose === 'idle' && idleResources(profile, caps).length > 0 && <button type="button" className="nd-ghost-btn" onClick={() => apply(true)}>{t('加入现有待机清单')}</button>}
       <button type="button" className="nd-ghost-btn" onClick={onDone}>{t('取消')}</button>
     </div>
-    <p>{t('已加入设置草稿，保存设置后应用到桌面角色。')}</p>
+    <p>{t('用途修改先保留为草稿，保存设置后应用到桌面角色。')}</p>
   </section>;
 }

@@ -359,5 +359,25 @@ export const workbenchMessages = {
     "zh-TW": "輕點預覽角色或聚焦後按快捷鍵；僅影響預覽。",
     "en": "Tap the preview or focus it and use shortcuts. Only the preview is affected.",
     "ko": "미리보기를 탭하거나 포커스 후 단축키를 사용하세요. 미리보기에만 적용됩니다."
+  },
+  "用途修改先保留为草稿，保存设置后应用到桌面角色。": {
+    "zh-TW": "用途修改先保留為草稿，儲存設定後套用到桌面角色。",
+    "en": "Uses stay in the draft until you save settings.",
+    "ko": "용도 변경은 설정을 저장해야 데스크톱 캐릭터에 적용됩니다."
+  },
+  "移除用途：{0}": {
+    "zh-TW": "移除用途：{0}",
+    "en": "Remove use: {0}",
+    "ko": "용도 제거: {0}"
+  },
+  "闲置 8 秒后会暂停待机动画，操作或朗读时恢复。": {
+    "zh-TW": "閒置 8 秒後會暫停待機動畫，操作或朗讀時恢復。",
+    "en": "Idle animation pauses after 8 seconds of inactivity and resumes on interaction or speech.",
+    "ko": "8초 동안 활동이 없으면 대기 애니메이션이 멈추며 조작이나 음성 재생 시 다시 시작합니다."
+  },
+  "返回动作列表": {
+    "zh-TW": "返回動作清單",
+    "en": "Back to resources",
+    "ko": "리소스 목록으로"
   }
 } as const;

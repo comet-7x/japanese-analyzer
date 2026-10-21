@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { POST } from '../app/api/tts/route';
 import { createSpeechService, loadSpeechSettings, sanitizeSpeechSettings, normalizeSpeechEndpoint } from '../app/lib/speechServices';
-import { getJapaneseTtsAudioUrl } from '../app/utils/helpers';
+import { getJapaneseTtsAudio, getJapaneseTtsAudioUrl } from '../app/utils/helpers';
 
 const request = (body: Record<string, unknown>, key = 'test-key') => new NextRequest('http://localhost/api/tts', {
   method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: key ? `Bearer ${key}` : '' }, body: JSON.stringify(body),
@@ -97,6 +97,13 @@ async function run() {
         assert.equal(bytes.length, mimeType.includes('L16') ? 46 : 2, 'Only raw PCM should gain a WAV header');
       } finally { URL.revokeObjectURL(url); }
     }
+    const boundaries = [{ word: '日本語', startTime: 0.1, endTime: 0.8 }];
+    globalThis.fetch = async () => Response.json({ audio: 'SUQz', mimeType: 'audio/mpeg', cues: boundaries });
+    const speech = await getJapaneseTtsAudio('日本語', '', 'edge');
+    try {
+      assert.deepEqual(speech.boundaries, boundaries, 'raw timestamps must survive even without analysis tokens');
+      assert.equal(speech.cues, undefined, 'token cues remain optional for legacy callers');
+    } finally { URL.revokeObjectURL(speech.url); }
   } finally {
     globalThis.fetch = originalFetch;
     for (const [key, value] of Object.entries(saved)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }

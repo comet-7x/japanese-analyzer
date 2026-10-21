@@ -10,7 +10,7 @@ import Live2DScrollFeedback from './Live2DScrollFeedback';
 import { Icon } from '../../components/Icons';
 import { defaultActionName, hitAreaLabel } from './actionLabels';
 import type { Live2DCapabilities } from './capabilities';
-import { effectiveResourceUses } from './resourceConfig';
+import { effectiveResourceUses, idleResources } from './resourceConfig';
 import { ResourceAssignment } from './ResourceAssignment';
 import { BehaviorSettings } from './BehaviorSettings';
 import { ResourceCatalog } from './ResourceCatalog';
@@ -22,8 +22,8 @@ import { actionName, emptyActionProfile, isActionShortcut, removeActionHotspot, 
 const Live2DCanvas = dynamic(() => import('./Live2DCanvas'), { ssr: false });
 const DEFAULT_KEYS = ['Enter', 'Space', 'Shift+Enter'];
 const MOODS = [{ id: 'analyzing', label: '分析中' }, { id: 'success', label: '分析成功' }, { id: 'error', label: '分析失败' }];
-export default function Live2DActionEditor({ view = 'resources', modelId, capabilities, value, onChange, onBack }: {
-  view?: 'resources' | 'rules'; modelId: string; capabilities: Live2DCapabilities; value?: ActionProfile;
+export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, modelId, capabilities, value, onChange, onBack }: {
+  view?: 'resources' | 'rules'; pauseWhenIdle?: boolean; modelId: string; capabilities: Live2DCapabilities; value?: ActionProfile;
   onChange: (profile: ActionProfile) => void; onBack: () => void;
 }) {
   const { t, locale } = useLanguage();
@@ -33,21 +33,25 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
   const stage = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const editor = useRef<HTMLDivElement>(null);
+  const detail = useRef<HTMLDivElement>(null);
   const library = useRef<HTMLElement>(null);
   const [scrollTarget, setScrollTarget] = useState<HTMLElement | null>(null);
   const [resourcesTarget, setResourcesTarget] = useState<HTMLDivElement | null>(null);
   const [source, setSource] = useState<File[] | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
+  const [mobileDetail, setMobileDetail] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testIdle, setTestIdle] = useState(false);
   const [undoProfile, setUndoProfile] = useState<ActionProfile | null>(null);
   const [assigning, setAssigning] = useState(false);
   const uses = effectiveResourceUses(profile, capabilities);
+  useEffect(() => { setTesting(false); setTestIdle(false); setEditing(false); setAssigning(false); canvas.current?.stopAction(); }, [view]);
   const [search, setSearch] = useState('');
   const [useFilter, setUseFilter] = useState('all');
   const [kind, setKind] = useState('all');
   const [selectedId, setSelectedId] = useState(capabilities.actions[0]?.id ?? '');
+  useEffect(() => { if (detail.current) detail.current.scrollTop = 0; }, [view, selectedId]);
   const [target, setTarget] = useState(capabilities.interactions[0] ? `area:${capabilities.interactions[0].area}` : 'key:Enter');
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(profile.hotspots[0]?.id ?? null);
   const [playback, setPlayback] = useState<ActionPlaybackState>({ status: 'stopped', actionId: null });
@@ -73,24 +77,14 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
     const observer = new ResizeObserver(update); observer.observe(stage.current); update();
     return () => { observer.disconnect(); cancelAnimationFrame(frame); };
   }, [ready]);
-  useEffect(() => {
-    const node = library.current;
-    if (!node || !scrollTarget) return;
-    let frame = 0;
-    const measure = () => {
-      frame = 0;
-      if (window.matchMedia('(max-width: 600px)').matches) { node.style.removeProperty('--action-library-height'); return; }
-      const pane = scrollTarget.getBoundingClientRect(), rect = node.getBoundingClientRect();
-      node.style.setProperty('--action-library-height', `${Math.max(200, pane.top + scrollTarget.clientHeight - Math.max(rect.top, pane.top) - 12)}px`);
-    };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
-    const observer = new ResizeObserver(schedule); observer.observe(scrollTarget); observer.observe(node);
-    scrollTarget.addEventListener('scroll', schedule, { passive: true }); window.addEventListener('resize', schedule); measure();
-    return () => { observer.disconnect(); cancelAnimationFrame(frame); scrollTarget.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule); };
-  }, [scrollTarget]);
   const change = (patch: Partial<ActionProfile>) => onChange(sanitizeActionProfile({ ...latest.current, ...patch }));
   const bind = (next: ActionBinding) => change({ bindings: { ...latest.current.bindings, [target]: next } });
   const actions = capabilities.actions;
+  const removeUse = (id: string, resourceId: string) => {
+    if (id === 'idle') change({ idle: { ...profile.idle, mode: 'custom', actionIds: idleResources(profile, capabilities).filter(item => item.id !== resourceId).map(item => item.id) } });
+    else if (id === 'defaultExpression') change({ defaultExpression: null });
+    else change({ bindings: { ...profile.bindings, [id]: { mode: 'disabled' } } });
+  };
   const displayName = (action: typeof actions[number]) => actionName(action, profile, actions.indexOf(action) + 1, t);
   const filtered = actions.filter(action => (useFilter === 'all' || (useFilter === 'unused' ? !uses.some(use => use.resolution.status === 'action' && use.resolution.action.id === action.id) : uses.some(use => use.resolution.status === 'action' && use.resolution.action.id === action.id && (useFilter === 'idle' ? use.target === 'idle' : useFilter === 'tap' ? /^(area|zone):/.test(use.target) : use.target.startsWith(useFilter + ':'))))) && (kind === 'all' || action.kind === kind)
     && `${actionName(action, profile, actions.indexOf(action) + 1, t)} ${action.name} ${action.file}`.toLowerCase().includes(search.toLowerCase()));
@@ -193,7 +187,7 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
       <h3 ref={heading} tabIndex={-1}>{t(view === 'resources' ? '动作与表情' : '互动设置')}</h3>
       <p>{t(view === 'resources' ? '预览只用于观察效果，设置用途后保存才能应用到桌面角色。' : '查看什么时候触发什么效果，并在预览中直接试用。')}</p>
     </div>
-    <div className="live2d-action-workspace" data-view={view}>
+    <div className="live2d-action-workspace" data-view={view} data-detail={mobileDetail}>
       {view === 'resources' && <section className="live2d-action-library" ref={library} aria-label={t("动作资源目录")}>
         <label>{t("搜索动作")}<input className="nd-input" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder={t("名称、动作组或文件名")} /></label>
         <div className="live2d-resource-tabs" role="group" aria-label={t('资源类型')}>
@@ -202,18 +196,21 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
         <label>{t('按用途筛选')}<select className="nd-input" value={useFilter} onChange={event => setUseFilter(event.target.value)}>{['all', 'idle', 'tap', 'key', 'mood', 'unused'].map((id, index) => <option key={id} value={id}>{t(['全部', '平时自动播放', '点击部位', '键盘快捷键', '伴学反馈', '尚未设置用途'][index])}</option>)}</select></label>
         <div className="live2d-action-resources" ref={setResourcesTarget}>
           <ResourceCatalog actions={filtered} profile={profile} uses={uses} selectedId={selectedId} states={resourceStates}
-            onSelect={id => { setSelectedId(id); setAssigning(false); }} onPreview={id => { setSelectedId(id); play(id); }} />
+            onSelect={id => { setSelectedId(id); setMobileDetail(true); setAssigning(false); }} onPreview={id => { setSelectedId(id); setMobileDetail(true); play(id); }} />
           {!filtered.length && <p role="status">{t(kind === 'expression' && !actions.some(item => item.kind === 'expression') ? '此模型未包含表情文件。' : '没有匹配的资源。')}</p>}
           {!filtered.length && search && <button type="button" className="nd-ghost-btn" onClick={() => setSearch('')}>{t('清除搜索')}</button>}
         </div>
       </section>}
-      {view === 'rules' && <BehaviorSettings profile={profile} caps={capabilities} onChange={onChange} selectedTarget={target} ready={ready}
+      {view === 'rules' && <BehaviorSettings pauseWhenIdle={pauseWhenIdle} profile={profile} caps={capabilities} onChange={onChange} selectedTarget={target} ready={ready}
         onEdit={id => { setTarget(id); setAssigning(true); }} onTest={id => {
           setEditing(false); setTesting(true); setTestIdle(id === 'idle');
           if (id === 'idle') return;
           void canvas.current?.triggerTarget(id);
         }} />}
-      <div className="live2d-action-detail">
+      <div className="live2d-action-detail" ref={detail}>
+        {view === 'resources' && <button className="nd-ghost-btn live2d-mobile-back" type="button" onClick={() => setMobileDetail(false)}>{t('返回动作列表')}</button>}
+        {view === 'resources' && selected && <div className="live2d-resource-toolbar"><strong>{displayName(selected)}</strong><button type="button" className="nd-primary-btn" aria-expanded={assigning} onClick={() => { if (detail.current) detail.current.scrollTop = 0; setAssigning(!assigning); }}>{t('用于…')}</button></div>}
+        {view === 'resources' && assigning && selected && <ResourceAssignment key={selected.id} action={selected} profile={profile} caps={capabilities} onChange={onChange} onDone={() => setAssigning(false)} />}
         <section className="live2d-action-preview" aria-label={t("独立角色预览")}>
           <div className="live2d-action-stage" ref={stage} tabIndex={testing ? 0 : undefined} role={testing ? 'group' : undefined} aria-label={testing ? t('试用互动，轻点角色或使用快捷键') : undefined}
             onPointerUp={event => { if (testing && !editing) void canvas.current?.tapAt(event.clientX, event.clientY); }}
@@ -248,9 +245,8 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
             {(profile.expressionPolicies[selected.id]?.mode ?? 'timed') === 'timed' && <label>{t('持续时间（秒）')}<input className="nd-input" type="number" min="0.5" max="60" step="0.5" value={profile.expressionPolicies[selected.id]?.seconds ?? 3.5} onChange={event => change({ expressionPolicies: { ...profile.expressionPolicies, [selected.id]: { mode: 'timed', seconds: Number(event.target.value) } } })} /></label>}
             <button type="button" className="nd-ghost-btn" disabled={profile.defaultExpression !== selected.id} onClick={() => change({ defaultExpression: null })}>{t('恢复模型默认外观')}</button>
           </>}
-          <button className="nd-btn" type="button" aria-expanded={assigning} onClick={() => setAssigning(!assigning)}>{t('用于…')}</button>
+          <ul className="live2d-resource-uses">{uses.filter(use => use.resolution.status === 'action' && use.resolution.action.id === selected.id).map(use => <li key={use.target}><span>{resourceTargetLabel(use.target, profile, t)}</span><button type="button" className="nd-ghost-btn" aria-label={t('移除用途：{0}', resourceTargetLabel(use.target, profile, t))} onClick={() => removeUse(use.target, selected.id)}>{t('移除用途')}</button></li>)}</ul>
         </section>}
-        {view === 'resources' && assigning && selected && <ResourceAssignment key={selected.id} action={selected} profile={profile} caps={capabilities} onChange={onChange} onDone={() => setAssigning(false)} />}
         {view === 'rules' && assigning && <section className="live2d-action-fields">
           <h4>{resourceTargetLabel(target, profile, t)}</h4>
           <label>{t("触发方式")}<select value={target} onChange={event => { setTarget(event.target.value); if (event.target.value.startsWith('zone:')) setSelectedZoneId(event.target.value.slice(5)); }}>{targets.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>

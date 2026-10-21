@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import SpeechReadingHighlight from './SpeechReadingHighlight';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getPosClass, getPosGroup, POS_GROUP_COLORS, POS_GROUP_LABELS, POS_LEGEND_GROUPS } from '../utils/helpers';
 import { TokenData } from '../services/api';
@@ -225,6 +226,7 @@ export default function AnalysisResult({
     pickAnchor,
     onPickAnchorChange,
   });
+  const readingRootRef = useRef<HTMLDivElement>(null);
   if ((!tokens || tokens.length === 0) && !pendingText) {
     return null;
   }
@@ -258,6 +260,7 @@ export default function AnalysisResult({
         {/* 分词结果 */}
         <div
           id="analyzedSentenceOutput"
+          ref={readingRootRef}
           lang="ja"
           role="region"
           aria-label={t("日文解析正文")}
@@ -295,6 +298,7 @@ export default function AnalysisResult({
                     <span
                       key={index}
                       data-token-index={index}
+                      data-token-end={range.end}
                       className={`word-unit-wrapper ${isPunct ? 'is-punct' : ''} ${isActive ? 'active-unit' : ''} ${isPlaying ? 'playing-cue' : ''}${rangeClass}${pickAnchor === index ? ' range-anchor' : ''}`}
                     >
                       {!isPunct && (
@@ -335,6 +339,7 @@ export default function AnalysisResult({
           })}
           {pendingText && (pendingActive ? <PendingText text={pendingText} offset={analyzedLength} /> : <span className="pending-rest">{pendingText}</span>)}
         </div>
+        <SpeechReadingHighlight containerRef={readingRootRef} tokens={tokens} layoutKey={readingGroups} />
         {pendingText && pendingActive && <span className="sr-only" role="status">{t("思考中")}</span>}
         {pickAnchor !== null && <PickHint onCancel={selection.cancelPick} />}
       </AutoAnimateHeight>

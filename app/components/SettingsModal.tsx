@@ -23,8 +23,12 @@ import TranslationSettings from './TranslationSettings';
 import { isValidMyMemoryEmail, readTranslationServiceSettings, type TranslationServiceSettings } from '../lib/translationServices';
 import SettingsConfigLayer from './SettingsConfigLayer';
 import { sanitizeSpeechSettings, type SpeechSettings } from '../lib/speechServices';
+import dynamic from 'next/dynamic';
+import { removeLive2DModelConfig, sanitizeLive2DSettings, type Live2DSettings } from '../plugins/live2d/settings';
 
-export type SettingsTabId = 'models' | 'translation' | 'dictionary' | 'speech';
+const Live2DSettingsPanel = dynamic(() => import('../plugins/live2d/Live2DSettings'), { ssr: false });
+
+export type SettingsTabId = 'models' | 'translation' | 'dictionary' | 'speech' | 'live2d';
 
 interface SettingsPayload {
   translationSettings: TranslationServiceSettings;
@@ -33,6 +37,7 @@ interface SettingsPayload {
   activeModelId: string;
   geminiApiKey: string;
   speechSettings: SpeechSettings;
+  live2dSettings: Live2DSettings;
 }
 
 interface SettingsModalProps {
@@ -42,8 +47,11 @@ interface SettingsModalProps {
   activeModelId: string;
   geminiApiKey: string;
   speechSettings: SpeechSettings;
+  live2dSettings: Live2DSettings;
+  onLive2DModelDeleted: (id: string) => void;
   onSaveSettings: (settings: SettingsPayload) => void;
   isModalOpen: boolean;
+  initialTab?: SettingsTabId;
   onModalClose: () => void;
 }
 
@@ -75,6 +83,7 @@ interface SettingsSignatureInput {
   activeServiceId: string;
   activeModelId: string;
   speech: SpeechSettings;
+  live2d: Live2DSettings;
 }
 
 const getSettingsSignature = (input: SettingsSignatureInput) => {
@@ -84,6 +93,7 @@ const getSettingsSignature = (input: SettingsSignatureInput) => {
     activeModelId: input.activeModelId,
     translation: input.translation,
     speech: sanitizeSpeechSettings(input.speech),
+    live2d: sanitizeLive2DSettings(input.live2d),
   });
 };
 
@@ -94,8 +104,11 @@ export default function SettingsModal({
   activeModelId: initialActiveModelId,
   geminiApiKey,
   speechSettings: initialSpeechSettings,
+  live2dSettings: initialLive2DSettings,
+  onLive2DModelDeleted,
   onSaveSettings,
   isModalOpen,
+  initialTab = 'models',
   onModalClose
 }: SettingsModalProps) {
   const { t } = useLanguage();
@@ -107,6 +120,7 @@ export default function SettingsModal({
   const [collapsedServiceIds, setCollapsedServiceIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [speechSettings, setSpeechSettings] = useState(initialSpeechSettings);
+  const [live2dSettings, setLive2DSettings] = useState(initialLive2DSettings);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [defaultMenuOpen, setDefaultMenuOpen] = useState(false);
@@ -138,14 +152,17 @@ export default function SettingsModal({
       activeModelId,
       translation: translationSettings,
       speech: speechSettings,
+      live2d: live2dSettings,
     });
-  }, [services, activeServiceId, activeModelId, translationSettings, speechSettings]);
+  }, [services, activeServiceId, activeModelId, translationSettings, speechSettings, live2dSettings]);
 
   const hasUnsavedChanges = Boolean(savedSignature && currentSignature !== savedSignature);
+  useEffect(() => { if (hasUnsavedChanges) setStatus(''); }, [hasUnsavedChanges, currentSignature]);
 
   // 打开弹窗时重置本地编辑态：默认展开当前服务商
   useEffect(() => {
     if (!isModalOpen) return;
+    setActiveTab(initialTab);
     setTranslationSettings(initialTranslationSettings);
     setServices(initialServices);
     setActiveServiceId(initialActiveServiceId);
@@ -154,6 +171,7 @@ export default function SettingsModal({
     setCollapsedServiceIds(initialServices.filter((s) => first && s.id !== first.id).map((s) => s.id));
     setSearchQuery('');
     setSpeechSettings(initialSpeechSettings);
+    setLive2DSettings(initialLive2DSettings);
     setStatus('');
     setError('');
     setDefaultMenuOpen(false);
@@ -168,6 +186,7 @@ export default function SettingsModal({
         activeModelId: initialActiveModelId,
         translation: initialTranslationSettings,
         speech: initialSpeechSettings,
+        live2d: initialLive2DSettings,
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -300,6 +319,7 @@ export default function SettingsModal({
       activeModelId: model?.id ?? '',
       geminiApiKey: speechSettings.services.find((item) => item.id === 'gemini')?.apiKey ?? geminiApiKey,
       speechSettings: sanitizeSpeechSettings(speechSettings)!,
+      live2dSettings: sanitizeLive2DSettings(live2dSettings),
     });
 
     const newSig = getSettingsSignature({
@@ -308,6 +328,7 @@ export default function SettingsModal({
       activeModelId: model?.id ?? '',
       translation: normalizedTranslation,
       speech: speechSettings,
+      live2d: live2dSettings,
     });
     setSavedSignature(newSig);
     setStatus(t('设置已保存'));
@@ -373,6 +394,12 @@ export default function SettingsModal({
       label: t('语音服务'),
       icon: Icon.speaker,
       desc: t('独立配置朗读使用的模型、密钥和音色。'),
+    },
+    {
+      id: 'live2d',
+      label: t('虚拟角色服务'),
+      icon: Icon.companion,
+      desc: t('导入角色模型并设置朗读联动。'),
     },
   ];
 
@@ -717,6 +744,15 @@ export default function SettingsModal({
             {/* 模块 4：语音服务 */}
             <div style={{ display: activeTab === 'speech' ? 'block' : 'none' }}>
               {isModalOpen && <SpeechServices settings={speechSettings} onChange={setSpeechSettings} />}
+            </div>
+
+            <div style={{ display: activeTab === 'live2d' ? 'block' : 'none' }}>
+              {isModalOpen && activeTab === 'live2d' && (
+                <Live2DSettingsPanel value={live2dSettings} onChange={setLive2DSettings} onModelDeleted={id => {
+                  setLive2DSettings(current => removeLive2DModelConfig(current, id));
+                  onLive2DModelDeleted(id);
+                }} />
+              )}
             </div>
           </div>
 

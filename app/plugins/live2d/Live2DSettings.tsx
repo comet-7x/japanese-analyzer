@@ -129,7 +129,7 @@ export default function Live2DSettingsPanel({ value, onChange, onModelDeleted }:
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>{t('返回角色设置')}</button>
     <label>{t('当前角色')}<select className="nd-input" value={value.modelId} onChange={event => onChange(selectLive2DModel(valueRef.current, event.target.value))}>{models.map(model => <option value={model.id} key={model.id}>{model.name}</option>)}</select></label></div>
     {navigation}<Live2DActionEditor
-    view={view} key={value.modelId} modelId={value.modelId} capabilities={detection.report}
+    view={view} pauseWhenIdle={value.pauseWhenIdle} key={value.modelId} modelId={value.modelId} capabilities={detection.report}
     value={value.modelConfigs[value.modelId]?.interaction}
     onChange={interaction => onChange(updateLive2DModelConfig(valueRef.current, value.modelId, { interaction }))}
     onBack={() => { setView('role'); requestAnimationFrame(() => manageButton.current?.focus()); }}
@@ -139,10 +139,11 @@ export default function Live2DSettingsPanel({ value, onChange, onModelDeleted }:
     <div className="live2d-settings" ref={panelRef}>
       {scrollTarget && <Live2DScrollFeedback target={scrollTarget} ownerId="live2d-settings-scroll" label={t('滚动 Live2D 设置')} />}
       <div className="live2d-settings-heading">
-        <h3>{t('虚拟角色服务')}</h3>
+        <h3>{t('角色')}</h3>
         <p>{t('模型文件仅保存在此设备的浏览器存储中。')}</p>
       </div>
 
+      {navigation}
       <Toggle label={t('启用看板娘')} description={t('直接拖动角色调整位置，脚下的胶囊可聊天、朗读和设置。')}
         checked={value.enabled} onChange={enabled => update({ enabled })} />
 
@@ -193,7 +194,6 @@ export default function Live2DSettingsPanel({ value, onChange, onModelDeleted }:
         {error && <p className="live2d-settings-error" role="alert">{localizeError(error, locale)}</p>}
       </section>
 
-      {navigation}
       {value.modelId && <section className="live2d-settings-section">
         {detection?.id !== value.modelId ? <p role="status">{t('正在检测模型能力…')}</p>
           : detection.report ? <><p>{t('已发现 {0} 个动作、{1} 个表情', detection.report.actions.filter(item => item.kind === 'motion').length, detection.report.expressions.length)}</p>

@@ -3033,7 +3033,7 @@ body {
 }
 .glass-toolbar > button, .glass-toolbar > a, .glass-toolbar > .relative > button { border-radius: 999px; }
 @media (hover: hover) {
-  .word-unit-wrapper:not(.is-punct):not(.active-unit):not(.playing-cue):hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+  .word-unit-wrapper:not(.is-punct):not(.active-unit):not(.playing-cue):not([data-reading-current]):hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
   .dictionary-icon-btn:hover, .nd-ghost-btn:hover:not(:disabled), .glass-toolbar button:hover, .glass-toolbar a:hover {
     background: color-mix(in srgb, var(--ink) 5%, transparent);
   }
@@ -3210,7 +3210,7 @@ body {
 }
 .dark .reading-surface .word-unit-wrapper.active-unit { box-shadow: 0 0 0 4px #bba3ff1a; }
 @media (hover: hover) {
-  .reading-surface .word-unit-wrapper:not(.is-punct):not(.active-unit):not(.is-pending):not(.playing-cue):hover {
+  .reading-surface .word-unit-wrapper:not(.is-punct):not(.active-unit):not(.is-pending):not(.playing-cue):not([data-reading-current]):hover {
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 4%, transparent);
   }
 }
@@ -3297,25 +3297,21 @@ body {
   animation: rangeAnchorPulse 1.4s ease-in-out infinite;
 }
 @keyframes rangeAnchorPulse { 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 10%, transparent); } }
-/* Keep the current spoken word legible while hovering or selecting text. */
-.word-unit-wrapper.playing-cue,
-.reading-surface .word-unit-wrapper.playing-cue,
-.dark .word-unit-wrapper.playing-cue,
-.dark .reading-surface .word-unit-wrapper.playing-cue {
-  background: var(--playing-cue-bg);
-  box-shadow: inset 0 0 0 1px var(--playing-cue-border);
-  border-radius: 8px;
-  transition: background-color 100ms ease, box-shadow 100ms ease;
-}
-.word-unit-wrapper.playing-cue .word-token {
-  color: var(--playing-cue-text);
-}
-.word-unit-wrapper.playing-cue :is(.furigana-text, .romaji-text) {
-  color: var(--playing-cue-annotation);
-}
-.word-unit-wrapper.playing-cue.range-anchor { animation: none; }
-@media (prefers-reduced-motion: reduce) {
-  .word-unit-wrapper.playing-cue { transition: none; }
+/* Stable paint layers cross-fade; word geometry and font colours never jump. */
+.word-unit-wrapper { isolation: isolate; }
+.word-unit-wrapper::before { content: ""; position: absolute; z-index: -2; inset: 0; border-radius: 8px; background: color-mix(in srgb, var(--playing-cue-bg) 32%, transparent); box-shadow: inset 0 0 0 1px var(--playing-cue-border); opacity: 0; pointer-events: none; transition: opacity 120ms cubic-bezier(.2, 0, 0, 1); }
+.word-unit-wrapper::after { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: 8px; background: var(--playing-cue-bg); -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--speech-reveal, -10px) - 10px), transparent calc(var(--speech-reveal, -10px) + 10px)); mask-image: linear-gradient(90deg, #000 calc(var(--speech-reveal, -10px) - 10px), transparent calc(var(--speech-reveal, -10px) + 10px)); opacity: 0; pointer-events: none; transition: opacity 120ms cubic-bezier(.2, 0, 0, 1); }
+.word-unit-wrapper:is(.playing-cue, [data-reading-current])::before { opacity: 1; }
+.word-unit-wrapper:is(.playing-cue, [data-reading-current])::after { opacity: 1; transition-duration: 40ms; }
+.word-unit-wrapper :is(.furigana-text, .romaji-text) { transition: color 120ms cubic-bezier(.2, 0, 0, 1); }
+.word-unit-wrapper:is(.playing-cue, [data-reading-current]) :is(.furigana-text, .romaji-text) { color: var(--playing-cue-annotation); }
+.word-unit-wrapper:is(.playing-cue, [data-reading-current]).range-anchor { animation: none; }
+@media (prefers-reduced-motion: reduce) { .word-unit-wrapper::before { transition-duration: 80ms; } }
+@media (prefers-reduced-motion: reduce) { .word-unit-wrapper::after { -webkit-mask-image: none; mask-image: none; } }
+@media (forced-colors: active) {
+  .word-unit-wrapper::after { display: none; }
+  .word-unit-wrapper::before { background: Highlight; box-shadow: none; transition: none; }
+  .word-unit-wrapper:is(.playing-cue, [data-reading-current]) :is(.word-token, .furigana-text, .romaji-text) { color: HighlightText; }
 }
 
 .range-pick-toast {
@@ -4091,3 +4087,348 @@ body {
 .translation-review-button[aria-busy="true"] { opacity: 1; cursor: wait; }
 
 .translation-section[data-reviewing="true"] .translation-actions { opacity: 1; }
+
+/* Optional Live2D plugin settings and floating card. */
+.live2d-settings { max-width: 700px; display: grid; gap: 22px; color: var(--ink); }
+.live2d-settings-heading h3 { margin: 0 0 5px; font-size: 17px; }
+.live2d-settings-heading p, .live2d-settings-section > p { margin: 0; color: var(--ink-3); font-size: 12px; line-height: 1.7; }
+.live2d-settings-section { display: grid; gap: 13px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg-2); }
+.live2d-settings-section h4 { margin: 0; font-size: 14px; }
+.live2d-settings-switch { display: flex; align-items: center; justify-content: space-between; gap: 18px; cursor: pointer; }
+.live2d-settings-switch > span:first-child { display: grid; gap: 3px; min-width: 0; }
+.live2d-settings-switch strong, .live2d-settings-slider strong { font-size: 13px; font-weight: 600; }
+.live2d-settings-switch small { color: var(--ink-3); font-size: 12px; line-height: 1.6; }
+.live2d-toggle { position: relative; display: inline-flex; flex: 0 0 44px; width: 44px; height: 28px; }
+.live2d-toggle input { position: absolute; inset: -8px 0; z-index: 1; width: 100%; height: 44px; margin: 0; opacity: 0; cursor: pointer; }
+.live2d-toggle-track { position: absolute; inset: 1px 0; border: 1px solid color-mix(in srgb, var(--ink-3) 35%, var(--line-2)); border-radius: 999px; background: color-mix(in srgb, var(--ink-3) 24%, var(--bg)); }
+.live2d-toggle-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--bg-2); box-shadow: 0 1px 3px #00000026; }
+.live2d-toggle input:checked + .live2d-toggle-track { border-color: var(--primary); background: var(--primary); }
+.live2d-toggle input:checked + .live2d-toggle-track::after { transform: translateX(18px); background: #fff; }
+.live2d-toggle input:focus-visible + .live2d-toggle-track { outline: 2px solid var(--primary); outline-offset: 3px; }
+.live2d-settings input[type="radio"] { appearance: none; -webkit-appearance: none; flex: 0 0 18px; width: 18px; height: 18px; margin: 0; border: 1px solid var(--ink-3); border-radius: 50%; background: var(--bg-2); cursor: pointer; }
+.live2d-settings input[type="radio"]:checked { border-color: var(--primary); background: radial-gradient(circle, var(--primary) 0 4px, transparent 4.5px); }
+.live2d-settings input[type="radio"]:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.live2d-settings-slider { display: grid; gap: 7px; font-size: 13px; }
+.live2d-settings-slider > span:first-child { display: flex; justify-content: space-between; }
+.live2d-settings-slider small { color: var(--ink-3); line-height: 1.6; }
+/* Native input, fill and thumb share an immediate position; only press feedback uses springs. */
+.live2d-slider { position: relative; isolation: isolate; display: block; flex: 1; min-width: 0; width: 100%; height: 32px; -webkit-user-select: none; user-select: none; --range-track: color-mix(in srgb, var(--ink-3) 25%, var(--bg)); }
+.live2d-slider-rail { position: absolute; z-index: 0; display: block; inset: 13px 10px; height: 6px; border-radius: 999px; background: var(--range-track); pointer-events: none; }
+.live2d-slider-fill { position: absolute; display: block; inset: 0 auto 0 0; border-radius: inherit; background: var(--primary); }
+.live2d-slider-handle-layer { position: absolute; z-index: 1; inset: 0 10px; pointer-events: none; }
+.live2d-slider-thumb-position { position: absolute; top: 50%; width: 20px; height: 20px; margin-left: -10px; margin-top: -10px; }
+.live2d-slider-thumb { display: block; width: 20px; height: 20px; border: 2px solid var(--bg-2); border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 35%, transparent), 0 2px 4px #00000020; transition: box-shadow 120ms cubic-bezier(.2, 0, 0, 1); }
+.live2d-slider[data-active] .live2d-slider-thumb { box-shadow: 0 0 0 5px var(--primary-soft), 0 2px 4px #00000020; }
+:is(.live2d-settings-slider, .live2d-widget-scale) .live2d-slider input[type="range"] { position: absolute; z-index: 2; inset: 0; appearance: none; -webkit-appearance: none; width: 100%; height: 32px; margin: 0; padding: 0; border: 0; background: transparent; opacity: 0; cursor: pointer; }
+:is(.live2d-settings-slider, .live2d-widget-scale) .live2d-slider input::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; }
+:is(.live2d-settings-slider, .live2d-widget-scale) .live2d-slider input::-moz-range-thumb { width: 20px; height: 20px; border: 0; }
+.live2d-slider::after { content: ""; position: absolute; z-index: 3; inset: -5px; padding: 2px; border-radius: 12px; background: linear-gradient(115deg, var(--primary), color-mix(in srgb, var(--primary) 40%, var(--bg-2)), var(--primary)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; pointer-events: none; transition: opacity 150ms cubic-bezier(.2, 0, 0, 1); }
+.live2d-slider:has(input:focus-visible)::after { opacity: 1; }
+.live2d-slider:has(input:disabled) { opacity: .45; }
+.live2d-slider:has(input:disabled) input { cursor: not-allowed; }
+.live2d-settings :is(button, .live2d-import-button) { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; border: 1px solid transparent; border-radius: 10px; font: inherit; font-size: 12px; line-height: 1.5; -webkit-tap-highlight-color: transparent; }
+.live2d-settings .nd-ghost-btn { padding: 7px 11px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-2); }
+.live2d-settings :is(button, .live2d-import-button):focus-visible, .live2d-import-button:focus-within { outline: 2px solid var(--primary); outline-offset: 3px; }
+.live2d-settings svg, .live2d-widget svg { display: block; flex: none; }
+.live2d-import-button { position: relative; display: inline-flex; justify-self: start; align-items: center; min-height: 36px; padding: 7px 13px; border-radius: 10px; background: var(--primary); color: white; font-size: 12px; font-weight: 600; cursor: pointer; }
+.live2d-import-button input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.live2d-import-button:has(input:disabled) { opacity: .5; cursor: wait; }
+.live2d-model-choice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; }
+.live2d-model-choice select { flex: 1; min-width: 180px; padding: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.live2d-model-list { display: grid; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.live2d-model-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; }
+.live2d-model-row + .live2d-model-row { border-top: 1px solid var(--line); }
+.live2d-model-row label { display: flex; align-items: center; gap: 10px; min-width: 0; cursor: pointer; }
+.live2d-model-row label > span { display: grid; min-width: 0; gap: 2px; }
+.live2d-model-row label strong { font-size: 12px; }
+.live2d-model-row label small { color: var(--ink-3); font-size: 11px; overflow-wrap: anywhere; }
+.live2d-settings-empty { padding: 12px; border: 1px dashed var(--line); border-radius: 10px; }
+.live2d-settings-error { margin: 0; font-size: 12px; }
+.live2d-widget { position: fixed; left: 16px; bottom: 16px; z-index: 850; display: flex; flex-direction: column; width: clamp(96px, calc(220px * var(--live2d-scale, 1)), calc(100dvw - 16px)); height: clamp(144px, calc(360px * var(--live2d-scale, 1)), calc(100dvh - 32px)); border: 0; border-radius: 0; overflow: visible; color: var(--ink); background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; pointer-events: none; }
+.live2d-widget.is-docked { width: 52px; height: 52px; }
+.live2d-widget-header { position: absolute; top: 2px; right: 0; left: 0; z-index: 4; display: flex; align-items: flex-start; justify-content: space-between; min-height: 0; padding: 0; border: 0; background: transparent; box-shadow: none; user-select: none; pointer-events: none; }
+.live2d-widget-header > strong { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.live2d-widget-drag-handle { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid color-mix(in srgb, var(--primary) 23%, var(--line)); border-radius: 50%; color: var(--primary); background: color-mix(in srgb, var(--bg-2) 82%, transparent); box-shadow: 0 3px 12px -6px #00000088; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 16px; line-height: 1; cursor: grab; touch-action: none; pointer-events: auto; transform-origin: center; transition: transform 150ms ease-out, opacity 150ms ease-out, box-shadow 150ms ease-out; }
+.live2d-widget-drag-handle:active { cursor: grabbing; }
+.live2d-widget-drag-handle:hover, .live2d-widget-drag-handle:focus-visible { color: var(--ink); background: var(--bg-2); transform: scale(1.07); }
+.live2d-widget-drag-handle:focus-visible, .live2d-widget-tools-trigger:focus-visible, .live2d-widget-tool-menu button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.live2d-widget-tools { position: relative; display: flex; flex-direction: column; align-items: flex-end; pointer-events: auto; }
+.live2d-widget-tools-trigger { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid color-mix(in srgb, var(--primary) 32%, var(--line)); border-radius: 50%; color: var(--primary); background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--primary) 20%, var(--bg-2)), color-mix(in srgb, var(--bg-2) 85%, transparent)); box-shadow: 0 4px 14px -6px #00000099; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font-size: 18px; line-height: 1; opacity: .82; cursor: pointer; transform-origin: center; transition: transform 150ms ease-out, opacity 150ms ease-out, box-shadow 150ms ease-out; }
+.live2d-widget-tools-trigger:hover, .live2d-widget-tools:focus-within .live2d-widget-tools-trigger, .live2d-widget-tools.is-tools-open .live2d-widget-tools-trigger, .live2d-widget.is-tools-open .live2d-widget-tools-trigger { opacity: 1; transform: scale(1.07); box-shadow: 0 5px 18px -5px #00000088; }
+.live2d-widget-tool-menu { position: absolute; top: 34px; right: 0; display: grid; gap: 3px; width: 140px; padding: 5px; border: 1px solid var(--line); border-radius: 15px 6px 15px 15px; background: color-mix(in srgb, var(--bg-2) 94%, transparent); box-shadow: 0 10px 25px -12px #00000099; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); opacity: 0; visibility: hidden; transform: translateY(-5px) scale(.96); transform-origin: top right; pointer-events: none; transition: opacity .18s ease, transform .18s ease, visibility .18s; }
+.live2d-widget-tool-menu button { display: flex; align-items: center; gap: 8px; min-height: 36px; width: 100%; padding: 5px 8px; border: 0; border-radius: 10px; color: var(--ink); background: transparent; font-size: 11px; text-align: left; white-space: nowrap; cursor: pointer; }
+.live2d-widget-tool-menu button:hover { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.live2d-widget-tool-menu button > span:first-child { display: grid; flex: none; place-items: center; width: 23px; height: 23px; border-radius: 8px; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); font-size: 14px; }
+.live2d-widget-tools.is-tools-open .live2d-widget-tool-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; }
+.live2d-widget-body { position: relative; flex: 1; min-height: 0; overflow: hidden; pointer-events: none; }
+.live2d-widget-canvas { width: 100%; height: 100%; }
+.live2d-widget.is-interactive .live2d-widget-canvas { pointer-events: auto; }
+.live2d-widget.is-interactive .live2d-widget-canvas { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none; }
+.live2d-widget-exit { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; position: absolute; inset-inline: 0; bottom: 0; z-index: 5; width: fit-content; max-width: 100%; margin-inline: auto; padding: 7px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-2); color: var(--ink); pointer-events: auto; cursor: pointer; }
+.live2d-widget-exit > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live2d-widget-exit:focus-visible, .live2d-widget-scale input:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.live2d-widget-tool-menu { width: 260px; max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow-y: auto; }
+.live2d-widget-tool-menu p { margin: 4px 8px; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.live2d-widget-scale { padding: 8px; }
+.live2d-widget-scale label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12px; }
+.live2d-widget-scale > div { display: flex; align-items: center; gap: 8px; margin-block-start: 8px; }
+.live2d-widget-scale input { min-width: 0; width: 100%; accent-color: var(--primary); }
+.live2d-widget-scale button { display: grid; place-items: center; flex: 0 0 36px; width: 36px; min-height: 36px; padding: 0; background: color-mix(in srgb, var(--primary) 10%, transparent); font-size: 18px; }
+.live2d-bubble-anchor { position: fixed; pointer-events: none; }
+.live2d-comic-bubble { box-sizing: border-box; width: 260px; max-width: 260px; padding: 10px 12px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--bg-2); color: var(--ink); box-shadow: 0 6px 20px #00000026; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.live2d-bubble-copy { display: grid; align-items: start; min-height: 3lh; white-space: pre-wrap; }
+.live2d-bubble-page { grid-area: 1 / 1; }
+.live2d-bubble-fragment { position: relative; isolation: isolate; border-radius: 0; color: var(--ink); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.live2d-bubble-fragment::before { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--primary) 22%, var(--bg-2)); -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--speech-reveal, -4px) - 4px), transparent calc(var(--speech-reveal, -4px) + 4px)); mask-image: linear-gradient(90deg, #000 calc(var(--speech-reveal, -4px) - 4px), transparent calc(var(--speech-reveal, -4px) + 4px)); opacity: 0; pointer-events: none; transition: opacity 120ms cubic-bezier(.2, 0, 0, 1); }
+.live2d-bubble-fragment[data-reading-start] { border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+.live2d-bubble-fragment[data-reading-end] { border-top-right-radius: 3px; border-bottom-right-radius: 3px; }
+.live2d-bubble-fragment[data-reading-current] { color: transparent; background-image: linear-gradient(90deg, var(--playing-cue-text) calc(var(--speech-reveal, -4px) - 4px), var(--ink) calc(var(--speech-reveal, -4px) + 4px)); -webkit-background-clip: text; background-clip: text; }
+.live2d-bubble-fragment[data-reading-current]::before { opacity: 1; transition-duration: 40ms; }
+@media (prefers-reduced-motion: reduce) { .live2d-bubble-fragment::before { -webkit-mask-image: none; mask-image: none; transition-duration: 80ms; } }
+@media (forced-colors: active) { .live2d-bubble-fragment::before { display: none; } .live2d-bubble-fragment[data-reading-current] { background: Highlight; color: HighlightText; } }
+.live2d-bubble-anchor::after { content: ""; position: absolute; left: var(--bubble-tail); border: 6px solid transparent; transform: translateX(-50%); }
+.live2d-bubble-anchor[data-placement="top"]::after { top: 100%; border-top-color: var(--bg-2); }
+.live2d-bubble-anchor[data-placement="bottom"]::after { bottom: 100%; border-bottom-color: var(--bg-2); }
+@media (pointer: coarse) { .live2d-widget-tool-menu button, .live2d-widget-exit { min-height: 44px; } .live2d-widget-scale button { flex-basis: 44px; width: 44px; } }
+.live2d-widget-placeholder { display: grid; align-content: center; justify-items: center; gap: 14px; height: 100%; padding: 16px; text-align: center; pointer-events: auto; }
+.live2d-widget-placeholder p { max-height: 168px; overflow-y: auto; margin: 0; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.live2d-widget-caption { position: absolute; right: 10px; bottom: 10px; left: 10px; padding: 6px 9px; overflow: hidden; border-radius: 9px; background: color-mix(in srgb, var(--bg-2) 88%, transparent); box-shadow: 0 2px 12px rgba(0, 0, 0, .1); font-size: 12px; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+.live2d-widget-dock-button { display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--primary); background: color-mix(in srgb, var(--bg-2) 90%, transparent); box-shadow: 0 5px 18px -8px #00000066; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); cursor: pointer; pointer-events: auto; }
+.live2d-widget-dock-glyph { font-size: 13px; font-weight: 750; letter-spacing: -.5px; line-height: 1; }
+.live2d-widget-dock-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.live2d-widget-dock-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.live2d-widget.is-docked :is(.live2d-widget-header, .live2d-widget-body) { display: none; }
+@media (min-width: 641px) {
+  .live2d-widget.is-docked { left: 16px; bottom: 16px; }
+}
+/* Phones use a left-side entry and an optional transparent character stage. */
+@media (max-width: 640px) {
+  .live2d-widget {
+    left: max(8px, env(safe-area-inset-left));
+    right: auto;
+    top: auto;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    z-index: 35;
+    width: clamp(96px, calc(min(224px, 100dvw - 108px) * var(--live2d-scale, 1)), calc(100dvw - 16px));
+    height: clamp(144px, calc(clamp(250px, 45dvh, 310px) * var(--live2d-scale, 1)), calc(100dvh - 100px));
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .live2d-widget.is-mobile-expanded {
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: visible;
+    background: color-mix(in srgb, var(--bg-2) 92%, transparent);
+    box-shadow: 0 14px 36px -16px #00000077;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .live2d-widget-header {
+    top: 6px;
+    right: 6px;
+    left: 6px;
+  }
+  .live2d-widget-drag-handle, .live2d-widget-tools-trigger { width: 44px; height: 44px; }
+  .live2d-widget-tool-menu { top: 44px; }
+  .live2d-widget-tool-menu button { min-height: 44px; }
+  .live2d-widget-body { overflow: hidden; }
+  .live2d-widget-caption {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 5px 7px;
+    font-size: 11px;
+  }
+  .live2d-widget:is(.is-minimized, .is-docked, .is-mobile-collapsed) {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    width: 52px;
+    height: 52px;
+  }
+  .live2d-widget:is(.is-docked, .is-mobile-collapsed) :is(.live2d-widget-header, .live2d-widget-body) { display: none; }
+}
+@media (max-width: 360px), (max-height: 500px) {
+  .live2d-widget.is-mobile-expanded { width: clamp(96px, calc(min(184px, 100dvw - 96px) * var(--live2d-scale, 1)), calc(100dvw - 16px)); height: clamp(144px, calc(min(44dvh, 220px) * var(--live2d-scale, 1)), calc(100dvh - 100px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live2d-widget-tools-trigger, .live2d-widget-tool-menu { transition: none; }
+}
+
+/* Distinct scroll thumbs without a white gutter in companion menus/settings. */
+.settings-tab-pane:has(.live2d-settings), .live2d-widget-tool-menu { scrollbar-color: var(--ink-3) transparent; scrollbar-width: thin; overscroll-behavior: contain; }
+.settings-tab-pane:has(.live2d-settings)::-webkit-scrollbar-track, .live2d-widget-tool-menu::-webkit-scrollbar-track { background: transparent; }
+.settings-tab-pane:has(.live2d-settings)::-webkit-scrollbar-thumb, .live2d-widget-tool-menu::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--ink-3); }
+@media (hover: hover) {
+  .live2d-settings .nd-ghost-btn:hover:not(:disabled) { background: var(--primary-soft); color: var(--primary); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .live2d-toggle-track { transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+  .live2d-toggle-track::after { transition: transform 150ms ease-out; }
+}
+@media (forced-colors: active) {
+  .live2d-toggle-track { background: Canvas; border-color: ButtonText; }
+  .live2d-toggle input:checked + .live2d-toggle-track { background: Highlight; border-color: Highlight; }
+  .live2d-toggle-track::after, .live2d-toggle input:checked + .live2d-toggle-track::after { background: ButtonText; }
+}
+
+/* Scroll content remains native; the separate thumb supplies bounded spring feedback. */
+.live2d-enhanced-scroll { scrollbar-width: none !important; }
+.live2d-enhanced-scroll::-webkit-scrollbar { display: none; }
+.live2d-scroll-feedback { position: fixed; width: 12px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--ink-3) 10%, transparent); touch-action: none; cursor: pointer; pointer-events: auto; }
+.live2d-scroll-thumb-position { position: absolute; top: 0; left: 3px; width: 6px; pointer-events: none; }
+.live2d-scroll-thumb { display: block; width: 100%; height: 100%; border-radius: 999px; background: var(--ink-3); transition: background-color 120ms cubic-bezier(.2, 0, 0, 1), box-shadow 120ms cubic-bezier(.2, 0, 0, 1); }
+.live2d-scroll-feedback:is([data-active], :focus-visible) .live2d-scroll-thumb { background: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.live2d-scroll-target { position: absolute; left: 2px; width: 8px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 15%, transparent); pointer-events: none; }
+.live2d-scroll-feedback:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+@media (pointer: coarse) { .live2d-slider, :is(.live2d-settings-slider, .live2d-widget-scale) .live2d-slider input[type="range"] { height: 44px; } .live2d-slider-rail { top: 19px; bottom: auto; } .live2d-scroll-feedback { width: 20px; margin-left: -4px; } .live2d-scroll-thumb-position { left: 7px; } .live2d-scroll-target { left: 6px; } }
+@media (forced-colors: active) { .live2d-slider-rail { background: GrayText; } .live2d-slider-fill { background: Highlight; } .live2d-slider-thumb { border-color: Canvas; background: Highlight; outline: 1px solid ButtonText; } .live2d-scroll-thumb { background: ButtonText; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .live2d-widget-drag-handle, .live2d-widget-tools-trigger { transition: opacity 150ms ease-out, box-shadow 150ms ease-out; }
+  .live2d-widget-drag-handle:is(:hover, :focus-visible), .live2d-widget-tools-trigger:is(:hover, :focus-visible),
+  .live2d-widget-tools:is(:focus-within, .is-tools-open) .live2d-widget-tools-trigger { transform: none; }
+}
+@media (forced-colors: active) {
+  .live2d-slider::after { padding: 0; border: 2px solid Highlight; background: none; -webkit-mask: none; mask: none; }
+}
+
+/* Pet controls: the model scales; the capsule keeps a readable, independent size. */
+.live2d-widget { height: clamp(188px, calc(360px * var(--live2d-scale, 1) + 44px), calc(100dvh - 32px)); }
+.live2d-widget.is-docked { width: 96px; height: 44px; }
+.live2d-capsule-anchor { flex: 0 0 44px; width: 100%; pointer-events: none; }
+.live2d-character-drag-region { pointer-events: auto; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.live2d-widget.is-dragging .live2d-character-drag-region { cursor: grabbing; }
+.live2d-character-drag-region:focus:not([data-keyboard-focus="true"]) { outline: none; }
+.live2d-character-drag-region[data-keyboard-focus="true"]:focus { outline: 2px dashed var(--primary); outline-offset: 2px; border-radius: 16px; }
+.live2d-capsule-surface { position: fixed; z-index: 900; min-height: 44px; color: var(--ink); pointer-events: auto; }
+.live2d-capsule { box-sizing: border-box; width: 100%; min-height: 44px; border: 1px solid transparent; border-radius: 24px; background: transparent; }
+.live2d-capsule-surface:not([data-view="rest"]) .live2d-capsule { border-color: color-mix(in srgb, var(--primary) 35%, var(--line)); background: color-mix(in srgb, var(--primary) 9%, var(--bg-2) 82%); box-shadow: 0 8px 28px -12px color-mix(in srgb, var(--primary) 30%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.live2d-capsule svg { display: block; flex-shrink: 0; }
+.live2d-capsule button { display: inline-flex; justify-content: center; align-items: center; flex-shrink: 0; min-width: 40px; min-height: 40px; padding: 8px; border: 1px solid transparent; border-radius: 20px; background: transparent; color: var(--primary); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.live2d-capsule button:disabled { opacity: .4; cursor: default; }
+.live2d-capsule button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.live2d-capsule .live2d-capsule-line { width: 100%; min-height: 44px; padding: 16px 7px; border-radius: 22px; }
+.live2d-capsule-line > span { display: block; width: 48px; height: 6px; border: 1px solid color-mix(in srgb, var(--primary) 55%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--primary) 25%, transparent); }
+.live2d-capsule-actions { display: flex; align-items: center; justify-content: space-evenly; min-height: 44px; padding: 1px 5px; }
+.live2d-capsule-divider { flex: 0 0 1px; width: 1px; height: 18px; background: color-mix(in srgb, var(--primary) 27%, transparent); }
+.live2d-capsule-loading { display: grid; place-items: center; border-radius: 50%; outline: 2px dotted var(--primary); outline-offset: 3px; }
+.live2d-capsule-settings { padding: 6px; }
+.live2d-capsule-settings-heading { display: flex; align-items: center; gap: 4px; padding-bottom: 4px; font-size: 12px; color: var(--ink-3); }
+.live2d-capsule .live2d-capsule-setting-row { justify-content: flex-start; gap: 10px; width: 100%; min-height: 44px; border-radius: 16px; padding-inline: 12px; font-size: 13px; color: var(--ink); text-align: start; }
+.live2d-capsule-setting-row svg { color: var(--primary); }
+.live2d-capsule-error { max-width: 260px; margin: 6px 0; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; font-size: 12px; overflow-wrap: anywhere; }
+.live2d-capsule-chat { position: relative; }
+.live2d-capsule-chat > .live2d-capsule-back { position: absolute; bottom: 3px; left: 3px; min-width: 30px; width: 30px; padding: 5px; }
+.live2d-chat-composer { min-width: 0; padding: 3px 3px 3px 34px; }
+.live2d-capsule-line.is-movable { touch-action: none; user-select: none; cursor: grab; }
+.live2d-capsule-line.is-movable:active { cursor: grabbing; }
+.live2d-chat-context { min-width: 0; padding: 7px 9px 4px 0; }
+.live2d-chat-mode-switch { display: flex; gap: 4px; width: fit-content; max-width: 100%; padding: 3px; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--primary) 5%, transparent); }
+.live2d-chat-mode-switch button, .live2d-capsule .live2d-chat-mode-switch button { min-width: 0; min-height: 32px; padding: 5px 10px; border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--ink-2); font-size: 12px; line-height: 20px; cursor: pointer; }
+.live2d-chat-mode-switch button[aria-pressed="true"], .live2d-capsule .live2d-chat-mode-switch button[aria-pressed="true"] { border-color: color-mix(in srgb, var(--primary) 40%, var(--line)); background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.live2d-chat-mode-switch button:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.live2d-chat-mode-switch button:disabled { opacity: .45; cursor: default; }
+.live2d-chat-sentence { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; margin: 7px 0 3px; color: var(--ink); font-size: 12px; line-height: 1.6; }
+.live2d-chat-mode-hint { margin: 5px 0 3px; color: var(--ink-3); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.live2d-capability-list { display: grid; gap: 0; margin: 0; font-size: 12px; }
+.live2d-capability-list > div { display: flex; justify-content: space-between; gap: 16px; padding-block: 8px; border-bottom: 1px solid var(--line); }
+.live2d-capability-list dt { color: var(--ink); }
+.live2d-capability-list dd { margin: 0; color: var(--ink-2); text-align: end; }
+.live2d-capability-resources { margin-top: 12px; font-size: 12px; color: var(--ink-2); }
+.live2d-capability-resources summary { padding-block: 8px; cursor: pointer; border-radius: 8px; }
+.live2d-capability-resources summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.live2d-capability-resources ul { display: grid; gap: 8px; margin: 8px 0; padding: 0; list-style: none; }
+.live2d-capability-resources li { display: flex; justify-content: space-between; gap: 12px; overflow-wrap: anywhere; }
+.live2d-capability-resources p, .live2d-capability-hint { font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; color: var(--ink-3); }
+.live2d-chat-composer-field { display: flex; align-items: flex-end; gap: 3px; }
+.live2d-chat-composer-field .chat-input { width: 0; min-height: 40px; max-height: 112px; margin: 0; padding: 8px 2px; border-radius: 0; font-size: 13px; line-height: 24px; background: transparent; }
+.live2d-capsule .live2d-chat-send { min-width: 38px; min-height: 38px; margin-bottom: 1px; border-radius: 50%; background: var(--primary); color: white; }
+.live2d-chat-panel { position: fixed; z-index: 899; display: flex; flex-direction: column; min-height: 0; overflow: hidden; box-sizing: border-box; border: 1px solid var(--line); border-radius: 22px; background: color-mix(in srgb, var(--bg-2) 96%, transparent); color: var(--ink); box-shadow: 0 14px 42px -14px #21103940; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); pointer-events: auto; }
+.live2d-chat-panel .chat-toolbar { gap: 4px; padding: 10px 12px; }
+.live2d-chat-panel .chat-toolbar h3 { font-size: 13px; }
+.live2d-chat-panel .chat-messages { padding: 12px; }
+.live2d-chat-panel .chat-message { font-size: 13px; padding: 10px 12px; }
+.live2d-chat-attachment { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 5px 4px; font-size: 11px; }
+.live2d-chat-attachment img { width: 40px; height: 40px; object-fit: cover; border-radius: 10px; }
+.live2d-chat-attachment > span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live2d-chat-composer > p { margin: 4px; font-size: 11px; }
+.live2d-chat-message-image { display: block; max-width: 100%; max-height: 180px; border-radius: 10px; margin-bottom: 6px; }
+@media (hover: hover) {
+  .live2d-capsule button:hover:not(:disabled) { background: color-mix(in srgb, var(--primary) 12%, transparent); }
+  .live2d-capsule .live2d-chat-send:hover:not(:disabled) { background: var(--primary-2); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .live2d-capsule-surface { transition: width 220ms cubic-bezier(.2, 0, 0, 1); }
+  .live2d-capsule { transition: background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out; }
+  .live2d-capsule button { transition: transform 150ms ease-out, background-color 120ms ease-out; }
+  .live2d-capsule button:active:not(:disabled) { transform: scale(.96); }
+}
+@media (max-width: 640px) {
+  .live2d-widget, .live2d-widget.is-mobile-expanded { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; height: clamp(188px, calc(clamp(250px, 45dvh, 310px) * var(--live2d-scale, 1) + 44px), calc(100dvh - 100px)); }
+  .live2d-widget:is(.is-docked, .is-mobile-collapsed) { width: 96px; height: 44px; }
+  .live2d-capsule button { min-height: 44px; }
+  .live2d-chat-composer-field .chat-input { min-height: 44px; padding-block: 10px; }
+}
+@media (forced-colors: active) {
+  .live2d-capsule, .live2d-chat-panel { border-color: ButtonText; background: Canvas; }
+  .live2d-capsule-line > span, .live2d-capsule-divider { background: ButtonText; border-color: ButtonText; }
+  .live2d-capsule .live2d-chat-send { background: Highlight; color: HighlightText; }
+}
+
+/* Per-model action library and isolated preview editor. */
+.live2d-manage-actions { margin-top: 12px; }
+.live2d-action-editor { color: var(--ink); min-width: 0; }
+.live2d-action-heading { margin-bottom: 20px; }
+.live2d-action-heading h3 { margin: 16px 0 6px; font-size: 18px; }
+.live2d-action-heading h3:focus { outline: none; }
+.live2d-action-heading p, .live2d-action-fields p, .live2d-action-status { color: var(--ink-2); font-size: 12px; line-height: 1.7; margin: 8px 0; }
+.live2d-action-workspace { display: grid; grid-template-columns: minmax(135px, .68fr) minmax(0, 1.5fr); align-items: start; gap: 18px; }
+.live2d-action-library { position: sticky; top: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr); height: var(--action-library-height, 430px); gap: 12px; min-width: 0; min-height: 0; }
+.live2d-action-editor label { display: grid; gap: 7px; min-width: 0; color: var(--ink-2); font-size: 12px; font-weight: 500; }
+.live2d-action-editor input, .live2d-action-editor select { width: 100%; min-width: 0; min-height: 36px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-2); color: var(--ink); font: inherit; }
+.live2d-action-editor :is(input, select, button):focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.live2d-action-editor .nd-input { min-height: 40px; padding: 8px 12px; border-radius: 10px; background: var(--bg); font-size: 14px; }
+.live2d-action-editor .nd-input:focus-visible { outline: none; }
+.live2d-action-resources { min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 6px; padding: 4px 26px 4px 4px; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--primary) 45%, transparent) transparent; }
+.live2d-action-resource { display: grid; text-align: start; gap: 4px; width: 100%; padding: 11px 10px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--ink); cursor: pointer; overflow-wrap: anywhere; }
+.live2d-action-resource strong { font-size: 12px; font-weight: 600; }
+.live2d-action-resource small { font-size: 10px; color: var(--ink-2); line-height: 1.5; }
+.live2d-action-resource:hover { background: color-mix(in srgb, var(--primary) 5%, var(--bg-2)); }
+.live2d-action-resource[aria-pressed="true"] { border-color: color-mix(in srgb, var(--primary) 35%, var(--line)); background: color-mix(in srgb, var(--primary) 9%, var(--bg-2)); }
+.live2d-action-detail { display: grid; gap: 16px; min-width: 0; }
+.live2d-action-preview { min-width: 0; border: 1px solid var(--line); border-radius: 18px; padding: 10px; background: color-mix(in srgb, var(--primary) 3%, var(--bg-2)); }
+.live2d-action-stage { position: relative; height: 300px; width: 100%; isolation: isolate; }
+.live2d-action-stage canvas { pointer-events: none; }
+.live2d-action-loading { position: absolute; inset: 45% 0 auto; font-size: 12px; text-align: center; color: var(--ink-2); }
+.live2d-action-preview-tools, .live2d-action-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.live2d-action-preview-tools .nd-ghost-btn, .live2d-action-buttons .nd-ghost-btn { min-height: 32px; padding: 7px 9px; font-size: 11px; }
+.live2d-action-status { min-height: 20px; }
+.live2d-action-fields { display: grid; gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; min-width: 0; }
+.live2d-action-fields h4 { margin: 0; font-size: 13px; }
+.live2d-action-fields .live2d-action-file { font-size: 11px; color: var(--ink-3); overflow-wrap: anywhere; margin: 0; }
+.live2d-hotspot-overlay { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; user-select: none; cursor: crosshair; overflow: hidden; }
+.live2d-hotspot-overlay rect { fill: color-mix(in srgb, var(--primary) 12%, transparent); stroke: var(--primary); stroke-width: 1; cursor: move; }
+.live2d-hotspot-overlay rect.is-selected { fill: color-mix(in srgb, var(--primary) 20%, transparent); stroke-width: 2; }
+.live2d-hotspot-overlay rect.live2d-hotspot-handle { fill: var(--primary); stroke: var(--bg-2); stroke-width: 1; cursor: nwse-resize; }
+.live2d-hotspot-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.live2d-hotspot-list { display: grid; gap: 6px; margin: 0; padding-inline-start: 22px; }
+.live2d-hotspot-list li { position: relative; font-size: 11px; padding-inline-end: 72px; min-height: 36px; }
+.live2d-hotspot-list .live2d-hotspot-select { justify-content: flex-start; text-align: start; width: 100%; min-height: 36px; overflow-wrap: anywhere; }
+.live2d-hotspot-list .live2d-hotspot-delete { position: absolute; inset-inline-end: 0; top: 0; min-height: 36px; gap: 5px; padding-inline: 8px; }
+.live2d-hotspot-delete svg { width: 14px; height: 14px; flex: none; }
+.live2d-hotspot-list button[aria-pressed="true"], .live2d-action-buttons button[aria-pressed="true"] { background: color-mix(in srgb, var(--primary) 12%, var(--bg-2)); color: var(--primary); }
+@media (max-width: 600px) {
+  .live2d-action-workspace { grid-template-columns: minmax(0, 1fr); }
+  .live2d-action-library { position: static; height: auto; }
+  .live2d-action-resources { max-height: 180px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .live2d-action-stage { height: 280px; }
+  .live2d-action-editor input, .live2d-action-editor select { font-size: 16px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .live2d-action-resource { transition: background-color 140ms ease, border-color 140ms ease; }
+}

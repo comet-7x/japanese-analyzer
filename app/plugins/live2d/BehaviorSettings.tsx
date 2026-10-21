@@ -5,9 +5,9 @@ import type { Live2DCapabilities } from './capabilities';
 import { effectiveResourceUses, idleResources } from './resourceConfig';
 import { resourceTargetLabel } from './resourceLabels';
 
-export function BehaviorSettings({ profile, caps, onChange, onEdit, onTest, ready, selectedTarget }: {
+export function BehaviorSettings({ profile, caps, onChange, onEdit, onTest, ready, selectedTarget, pauseWhenIdle }: {
   profile: ActionProfile; caps: Live2DCapabilities; onChange: (profile: ActionProfile) => void;
-  onEdit: (target: string) => void; onTest: (target: string) => void; ready: boolean; selectedTarget: string;
+  onEdit: (target: string) => void; onTest: (target: string) => void; ready: boolean; selectedTarget: string; pauseWhenIdle?: boolean;
 }) {
   const { t } = useLanguage();
   const uses = effectiveResourceUses(profile, caps);
@@ -24,6 +24,7 @@ export function BehaviorSettings({ profile, caps, onChange, onEdit, onTest, read
         <label>{t('播放顺序')}<select className="nd-input" value={profile.idle.order} onChange={event => onChange({ ...profile, idle: { ...profile.idle, order: event.target.value as 'random' | 'sequence' } })}><option value="random">{t('随机播放')}</option><option value="sequence">{t('顺序播放')}</option></select></label>
         <label>{t('动作间隔（秒）')}<input className="nd-input" type="number" min="0" max="60" value={profile.idle.interval} onChange={event => onChange({ ...profile, idle: { ...profile.idle, interval: Number(event.target.value) } })} /></label>
       </>}
+      {pauseWhenIdle && <p>{t('闲置 8 秒后会暂停待机动画，操作或朗读时恢复。')}</p>}
       <p>{t('当前待机清单：{0} 个动作', idleResources(profile, caps).length)}</p>
       <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => onTest('idle')}>{t('试用待机')}</button>
     </details>

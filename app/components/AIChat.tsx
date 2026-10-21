@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from '../contexts/LanguageContext';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AssistantModalPrimitive, TextMessagePartProvider } from '@assistant-ui/react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { streamChat, ChatMessage as APIMessage } from '../services/api';
@@ -10,38 +10,47 @@ import { Icon } from './Icons';
 import { AutoAnimateHeight } from '@/components/ui/auto-animate-height';
 import { MarkdownText } from '@/components/ui/markdown-text';
 import { createRequestMetrics } from '../utils/analytics';
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  welcome?: boolean;
-  error?: boolean;
-}
+import { supportsImageInput } from '../lib/aiModels';
+import { CHAT_BODY_LIMIT, CHAT_IMAGE_FILE_LIMIT, CHAT_IMAGE_TYPES } from '../lib/chatMessages';
+import { useChatSessions, type ChatMessage } from './useChatSessions';
+import CompanionCapsule, { type CompanionControls } from '../plugins/live2d/CompanionCapsule';
 
 interface AIChatProps {
   hidden?: boolean;
+  companion?: CompanionControls;
   userApiKey?: string;
   activeService: ProviderProfile | null;
   endpoint: EndpointPayload;
   currentSentence?: string;
 }
 
-export default function AIChat({ userApiKey, activeService, endpoint, currentSentence, hidden = false }: AIChatProps) {
+export default function AIChat({ userApiKey, activeService, endpoint, currentSentence, hidden = false, companion }: AIChatProps) {
   const { t, locale, errorText } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const { key: sessionKey, mode, setMode, messages, setMessages, inputValue, setInputValue, image, setImage } = useChatSessions(currentSentence);
+  const sessionKeyRef = useRef(sessionKey);
+  sessionKeyRef.current = sessionKey;
   const [isLoading, setIsLoading] = useState(false);
+  const [imageError, setImageError] = useState('');
+  const [imageLoading, setImageLoading] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const imageReadId = useRef(0);
+  const canReadImages = supportsImageInput(endpoint.model, endpoint.caps);
+  const imageBlocked = !canReadImages && !!(image || messages.some(message => message.image));
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const followBottomRef = useRef(true);
   const requestRef = useRef<AbortController | null>(null);
   useEffect(() => {
     requestRef.current?.abort();
     requestRef.current = null;
     setIsLoading(false);
+    imageReadId.current++;
+    setImageLoading(false);
+    setImageError('');
     setMessages(current => current.filter(message => message.content || message.role === 'user'));
     return () => { requestRef.current?.abort(); };
-  }, [locale]);
+  }, [locale, endpoint.model, endpoint.baseUrl, userApiKey, activeService?.id, sessionKey, setMessages]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -66,7 +75,8 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
     : { duration: 0.15, ease: modalEase };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const list = messagesScrollRef.current;
+    if (list && followBottomRef.current) list.scrollTop = list.scrollHeight;
   };
 
   useEffect(() => {
@@ -82,13 +92,13 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isOpen, isExpanded]);
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const welcomeContent = currentSentence
+      const welcomeContent = mode === 'sentence'
         ? "可以问我这句话的语法和用法。"
-        : "想了解哪个词，或哪一句日语？";
+        : "想聊些什么？可以自由提问。";
 
       setMessages([{
         id: Date.now().toString(),
@@ -97,23 +107,28 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
         content: welcomeContent
       }]);
     }
-  }, [isOpen, messages.length, currentSentence, t]);
+  }, [isOpen, messages.length, mode, t, setMessages]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if ((!inputValue.trim() && !image) || isLoading || imageLoading || imageBlocked || (mode === 'sentence' && image)) return;
+    if (messages.length >= 196) { setImageError(t('会话过长，请清空聊天后重试。')); return; }
+    followBottomRef.current = true;
+    setImageError('');
     const controller = new AbortController();
     requestRef.current = controller;
-    const isCurrent = () => requestRef.current === controller && !controller.signal.aborted;
+    const isCurrent = () => requestRef.current === controller && sessionKeyRef.current === sessionKey && !controller.signal.aborted;
     const metrics = createRequestMetrics('chat', activeService?.id ?? '', endpoint.model, true, controller.signal);
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue.trim()
+      content: inputValue.trim(),
+      ...(image ? { image } : {}),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
+    setImage(undefined);
     setIsLoading(true);
 
     const assistantMessageId = (Date.now() + 1).toString();
@@ -126,30 +141,18 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
     setMessages((prev) => [...prev, tempAssistantMessage]);
 
     try {
-      const apiMessages: APIMessage[] = messages
-        .filter((msg) => msg.id !== userMessage.id)
-        .map((msg) => ({
-          role: msg.role,
-          content: msg.welcome ? t(msg.content) : msg.content
-        }));
-
-      if (currentSentence) {
-        const hasContextAlready = messages.some((msg) =>
-          msg.content.includes(currentSentence)
-        );
-
-        if (!hasContextAlready) {
-          apiMessages.push({
-            role: 'user',
-            content: t("请注意：我正在分析这个日语句子：「{0}」。请在后续回答中结合这个句子的语境来解释相关的日语问题。", currentSentence)
-          });
-        }
-      }
-
-      apiMessages.push({
-        role: 'user',
-        content: userMessage.content
+      const toApiMessage = (message: ChatMessage): APIMessage => ({
+        role: message.role,
+        content: message.image ? [
+          { type: 'text', text: message.content || t('请看看这张图片。') },
+          { type: 'image_url', image_url: { url: message.image.data } },
+        ] : message.content,
       });
+      const apiMessages: APIMessage[] = messages.filter(message => !message.welcome && !message.error && (message.content !== '' || message.image)).map(toApiMessage);
+      apiMessages.push(toApiMessage(userMessage));
+      if (new TextEncoder().encode(JSON.stringify(apiMessages)).length > CHAT_BODY_LIMIT - 4096) {
+        throw new Error(t('会话图片过多，请清空聊天后重试。'));
+      }
 
       await streamChat(
         apiMessages,
@@ -176,11 +179,14 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
               ? { ...msg, error: true, content: `抱歉，聊天时出现错误：${error.message}` }
               : msg
           ));
+          setInputValue(value => value || userMessage.content);
+          setImage(value => value ?? userMessage.image);
           setIsLoading(false);
         },
         userApiKey,
         endpoint,
-        controller.signal
+        controller.signal,
+        { companion: !!companion, chatMode: mode, sentenceContext: mode === 'sentence' ? currentSentence : undefined },
       );
     } catch (error) {
       if (!isCurrent()) return;
@@ -191,6 +197,8 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
           ? { ...msg, error: true, content: `抱歉，聊天时出现错误：${error instanceof Error ? error.message : "未知错误"}` }
           : msg
       ));
+      setInputValue(value => value || userMessage.content);
+      setImage(value => value ?? userMessage.image);
       setIsLoading(false);
     }
   };
@@ -202,12 +210,12 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
     }
   };
 
-  const handlePopoverOpenChange = (open: boolean) => {
+  const handlePopoverOpenChange = useCallback((open: boolean) => {
     setIsOpen(open);
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  };
+  }, []);
 
   const openExpanded = () => {
     setIsOpen(false);
@@ -220,7 +228,65 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
     setIsExpanded(false);
   };
 
-  const renderChatPanel = (expanded: boolean) => (
+  useEffect(() => () => { imageReadId.current++; }, []);
+  const attachImage = async (file?: File) => {
+    if (!file || mode !== 'free') return;
+    const id = ++imageReadId.current;
+    if (!canReadImages || !CHAT_IMAGE_TYPES.includes(file.type) || file.size > CHAT_IMAGE_FILE_LIMIT) {
+      setImageLoading(false);
+      setImageError(t('请使用支持图片的模型，并上传不超过 2 MB 的 PNG、JPEG 或 WebP 图片。'));
+      return;
+    }
+    setImageLoading(true); setImageError('');
+    try {
+      const data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error(t('无法读取图片，请重试。')));
+        reader.readAsDataURL(file);
+      });
+      if (imageReadId.current === id) setImage({ name: file.name, data });
+    } catch (error) { if (imageReadId.current === id) setImageError(error instanceof Error ? error.message : t('无法读取图片，请重试。')); }
+    finally { if (imageReadId.current === id) setImageLoading(false); }
+  };
+  const renderComposer = (capsule = false) => <div className={capsule ? 'live2d-chat-composer' : 'chat-composer p-4'}>
+    <div className="live2d-chat-context">
+      <div className="live2d-chat-mode-switch" role="group" aria-label={t('聊天模式')}>
+        <button type="button" aria-pressed={mode === 'sentence'} disabled={!currentSentence}
+          title={!currentSentence ? t('先解析一句日语，再讨论当前句子。') : undefined} onClick={() => setMode('sentence')}>{t('当前句子')}</button>
+        <button type="button" aria-pressed={mode === 'free'} onClick={() => setMode('free')}>{t('自由聊天')}</button>
+      </div>
+      {mode === 'sentence' ? <>
+        <p className="live2d-chat-sentence" lang="ja" title={currentSentence}>{currentSentence}</p>
+        <p className="live2d-chat-mode-hint">{t('可以问我这句话的语法和用法。')}</p>
+      </> : <p className="live2d-chat-mode-hint">{t(!currentSentence ? '先解析一句日语，再讨论当前句子。' : '自由聊天不附带当前句子。')}{' '}{t(canReadImages ? '可附加图片，直接发送给模型。' : '当前模型仅支持文本聊天')}</p>}
+    </div>
+    {image && <div className="live2d-chat-attachment">
+      {/* Inline user-selected raster image; no remote image fetch. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={image.data} alt={image.name} /><span>{image.name}</span>
+      <button type="button" aria-label={t('删除图片')} onClick={() => setImage(undefined)}>{Icon.xSm}</button>
+    </div>}
+    {imageBlocked && <p className="status-error" role="alert">{t('此对话包含图片，请切换到支持图片的模型，或清空聊天并移除附件。')}</p>}
+    {!!imageError && <p className="status-error" role="alert">{imageError}</p>}
+    <div className={capsule ? 'live2d-chat-composer-field' : 'chat-composer-field flex items-end gap-2'}>
+      {mode === 'free' && <>
+        <button type="button" className="live2d-chat-attach" disabled={!canReadImages || isLoading || imageLoading}
+          aria-label={t('上传图片')} title={t(canReadImages ? '上传图片' : '当前模型仅支持文本聊天')} onClick={() => imageInputRef.current?.click()}>{Icon.plus}</button>
+        <input ref={imageInputRef} type="file" accept={CHAT_IMAGE_TYPES.join(',')} hidden onChange={event => { void attachImage(event.target.files?.[0]); event.target.value = ''; }} />
+      </>}
+      <textarea ref={inputRef} value={inputValue} onChange={event => setInputValue(event.target.value)} onKeyDown={handleKeyDown}
+        aria-label={t(capsule ? '聊天消息' : '日语问题')} placeholder={t(mode === 'sentence' ? '问问这句话的语法和用法…' : '想聊些什么…')}
+        className="chat-input min-w-0 flex-1 resize-none" rows={1} disabled={isLoading} />
+      <button onClick={isLoading ? () => { requestRef.current?.abort(); requestRef.current = null; setIsLoading(false); } : handleSendMessage}
+        disabled={!isLoading && ((!inputValue.trim() && !image) || imageLoading || imageBlocked)}
+        className={capsule ? 'live2d-chat-send' : 'nd-primary-btn chat-send-button'} type="button" aria-label={t(isLoading ? '停止生成' : '发送')} title={t(isLoading ? '停止生成' : '发送')}>
+        {isLoading ? Icon.stop : !capsule ? Icon.send : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6" /></svg>}
+      </button>
+    </div>
+  </div>;
+
+  const renderChatPanel = (expanded: boolean, externalComposer = false) => (
     <>
       <div
         className="chat-toolbar flex items-center gap-2 border-b px-4 py-3"
@@ -231,9 +297,11 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
         <div className="min-w-0 flex-1">
           <h3 className="m-0 text-sm font-semibold" style={{ color: 'var(--ink)' }}>{t("AI 日语助手")}</h3>
           <p className="m-0 mt-0.5 truncate text-xs" style={{ color: 'var(--ink-3)' }}>
-            {currentSentence ? t("结合当前句子回答") : t("语法、词汇和学习问题")}
+            {t(mode === 'sentence' ? "当前句子" : "自由聊天")}
           </p>
         </div>
+        <button type="button" className="dictionary-icon-btn" title={t('清空聊天')} aria-label={t('清空聊天')}
+          disabled={isLoading} onClick={() => { setMessages([]); setImageError(''); }}>{Icon.trash}</button>
         <button
           onClick={expanded ? () => {
             setIsExpanded(false);
@@ -255,7 +323,7 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
         </button>
       </div>
 
-      <div className={`chat-messages min-h-0 flex-1 space-y-4 overflow-y-auto ${expanded ? 'p-6' : 'p-4'}`}>
+      <div ref={messagesScrollRef} onScroll={event => { const list = event.currentTarget; followBottomRef.current = list.scrollHeight - list.scrollTop - list.clientHeight < 48; }} className={`chat-messages min-h-0 flex-1 space-y-4 overflow-y-auto ${expanded ? 'p-6' : 'p-4'}`}>
         {messages.map((message) => {
           const isUser = message.role === 'user';
           const isRunningAssistant =
@@ -270,7 +338,13 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
               >
                 <AutoAnimateHeight duration={180} contentClassName="flow-root">
                   {isUser ? (
-                    <div className="whitespace-pre-wrap">{message.content}</div>
+                    <div className="whitespace-pre-wrap">
+                      {message.image && <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img className="live2d-chat-message-image" src={message.image.data} alt={message.image.name} />
+                      </>}
+                      {message.content}
+                    </div>
                   ) : (
                     <div className="ai-chat-markdown max-w-none">
                       {message.error ? <p className="status-error" role="alert">{errorText(message.content)}</p> : (
@@ -289,34 +363,13 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
         <div ref={messagesEndRef} />
       </div>
 
-      <div className={`chat-composer ${expanded ? 'p-5' : 'p-4'}`}>
-        <div className="chat-composer-field flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            aria-label={t("日语问题")}
-            placeholder={t("问一个日语问题…")}
-            className="chat-input min-h-[36px] min-w-0 flex-1 resize-none"
-            rows={expanded ? 2 : 1}
-            disabled={isLoading}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isLoading}
-            className="nd-primary-btn chat-send-button"
-            type="button"
-            title={t("发送")}
-          >
-            {Icon.send}
-          </button>
-        </div>
-      </div>
+      {!externalComposer && renderComposer()}
     </>
   );
 
   if (hidden) return null;
+  if (companion && !isExpanded) return <CompanionCapsule controls={companion} open={isOpen} onOpenChange={handlePopoverOpenChange}
+    composer={renderComposer(true)} panel={renderChatPanel(false, true)} />;
 
   return (
     <>
