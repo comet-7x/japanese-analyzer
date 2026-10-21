@@ -86,6 +86,7 @@ export interface Live2DCanvasProps {
   preview?: boolean;
   testBehaviors?: boolean;
   testCompanion?: boolean;
+  repeatActionId?: string | null;
   onActionState?: (state: ActionPlaybackState) => void;
   onHitFeedback?: (target: string | null, resolution: ActionResolution, overlaps: number) => void;
   onError?: (error: Error) => void;
@@ -431,6 +432,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
             starting = false;
             if (started) {
               publish('playing', id);
+              container.dataset.previewPlayCount = String(Number(container.dataset.previewPlayCount ?? 0) + 1);
               if (action.kind === 'expression') {
                 const policy = currentConfig().expressionPolicies[target ?? action.id] ?? currentConfig().expressionPolicies[action.id] ?? { mode: 'timed', seconds: 3.5 };
                 const mode = target?.startsWith('mood:') ? policy.mode === 'event' ? 'event' : 'timed' : policy.mode === 'event' ? 'timed' : policy.mode;
@@ -568,9 +570,9 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         const activeMotion = !manager.isFinished() && state.currentPriority > 1 || state.reservePriority > 1
           || internal.parallelMotionManager.some(manager => !manager.isFinished());
         if (playback && !starting && !activeMotion && capabilities.actions.find(item => item.id === playback)?.kind === 'motion') {
-          const repeat = companionMotion === playback && latest.mood === 'analyzing' ? companionMotion : null;
+          const repeat = latest.preview && latest.repeatActionId === playback ? playback : companionMotion === playback && latest.mood === 'analyzing' ? companionMotion : null;
           publish('finished'); playback = null; manualBusy = false;
-          if (repeat) void playAction(repeat, false, 'mood:analyzing');
+          if (repeat) void playAction(repeat, latest.preview === true, latest.preview ? undefined : 'mood:analyzing');
         }
         if (idlePlaying && manager.isFinished()) { idlePlaying = false; idleUntil = performance.now() + currentConfig().idle.interval * 1000; }
         const config = currentConfig();

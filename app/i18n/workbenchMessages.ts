@@ -434,5 +434,40 @@ export const workbenchMessages = {
     "zh-TW": "有 {0} 項未儲存的修改",
     "en": "{0} unsaved changes",
     "ko": "저장하지 않은 변경 {0}개"
+  },
+  "资源目录翻页": {
+    "zh-TW": "資源目錄翻頁",
+    "en": "Resource pages",
+    "ko": "리소스 페이지"
+  },
+  "显示 {0}–{1}，共 {2} 项": {
+    "zh-TW": "顯示 {0}–{1}，共 {2} 項",
+    "en": "Showing {0}–{1} of {2}",
+    "ko": "전체 {2}개 중 {0}–{1}"
+  },
+  "循环预览此动作": {
+    "zh-TW": "循環預覽此動作",
+    "en": "Loop this motion preview",
+    "ko": "이 동작 반복 미리보기"
+  },
+  "循环仅影响预览，停止或切换资源后结束。": {
+    "zh-TW": "循環僅影響預覽，停止或切換資源後結束。",
+    "en": "Looping affects only the preview. Stop or select another resource to end it.",
+    "ko": "반복은 미리보기에만 적용됩니다. 중지하거나 다른 리소스를 선택하면 끝납니다."
+  },
+  "正在循环预览 · 默认静音": {
+    "zh-TW": "正在循環預覽 · 預設靜音",
+    "en": "Looping preview · muted by default",
+    "ko": "반복 미리보기 중 · 기본 음소거"
+  },
+  "上一页": {
+    "zh-TW": "上一頁",
+    "en": "Previous page",
+    "ko": "이전 페이지"
+  },
+  "下一页": {
+    "zh-TW": "下一頁",
+    "en": "Next page",
+    "ko": "다음 페이지"
   }
 } as const;

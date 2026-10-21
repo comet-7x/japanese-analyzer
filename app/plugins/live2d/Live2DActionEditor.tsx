@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localizeError } from '../../i18n';
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import type { Live2DCanvasHandle, ActionPlaybackState, ModelProjection } from './Live2DCanvas';
 import { getLive2DModelFiles } from './modelLibrary';
 import Live2DScrollFeedback from './Live2DScrollFeedback';
@@ -13,6 +13,7 @@ import type { Live2DCapabilities } from './capabilities';
 import { effectiveResourceUses, idleResources } from './resourceConfig';
 import { ResourceAssignment } from './ResourceAssignment';
 import { BehaviorSettings } from './BehaviorSettings';
+import { filterResources, indexResourceUses, RESOURCE_PAGE_SIZE } from './resourceIndex';
 import { ResourceCatalog } from './ResourceCatalog';
 import { resourceTargetLabel } from './resourceLabels';
 import { INTERACTION_PARTS } from './interaction';
@@ -27,7 +28,7 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
   onChange: (profile: ActionProfile) => void; onBack: () => void;
 }) {
   const { t, locale } = useLanguage();
-  const profile = value ?? emptyActionProfile();
+  const profile = useMemo(() => value ?? emptyActionProfile(), [value]);
   const latest = useRef(profile); latest.current = profile;
   const canvas = useRef<Live2DCanvasHandle>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -48,8 +49,11 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
   const [simulatedMood, setSimulatedMood] = useState<'idle' | 'analyzing' | 'success' | 'error'>('idle');
   const [undoProfile, setUndoProfile] = useState<ActionProfile | null>(null);
   const [assigning, setAssigning] = useState(false);
-  const uses = effectiveResourceUses(profile, capabilities);
-  useEffect(() => { setTesting(false); setTestIdle(false); setSimulatedMood('idle'); setEditing(false); setAssigning(false); canvas.current?.stopAction(); }, [view]);
+  const uses = useMemo(() => effectiveResourceUses(profile, capabilities), [profile, capabilities]);
+  const useIndex = useMemo(() => indexResourceUses(uses), [uses]);
+  const [page, setPage] = useState(0);
+  const [repeatActionId, setRepeatActionId] = useState<string | null>(null);
+  useEffect(() => { setRepeatActionId(null); setTesting(false); setTestIdle(false); setSimulatedMood('idle'); setEditing(false); setAssigning(false); canvas.current?.stopAction(); }, [view]);
   const [search, setSearch] = useState('');
   const [useFilter, setUseFilter] = useState('all');
   const [kind, setKind] = useState('all');
@@ -89,8 +93,11 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
     else change({ bindings: { ...profile.bindings, [id]: { mode: 'disabled' } } });
   };
   const displayName = (action: typeof actions[number]) => actionName(action, profile, actions.indexOf(action) + 1, t);
-  const filtered = actions.filter(action => (useFilter === 'all' || (useFilter === 'unused' ? !uses.some(use => use.resolution.status === 'action' && use.resolution.action.id === action.id) : uses.some(use => use.resolution.status === 'action' && use.resolution.action.id === action.id && (useFilter === 'idle' ? use.target === 'idle' : useFilter === 'tap' ? /^(area|zone):/.test(use.target) : use.target.startsWith(useFilter + ':'))))) && (kind === 'all' || action.kind === kind)
-    && `${actionName(action, profile, actions.indexOf(action) + 1, t)} ${action.name} ${action.file}`.toLowerCase().includes(search.toLowerCase()));
+  const filtered = useMemo(() => filterResources(actions, profile, useIndex, search, kind, useFilter, t), [actions, profile, useIndex, search, kind, useFilter, t]);
+  const currentPage = Math.min(page, Math.max(0, Math.ceil(filtered.length / RESOURCE_PAGE_SIZE) - 1));
+  const pageItems = filtered.slice(currentPage * RESOURCE_PAGE_SIZE, (currentPage + 1) * RESOURCE_PAGE_SIZE);
+  const selectResource = (id: string) => { setRepeatActionId(null); canvas.current?.stopAction(); setSelectedId(id); setMobileDetail(true); setAssigning(false); };
+
   const selected = actions.find(action => action.id === selectedId);
   const zone = profile.hotspots.find(item => item.id === selectedZoneId);
   const keys = [...new Set([...DEFAULT_KEYS, ...Object.keys(profile.bindings).filter(key => key.startsWith('key:')).map(key => key.slice(4))])];
@@ -109,9 +116,10 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
     next.x = Math.min(next.x, 1 - next.width); next.y = Math.min(next.y, 1 - next.height);
     change({ hotspots: profile.hotspots.map(item => item.id === zone.id ? next : item) });
   };
-  const play = (id = selectedId) => { setTestIdle(false); setTesting(false); setEditing(false); void canvas.current?.playAction(id); };
+  const play = (id = selectedId) => { if (id !== repeatActionId) setRepeatActionId(null); setTestIdle(false); setTesting(false); setEditing(false); void canvas.current?.playAction(id); };
   const receivePlayback = (state: ActionPlaybackState) => {
     setPlayback(state);
+    if (state.status === 'error') setRepeatActionId(null);
     setResourceStates(current => {
       const next = { ...current };
       for (const [id, status] of Object.entries(next)) {
@@ -124,7 +132,7 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
   const adjacent = (offset: number) => {
     const index = Math.max(0, filtered.findIndex(action => action.id === selectedId));
     const next = filtered[(index + offset + filtered.length) % filtered.length];
-    if (next) { setSelectedId(next.id); play(next.id); }
+    if (next) { setPage(Math.floor(filtered.indexOf(next) / RESOURCE_PAGE_SIZE)); setSelectedId(next.id); play(next.id); }
   };
   const pointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (!editing || event.button !== 0 || !event.isPrimary) return;
@@ -192,21 +200,22 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
     </div>
     <div className="live2d-action-workspace" data-view={view} data-detail={mobileDetail}>
       {view === 'resources' && <section className="live2d-action-library" ref={library} aria-label={t("动作资源目录")}>
-        <label>{t("搜索动作")}<input className="nd-input" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder={t("名称、动作组或文件名")} /></label>
+        <label>{t("搜索动作")}<input className="nd-input" type="search" value={search} onChange={event => { setSearch(event.target.value); setPage(0); }} placeholder={t("名称、动作组或文件名")} /></label>
         <div className="live2d-resource-tabs" role="group" aria-label={t('资源类型')}>
-          {['all', 'motion', 'expression'].map((id, index) => <button type="button" className="nd-ghost-btn" key={id} aria-pressed={kind === id} onClick={() => setKind(id)}>{t(['全部', '动作', '表情'][index])} {actions.filter(item => id === 'all' || item.kind === id).length}</button>)}
+          {['all', 'motion', 'expression'].map((id, index) => <button type="button" className="nd-ghost-btn" key={id} aria-pressed={kind === id} onClick={() => { setKind(id); setPage(0); }}>{t(['全部', '动作', '表情'][index])} {actions.filter(item => id === 'all' || item.kind === id).length}</button>)}
         </div>
-        <label>{t('按用途筛选')}<select className="nd-input" value={useFilter} onChange={event => setUseFilter(event.target.value)}>{['all', 'idle', 'tap', 'key', 'mood', 'unused'].map((id, index) => <option key={id} value={id}>{t(['全部', '平时自动播放', '点击部位', '键盘快捷键', '伴学反馈', '尚未设置用途'][index])}</option>)}</select></label>
+        <label>{t('按用途筛选')}<select className="nd-input" value={useFilter} onChange={event => { setUseFilter(event.target.value); setPage(0); }}>{['all', 'idle', 'tap', 'key', 'mood', 'unused'].map((id, index) => <option key={id} value={id}>{t(['全部', '平时自动播放', '点击部位', '键盘快捷键', '伴学反馈', '尚未设置用途'][index])}</option>)}</select></label>
         <div className="live2d-action-resources" ref={setResourcesTarget}>
-          <ResourceCatalog actions={filtered} profile={profile} uses={uses} selectedId={selectedId} states={resourceStates}
-            onSelect={id => { setSelectedId(id); setMobileDetail(true); setAssigning(false); }} onPreview={id => { setSelectedId(id); setMobileDetail(true); play(id); }} />
+          <ResourceCatalog actions={pageItems} profile={profile} uses={useIndex} selectedId={selectedId} states={resourceStates}
+            onSelect={selectResource} onPreview={id => { selectResource(id); play(id); }} />
           {!filtered.length && <p role="status">{t(kind === 'expression' && !actions.some(item => item.kind === 'expression') ? '此模型未包含表情文件。' : '没有匹配的资源。')}</p>}
           {!filtered.length && search && <button type="button" className="nd-ghost-btn" onClick={() => setSearch('')}>{t('清除搜索')}</button>}
         </div>
+        {filtered.length > RESOURCE_PAGE_SIZE && <nav className="live2d-resource-pagination" aria-label={t('资源目录翻页')}><p role="status">{t('显示 {0}–{1}，共 {2} 项', currentPage * RESOURCE_PAGE_SIZE + 1, Math.min((currentPage + 1) * RESOURCE_PAGE_SIZE, filtered.length), filtered.length)}</p><button type="button" className="nd-ghost-btn" disabled={currentPage === 0} onClick={() => { setPage(currentPage - 1); if (resourcesTarget) resourcesTarget.scrollTop = 0; }}>{t('上一页')}</button><button type="button" className="nd-ghost-btn" disabled={(currentPage + 1) * RESOURCE_PAGE_SIZE >= filtered.length} onClick={() => { setPage(currentPage + 1); if (resourcesTarget) resourcesTarget.scrollTop = 0; }}>{t('下一页')}</button></nav>}
       </section>}
       {view === 'rules' && <BehaviorSettings pauseWhenIdle={pauseWhenIdle} profile={profile} caps={capabilities} onChange={onChange} selectedTarget={target} ready={ready}
         onEdit={id => { setTarget(id); setAssigning(true); }} onTest={id => {
-          setEditing(false); setTesting(true); setTestIdle(id === 'idle');
+          setRepeatActionId(null); setEditing(false); setTesting(true); setTestIdle(id === 'idle');
           if (id.startsWith('mood:')) { setSimulatedMood(id.slice(5) as typeof simulatedMood); return; }
           setSimulatedMood('idle');
           if (id === 'idle') return;
@@ -223,7 +232,7 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
             onPointerCancel={() => { testPointer.current = null; }}
             onPointerUp={event => { const pointer = testPointer.current; testPointer.current = null; if (testing && !editing && pointer?.id === event.pointerId && !pointer.moved) void canvas.current?.tapAt(event.clientX, event.clientY); }}
             onKeyDown={event => { if (event.target !== event.currentTarget || !testing || event.repeat) return; const key = shortcutFromEvent(event); if (key && canvas.current?.triggerShortcut(key)) event.preventDefault(); }}>
-            {source && <Live2DCanvas ref={canvas} source={source} preview testCompanion={testing} mood={testing ? simulatedMood : 'idle'} interactionProfile={profile} testBehaviors={testIdle} trackPointer={false} pauseWhenIdle={!testIdle} onReady={() => setReady(true)} onError={cause => setError(cause.message)} onActionState={receivePlayback} onHitFeedback={(id, result, overlaps) => {
+            {source && <Live2DCanvas ref={canvas} source={source} preview repeatActionId={repeatActionId} testCompanion={testing} mood={testing ? simulatedMood : 'idle'} interactionProfile={profile} testBehaviors={testIdle} trackPointer={false} pauseWhenIdle={!testIdle} onReady={() => setReady(true)} onError={cause => setError(cause.message)} onActionState={receivePlayback} onHitFeedback={(id, result, overlaps) => {
               const label = id ? resourceTargetLabel(id, profile, t) : t('空白区域');
               const effect = result.status === 'action' ? displayName(result.action) : t(result.status === 'disabled' ? '已禁用' : result.status === 'missing' ? '绑定资源已缺失' : '尚未设置用途');
               setHitFeedback(t('命中 {0} → {1}', label, effect) + (overlaps > 1 ? ' · ' + t('{0} 个区域重叠，按列表优先级执行', overlaps) : ''));
@@ -238,16 +247,18 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
             </svg>}
             {!ready && !error && <span className="live2d-action-loading">{t("正在加载预览…")}</span>}
           </div>
-          {view === 'rules' && <div className="live2d-action-buttons">{testing && simulatedMood !== 'idle' && <button type="button" className="nd-ghost-btn" onClick={() => setSimulatedMood('idle')}>{t('结束模拟事件')}</button>}<button type="button" className="nd-ghost-btn" aria-pressed={testing} onClick={() => { setEditing(false); setTestIdle(false); setTesting(!testing); }}>{t('试用互动')}</button><button type="button" className="nd-ghost-btn" aria-pressed={editing} onClick={() => { setTesting(false); setTestIdle(false); canvas.current?.resetPose(); setEditing(!editing); }}>{t('编辑区域')}</button></div>}
+          {view === 'rules' && <div className="live2d-action-buttons">{testing && simulatedMood !== 'idle' && <button type="button" className="nd-ghost-btn" onClick={() => setSimulatedMood('idle')}>{t('结束模拟事件')}</button>}<button type="button" className="nd-ghost-btn" aria-pressed={testing} onClick={() => { setEditing(false); setTestIdle(false); setTesting(!testing); }}>{t('试用互动')}</button><button type="button" className="nd-ghost-btn" aria-pressed={editing} onClick={() => { setTesting(false); setRepeatActionId(null); setTestIdle(false); setSimulatedMood('idle'); canvas.current?.resetPose(); setEditing(!editing); }}>{t('编辑区域')}</button></div>}
           <div className="live2d-action-preview-tools">
             <button type="button" className="nd-ghost-btn" disabled={!ready || !filtered.length} onClick={() => adjacent(-1)} aria-label={t("预览上一个动作")}>{t("上一个")}</button>
             <button type="button" className="nd-ghost-btn" disabled={!ready || !selected} onClick={() => play()}>{t("预览一次")}</button>
-            <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => { setTestIdle(false); canvas.current?.stopAction(); }}>{t("停止")}</button>
+            <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => { setRepeatActionId(null); setTestIdle(false); setSimulatedMood('idle'); canvas.current?.stopAction(); }}>{t("停止")}</button>
             <button type="button" className="nd-ghost-btn" disabled={!ready || !filtered.length} onClick={() => adjacent(1)} aria-label={t("预览下一个动作")}>{t("下一个")}</button>
-            <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => { setTestIdle(false); canvas.current?.resetPose(); }}>{t("复位姿态／表情")}</button>
+            <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => { setRepeatActionId(null); setTestIdle(false); setSimulatedMood('idle'); canvas.current?.resetPose(); }}>{t("复位姿态／表情")}</button>
           </div>
+          {view === 'resources' && selected?.kind === 'motion' && <label className="live2d-preview-loop"><input type="checkbox" checked={repeatActionId === selected.id} disabled={!ready} onChange={event => { if (event.target.checked) { play(selected.id); setRepeatActionId(selected.id); } else { setRepeatActionId(null); canvas.current?.stopAction(); } }} />{t('循环预览此动作')}</label>}
+          {repeatActionId && <p>{t('循环仅影响预览，停止或切换资源后结束。')}</p>}
           <p className="live2d-hit-feedback" role="status" aria-atomic="true">{testing ? hitFeedback : ''}</p>
-          <p className="live2d-action-status" role="status">{testIdle ? t('正在试用待机清单，点击停止结束。') : testing && !editing ? t('轻点预览角色或聚焦后按快捷键；仅影响预览。') : playback.status === 'loading' ? t('正在加载所选资源…') : playback.status === 'playing' ? t('正在预览 · 默认静音，不循环') : playback.status === 'finished' ? t('动作已播放完毕') : playback.status === 'error' ? (playback.error && localizeError(playback.error, locale)) : editing ? t('在角色上拖出矩形；拖动区域移动，拖动右下角调整大小。') : t('预览与桌面角色独立，默认静音，不循环。')}</p>
+          <p className="live2d-action-status" role="status">{testIdle ? t('正在试用待机清单，点击停止结束。') : testing && !editing ? t('轻点预览角色或聚焦后按快捷键；仅影响预览。') : playback.status === 'loading' ? t('正在加载所选资源…') : playback.status === 'playing' ? t(repeatActionId ? '正在循环预览 · 默认静音' : '正在预览 · 默认静音，不循环') : playback.status === 'finished' ? t('动作已播放完毕') : playback.status === 'error' ? (playback.error && localizeError(playback.error, locale)) : editing ? t('在角色上拖出矩形；拖动区域移动，拖动右下角调整大小。') : t('预览与桌面角色独立，默认静音，不循环。')}</p>
         </section>
         {view === 'resources' && selected && <section className="live2d-action-fields">
           <label>{t("动作名称")}<input maxLength={80} value={profile.aliases[selected.id] ?? ''} placeholder={defaultActionName(selected, actions.indexOf(selected) + 1, t)} onChange={event => change({ aliases: { ...profile.aliases, [selected.id]: event.target.value } })} /></label>

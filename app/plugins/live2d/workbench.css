@@ -65,3 +65,10 @@
 .live2d-resource-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .live2d-resource-toolbar strong { overflow-wrap: anywhere; }
 @media (max-width: 700px) { .settings-tab-pane:has(.live2d-workbench[data-open="true"]) { padding: 12px 16px; } }
+
+.live2d-resource-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.live2d-resource-pagination p { flex-basis: 100%; margin: 0; font-variant-numeric: tabular-nums; }
+.live2d-workbench .live2d-action-library { grid-template-rows: auto auto auto minmax(0, 1fr) auto; }
+.live2d-workbench .live2d-preview-loop { display: flex; align-items: center; gap: 8px; }
+.live2d-workbench .live2d-preview-loop input { appearance: auto; width: 18px; height: 18px; min-height: 18px; padding: 0; accent-color: var(--primary); }
+.live2d-hit-feedback { overflow-wrap: anywhere; }

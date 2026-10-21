@@ -1,3 +1,4 @@
+import { filterResources, indexResourceUses, RESOURCE_PAGE_SIZE } from '../app/plugins/live2d/resourceIndex';
 import { countSettingChanges } from '../app/plugins/live2d/settingsFeedback';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -83,4 +84,16 @@ test('default keyboard provenance follows user body overrides and disabled bindi
 test('save counts compare fields and ordered lists without counting JSON formatting', () => {
   assert.equal(countSettingChanges({ a: 1, b: { name: 'old', ids: ['a'] } }, { b: { name: 'new', ids: ['a', 'b'] }, a: 1 }), 2);
   assert.equal(countSettingChanges({ a: 1, b: 2 }, { b: 2, a: 1 }), 0);
+});
+
+test('large directories search all resources while mounting only a bounded page', () => {
+  const large = capabilitiesFromManifest({ FileReferences: { Motions: { Idle: Array.from({ length: 5000 }, (_, index) => ({ File: `motion-${index}.json` })) } } });
+  const profile = emptyActionProfile(), uses = indexResourceUses(effectiveResourceUses(profile, large));
+  const filtered = filterResources(large.actions, profile, uses, 'motion-4999.json', 'motion', 'idle');
+  assert.equal(filtered.length, 1); assert.equal(filtered[0].index, 4999);
+  assert.equal(filterResources(large.actions, profile, uses, '', 'all', 'unused').length, 0);
+  const all = filterResources(large.actions, profile, uses, '', 'all', 'all');
+  assert.equal(all.length, 5000); assert.equal(all.slice(0, RESOURCE_PAGE_SIZE).length, 50);
+  profile.aliases[large.actions[4999].id] = 'Custom alias';
+  assert.equal(filterResources(large.actions, profile, uses, 'custom alias', 'all', 'all')[0].index, 4999);
 });

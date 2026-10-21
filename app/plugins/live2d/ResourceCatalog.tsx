@@ -7,12 +7,12 @@ import type { ActionPlaybackState } from './Live2DCanvas';
 import { resourceTargetLabel } from './resourceLabels';
 
 export function ResourceCatalog({ actions, profile, uses, selectedId, states, onSelect, onPreview }: {
-  actions: Live2DAction[]; profile: ActionProfile; uses: ResourceUse[]; selectedId: string;
+  actions: Live2DAction[]; profile: ActionProfile; uses: Map<string, ResourceUse[]>; selectedId: string;
   states: Record<string, ActionPlaybackState['status']>; onSelect: (id: string) => void; onPreview: (id: string) => void;
 }) {
   const { t } = useLanguage();
   return actions.map((action, index) => {
-    const assigned = uses.filter(use => use.resolution.status === 'action' && use.resolution.action.id === action.id);
+    const assigned = uses.get(action.id) ?? [];
     return <article key={action.id} className="live2d-catalog-row" data-selected={action.id === selectedId}>
       <button type="button" className="live2d-catalog-select" aria-pressed={action.id === selectedId} onClick={() => onSelect(action.id)}>
         <strong>{actionName(action, profile, index + 1, t)}</strong>

@@ -5,8 +5,9 @@ export interface ResourceUse { target: string; source: 'model' | 'matched' | 'cu
 
 export function idleResources(profile: ActionProfile, caps: Live2DCapabilities): Live2DAction[] {
   if (profile.idle.mode === 'off') return [];
+  const ids = new Set(profile.idle.actionIds);
   return caps.actions.filter(action => action.kind === 'motion' && (profile.idle.mode === 'model'
-    ? action.group === caps.idle : profile.idle.actionIds.includes(action.id)));
+    ? action.group === caps.idle : ids.has(action.id)));
 }
 
 export function automaticTargetAction(target: string, profile: ActionProfile, caps: Live2DCapabilities) {
