@@ -1,5 +1,6 @@
 'use client';
 
+import { useModalFocus } from './useModalFocus';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -102,6 +103,8 @@ export default function SettingsModal({
   onModalClose
 }: SettingsModalProps) {
   const { t } = useLanguage();
+  const modalRef = useRef<HTMLDivElement>(null);
+  useModalFocus(modalRef, isModalOpen);
   const [activeTab, setActiveTab] = useState<SettingsTabId>('models');
   const [translationSettings, setTranslationSettings] = useState(initialTranslationSettings);
   const [services, setServices] = useState<ProviderProfile[]>(initialServices);
@@ -402,7 +405,7 @@ export default function SettingsModal({
       style={{ display: isModalOpen ? 'flex' : 'none' }}
       onClick={handleOutsideClick}
     >
-      <div className="settings-modal-content settings-modular-layout">
+      <div ref={modalRef} className="settings-modal-content settings-modular-layout" role="dialog" aria-modal="true" aria-label={t('设置')} tabIndex={-1}>
         {/* 左侧功能模块边栏 */}
         <aside className="settings-sidebar">
           <div className="settings-sidebar-header">
@@ -432,6 +435,8 @@ export default function SettingsModal({
                   type="button"
                   role="tab"
                   aria-selected={isActive}
+                  tabIndex={isActive ? 0 : -1}
+                  onKeyDown={event => { const offset = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1 : 0; if (!offset && event.key !== 'Home' && event.key !== 'End') return; event.preventDefault(); const index = tabs.findIndex(item => item.id === tab.id); const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + offset + tabs.length) % tabs.length; setActiveTab(tabs[next].id as SettingsTabId); event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role=tab]')[next]?.focus(); }}
                   className={`settings-nav-item ${isActive ? 'active' : ''}`}
                   onClick={() => setActiveTab(tab.id)}
                 >

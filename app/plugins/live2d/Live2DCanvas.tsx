@@ -277,6 +277,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
       const expressionManager = manager.expressionManager;
       // Disable the SDK's random idle requester; this instance owns exactly one playlist.
       (manager.groups as { idle: string }).idle = '';
+      const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
       const idlePlaylist = new IdlePlaylist();
       let idleRevision = 0, idleStarting = false, idleUntil = 0, idlePlaying = false;
       let profileSignature = '';
@@ -315,13 +316,18 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
           const expression = await engine.Live2DFactory.loadExpression(expressionManager, index);
           if (!disposed && expression) expressionManager.expressions[index] = expression;
         }
-      }, id => disposed ? Promise.resolve(false) : nextModel.expression(expressionIndex(id)), () => {
+      }, id => {
+        if (disposed) return Promise.resolve(false);
+        container.dataset.expression = id;
+        return nextModel.expression(expressionIndex(id));
+      }, () => {
         if (!expressionManager || disposed) return;
         expressionManager.reserveExpressionIndex = -1;
         // The engine may restore currentExpression after a motion. Reset that baseline too.
         expressionManager.currentExpression = expressionManager.defaultExpression;
         expressionManager.resetExpression();
-      }, () => { expressionUntil = performance.now() + 1200; runtime?.wake(); },
+        delete container.dataset.expression;
+      }, () => { expressionUntil = performance.now() + 1200; runtime?.setVisible(!document.hidden && inViewport); runtime?.wake(); },
       () => { if (expressionManager) expressionManager.reserveExpressionIndex = -1; });
 
       const expressionLife = new ExpressionLifecycle(id => expressions?.set(id), () => currentConfig().defaultExpression);
@@ -360,6 +366,8 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         nextModel.scale.set(fit);
         nextModel.position.set(nextApp.screen.width / 2, nextApp.screen.height);
         publishVisualCenter();
+        // Resizing must redraw even when reduced motion keeps the ticker paused.
+        if (motionPreference.matches) { nextModel.update(0); nextApp.render(); }
         runtime?.wake();
       };
       let layoutFrame = 0;
@@ -411,7 +419,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         companionMotion = !manual && target === 'mood:analyzing' && action.kind === 'motion' ? id : null;
         manager.stopAllMotions(); manager.stopSpeaking();
         if (action.kind === 'motion') expressionLife.reset();
-        publish('loading', id); runtime?.wake();
+        publish('loading', id); runtime?.setVisible(!document.hidden && inViewport); runtime?.wake();
         try {
           const started = await commandGate.run(async () => {
             if (action.kind === 'motion') return !!await manager.loadMotion(action.group, action.index);
@@ -520,6 +528,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
 
       const refresh = () => {
         const latest = propsRef.current;
+        if (latest.speech?.status === 'playing') runtime?.setVisible(!document.hidden && inViewport);
         runtime?.setPauseWhenIdle(latest.pauseWhenIdle === true);
         if (!latest.trackPointer) internal.focusController.focus(0, 0);
         const signature = JSON.stringify([currentConfig().idle, currentConfig().defaultExpression, latest.testBehaviors]);
@@ -534,6 +543,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
           currentProfile = latest.interactionProfile;
           if (!manualBusy && (!latest.preview || latest.testCompanion)) {
             // Cancel pending companion loads as well as already playing motions.
+            if (playback) publish('stopped');
             commandNumber++; commandGate.cancel(); starting = false; playback = null; manager.stopAllMotions(); companionMotion = null;
             expressionLife.reset();
             const detected = mood === 'idle' ? null : capabilities.moods[mood];
@@ -577,7 +587,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         if (idlePlaying && manager.isFinished()) { idlePlaying = false; idleUntil = performance.now() + currentConfig().idle.interval * 1000; }
         const config = currentConfig();
         const manualMotion = manualBusy && capabilities.actions.find(item => item.id === playback)?.kind === 'motion';
-        if ((!latest.preview || latest.testBehaviors) && !speaking && (latest.mood ?? 'idle') === 'idle'
+        if ((!motionPreference.matches || latest.testBehaviors) && (!latest.preview || latest.testBehaviors) && !speaking && (latest.mood ?? 'idle') === 'idle'
           && !manualMotion && !starting && !activeMotion && manager.isFinished() && !idleStarting && performance.now() >= idleUntil) {
           const action = idlePlaylist.next(idleResources(config, capabilities), config.idle.order);
           if (action) {
@@ -596,12 +606,13 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         }
         runtime?.setBusy(Boolean(speaking || latest.dragging || starting || activeMotion || poseMoving
           || performance.now() < expressionUntil));
+        if (motionPreference.matches) runtime?.setVisible(!document.hidden && inViewport && Boolean(speaking || starting || activeMotion || latest.testBehaviors || performance.now() < expressionUntil));
       };
       nextApp.ticker.add(update, undefined, UPDATE_PRIORITY.HIGH);
       cleanups.push(() => nextApp.ticker.remove(update));
 
       const pointerMove = (event: PointerEvent) => {
-        if (!propsRef.current.trackPointer || document.hidden || !inViewport || event.pointerType === 'touch') return;
+        if (motionPreference.matches || !propsRef.current.trackPointer || document.hidden || !inViewport || event.pointerType === 'touch') return;
         const rect = container.getBoundingClientRect();
         if (!rect.width || !rect.height) return;
         internal.focusController.focus(clampUnit((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -609,7 +620,9 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         runtime?.wake();
       };
       const pointerLeave = () => { internal.focusController.focus(0, 0); runtime?.wake(); };
-      const visibility = () => runtime?.setVisible(!document.hidden && inViewport);
+      const visibility = () => runtime?.setVisible(!document.hidden && inViewport && (!motionPreference.matches || starting || manualBusy || !!propsRef.current.speech && propsRef.current.speech.status === 'playing'));
+      motionPreference.addEventListener('change', visibility);
+      cleanups.push(() => motionPreference.removeEventListener('change', visibility));
       const focus = () => { visibility(); runtime?.wake(); };
       const readingSelectionGuard = (event: MouseEvent) => {
         guardStageBackgroundSelection(event, container);
@@ -635,6 +648,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         window.removeEventListener('focus', focus);
       });
       layout();
+      if (motionPreference.matches) { nextModel.update(0); nextApp.render(); visibility(); }
       if (propsRef.current.onVisualCenterChange) {
         try {
           nextModel.update(0);

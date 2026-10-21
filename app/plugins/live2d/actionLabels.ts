@@ -22,7 +22,7 @@ export function defaultActionName(action: Live2DAction, ordinal = action.index +
   if (action.kind === 'expression') {
     const name = action.group.replace(/^(expression|exp)[ _-]*/i, '').toLowerCase();
     const labels: Record<string, string> = { smile: '微笑表情', happy: '开心表情', sad: '难过表情', angry: '生气表情', surprised: '惊讶表情', confused: '困惑表情' };
-    return labels[name] ? t(labels[name]) : (/[\u3400-\u9fff\u3040-\u30ff]/u.test(name) ? action.group : t('自定义表情 {0}', ordinal));
+    return labels[name] ? t(labels[name]) : (/[\u3400-\u9fff\u3040-\u30ff]/u.test(name) ? action.group : t('自定义表情 {0}', action.index + 1));
   }
   const group = actionGroupLabel(action.group);
   return group.startsWith('自定义动作组') ? t('自定义动作 {0}', ordinal) : `${actionGroupLabel(action.group, ordinal, t)} ${action.index + 1}`;

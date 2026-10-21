@@ -42,7 +42,8 @@ test('readable resource labels preserve aliases and original resource identities
   assert.equal(actionGroupLabel('TapBody'), '身体互动');
   assert.equal(actionGroupLabel('unrecognized', 3), '自定义动作组 3');
   assert.equal(defaultActionName({ ...body, group: 'unrecognized' }, 4), '自定义动作 4');
-  assert.equal(defaultActionName(caps.actions[4], 5), '自定义表情 5');
+  assert.equal(defaultActionName(caps.actions[4], 5), '自定义表情 1');
+  assert.equal(defaultActionName(caps.actions[4], 1), defaultActionName(caps.actions[4], 5));
   assert.equal(hitAreaLabel('Body'), '身体区域');
   assert.equal(body.group, 'TapBody');
   assert.equal(body.name, 'TapBody · 1');

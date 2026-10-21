@@ -72,3 +72,18 @@
 .live2d-workbench .live2d-preview-loop { display: flex; align-items: center; gap: 8px; }
 .live2d-workbench .live2d-preview-loop input { appearance: auto; width: 18px; height: 18px; min-height: 18px; padding: 0; accent-color: var(--primary); }
 .live2d-hit-feedback { overflow-wrap: anywhere; }
+
+.live2d-workbench :is(button, summary, input, select, [tabindex]):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.live2d-workbench :is(.live2d-catalog-row, .live2d-rule-row) { overflow-wrap: anywhere; }
+.live2d-workbench :is(.live2d-action-detail, .live2d-behaviors, .live2d-action-resources) { scroll-padding-block: 8px; }
+@media (pointer: coarse), (max-width: 700px) {
+ .live2d-workbench :is(input, select, textarea) { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ .live2d-workbench *, .settings-modal-content, .settings-config-dialog { animation: none !important; transition: none !important; }
+}
+@media (forced-colors: active) {
+ .live2d-catalog-row[data-selected="true"] { border-color: Highlight; }
+ .live2d-workbench :focus-visible { outline-color: Highlight; }
+ .live2d-workbench :is(button, input, select) { border: 1px solid ButtonText; }
+}

@@ -87,6 +87,7 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
   const change = (patch: Partial<ActionProfile>) => onChange(sanitizeActionProfile({ ...latest.current, ...patch }));
   const bind = (next: ActionBinding) => change({ bindings: { ...latest.current.bindings, [target]: next } });
   const actions = capabilities.actions;
+  const ordinals = useMemo(() => new Map(actions.map((action, index) => [action.id, index + 1])), [actions]);
   const removeUse = (id: string, resourceId: string) => {
     if (id === 'idle') change({ idle: { ...profile.idle, mode: 'custom', actionIds: idleResources(profile, capabilities).filter(item => item.id !== resourceId).map(item => item.id) } });
     else if (id === 'defaultExpression') change({ defaultExpression: null });
@@ -206,7 +207,7 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
         </div>
         <label>{t('按用途筛选')}<select className="nd-input" value={useFilter} onChange={event => { setUseFilter(event.target.value); setPage(0); }}>{['all', 'idle', 'tap', 'key', 'mood', 'unused'].map((id, index) => <option key={id} value={id}>{t(['全部', '平时自动播放', '点击部位', '键盘快捷键', '伴学反馈', '尚未设置用途'][index])}</option>)}</select></label>
         <div className="live2d-action-resources" ref={setResourcesTarget}>
-          <ResourceCatalog actions={pageItems} profile={profile} uses={useIndex} selectedId={selectedId} states={resourceStates}
+          <ResourceCatalog actions={pageItems} ordinals={ordinals} profile={profile} uses={useIndex} selectedId={selectedId} states={resourceStates}
             onSelect={selectResource} onPreview={id => { selectResource(id); play(id); }} />
           {!filtered.length && <p role="status">{t(kind === 'expression' && !actions.some(item => item.kind === 'expression') ? '此模型未包含表情文件。' : '没有匹配的资源。')}</p>}
           {!filtered.length && search && <button type="button" className="nd-ghost-btn" onClick={() => setSearch('')}>{t('清除搜索')}</button>}

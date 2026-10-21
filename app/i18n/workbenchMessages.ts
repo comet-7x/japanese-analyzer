@@ -469,5 +469,10 @@ export const workbenchMessages = {
     "zh-TW": "下一頁",
     "en": "Next page",
     "ko": "다음 페이지"
+  },
+  "尚未匹配资源": {
+    "zh-TW": "尚未匹配資源",
+    "en": "No resource matched",
+    "ko": "연결된 리소스 없음"
   }
 } as const;

@@ -25,13 +25,13 @@ export function BehaviorSettings({ profile, caps, onChange, onEdit, onTest, read
         <label>{t('动作间隔（秒）')}<input className="nd-input" type="number" min="0" max="60" value={profile.idle.interval} onChange={event => onChange({ ...profile, idle: { ...profile.idle, interval: Number(event.target.value) } })} /></label>
       </>}
       {pauseWhenIdle && <p>{t('闲置 8 秒后会暂停待机动画，操作或朗读时恢复。')}</p>}
-      <p>{t('当前待机清单：{0} 个动作', idleResources(profile, caps).length)}</p>
+      <p>{t('当前待机清单：{0} 个动作', idleResources(profile, caps).length)}</p><small>{t(profile.idle.mode === 'model' ? '模型声明' : '你设置的')}</small>
       <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => onTest('idle')}>{t('试用待机')}</button>
     </details>
     {(['tap', 'key', 'mood'] as const).map((kind, index) => <section key={kind} className="live2d-rule-group">
       <h4>{t(['点击部位', '键盘快捷键', '伴学反馈'][index])}</h4>
       {uses.filter(use => kind === 'tap' ? /^(area|zone):/.test(use.target) : use.target.startsWith(`${kind}:`)).map(use => <article className="live2d-rule-row" key={use.target} data-selected={selectedTarget === use.target}>
-        <div><strong>{resourceTargetLabel(use.target, profile, t)}</strong><p>{use.resolution.status === 'action' ? actionName(use.resolution.action, profile, undefined, t) : t(({ disabled: '已禁用', missing: '绑定资源已缺失', none: '尚未设置用途' })[use.resolution.status])}</p><small>{t(use.source === 'custom' ? '你设置的' : use.source === 'matched' ? '按名称自动匹配' : '模型声明')}</small></div>
+        <div><strong>{resourceTargetLabel(use.target, profile, t)}</strong><p>{use.resolution.status === 'action' ? actionName(use.resolution.action, profile, undefined, t) : t(({ disabled: '已禁用', missing: '绑定资源已缺失', none: '尚未设置用途' })[use.resolution.status])}</p><small>{t(use.source === 'custom' ? '你设置的' : use.resolution.status === 'none' ? '尚未匹配资源' : use.source === 'matched' ? '按名称自动匹配' : '模型声明')}</small></div>
         <button type="button" className="nd-ghost-btn" onClick={() => onEdit(use.target)}>{t('修改')}</button>
         <button type="button" className="nd-ghost-btn" disabled={!ready || use.resolution.status !== 'action'} onClick={() => onTest(use.target)}>{t('试用')}</button>
         <button type="button" className="nd-ghost-btn" disabled={use.resolution.status === 'disabled'} onClick={() => onChange({ ...profile, bindings: { ...profile.bindings, [use.target]: { mode: 'disabled' } } })}>{t('停用')}</button>
