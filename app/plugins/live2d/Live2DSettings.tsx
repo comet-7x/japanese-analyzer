@@ -8,6 +8,8 @@ import Live2DSlider from './Live2DSlider';
 import Live2DScrollFeedback from './Live2DScrollFeedback';
 import './workbench.css';
 import Live2DActionEditor from './Live2DActionEditor';
+import { idleResources } from './resourceConfig';
+import { emptyActionProfile } from './actionProfile';
 import type { Live2DCapabilities } from './capabilities';
 import {
   importLive2DModel,
@@ -22,6 +24,7 @@ interface Props {
   value: Live2DSettings;
   onChange: (settings: Live2DSettings) => void;
   onModelDeleted: (id: string) => void;
+  onSummary?: (summary: { name: string; idleCount: number } | null) => void;
 }
 
 function modelPaths(error: unknown): string[] {
@@ -43,7 +46,7 @@ function Toggle({ label, description, checked, onChange }: {
 }
 
 
-export default function Live2DSettingsPanel({ value, onChange, onModelDeleted }: Props) {
+export default function Live2DSettingsPanel({ value, onChange, onModelDeleted, onSummary }: Props) {
   const { t, locale } = useLanguage();
   const valueRef = useRef(value);
   valueRef.current = value;
@@ -119,6 +122,11 @@ export default function Live2DSettingsPanel({ value, onChange, onModelDeleted }:
       setBusy(false);
     }
   };
+
+  const currentName = models.find(model => model.id === value.modelId)?.name ?? '';
+  const report = detection?.id === value.modelId ? detection.report : null;
+  const idleCount = report ? idleResources(value.modelConfigs?.[value.modelId!]?.interaction ?? emptyActionProfile(), report).length : 0;
+  useEffect(() => { onSummary?.(currentName && report ? { name: currentName, idleCount } : null); }, [currentName, idleCount, report, onSummary]);
 
   const navigation = <nav className="live2d-workbench-nav" aria-label={t('角色工作台')}>
     {(['role', 'resources', 'rules'] as const).map((id, index) => <button key={id} type="button" className="nd-ghost-btn" aria-current={view === id ? 'page' : undefined} disabled={id !== 'role' && (!value.modelId || !detection?.report || detection.id !== value.modelId)} onClick={() => setView(id)}>{t(['角色', '动作与表情', '互动设置'][index])}</button>)}

@@ -6,7 +6,7 @@ export class ExpressionLifecycle {
   constructor(private apply: (id: string | null) => void, private baseline: () => string | null,
     private schedule = (callback: () => void, delay: number) => setTimeout(callback, delay),
     private cancel = (timer: ReturnType<typeof setTimeout>) => clearTimeout(timer)) {}
-  activate(id: string, mode: 'timed' | 'toggle', seconds: number, finished: () => void) {
+  activate(id: string, mode: 'timed' | 'toggle' | 'event', seconds: number, finished: () => void) {
     const togglingOff = mode === 'toggle' && this.active === id;
     this.clear();
     if (togglingOff) { this.apply(this.baseline()); finished(); return; }

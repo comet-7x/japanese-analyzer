@@ -1,7 +1,7 @@
 import type { Live2DAction, Live2DCapabilities } from './capabilities';
 import { automaticAreaAction, resolveActionBinding, resolveShortcutAction, type ActionProfile, type ActionResolution } from './actionProfile';
 
-export interface ResourceUse { target: string; source: 'model' | 'custom'; resolution: ActionResolution }
+export interface ResourceUse { target: string; source: 'model' | 'matched' | 'custom'; resolution: ActionResolution }
 
 export function idleResources(profile: ActionProfile, caps: Live2DCapabilities): Live2DAction[] {
   if (profile.idle.mode === 'off') return [];
@@ -25,7 +25,7 @@ export function automaticTargetAction(target: string, profile: ActionProfile, ca
 export function effectiveResourceUses(profile: ActionProfile, caps: Live2DCapabilities): ResourceUse[] {
   const targets = new Set([...caps.interactions.map(item => `area:${item.area}`), ...profile.hotspots.map(item => `zone:${item.id}`),
     ...Object.keys(caps.moods).map(mood => `mood:${mood}`), 'key:Enter', 'key:Space', 'key:Shift+Enter', ...Object.keys(profile.bindings)]);
-  const uses: ResourceUse[] = [...targets].map(target => ({ target, source: profile.bindings[target]?.mode === 'manual' ? 'custom' : 'model',
+  const uses: ResourceUse[] = [...targets].map(target => ({ target, source: resourceUseSource(target, profile, caps),
     resolution: target.startsWith('key:') ? resolveShortcutAction(profile, target.slice(4), caps) ?? { status: 'none' }
       : resolveActionBinding(profile, target, caps, automaticTargetAction(target, profile, caps)) }));
   for (const action of idleResources(profile, caps)) uses.push({ target: 'idle', source: profile.idle.mode === 'custom' ? 'custom' : 'model', resolution: { status: 'action', action } });
@@ -52,4 +52,19 @@ export class IdlePlaylist {
     const item = order === 'sequence' ? available[(index + 1) % available.length] : pool[Math.min(pool.length - 1, Math.floor(Math.max(0, random()) * pool.length))];
     this.previous = item.id; return item;
   }
+}
+
+/** Follow inherited default shortcuts too: a user-defined body rule remains user-defined. */
+export function resourceUseSource(target: string, profile: ActionProfile, caps: Live2DCapabilities): ResourceUse['source'] {
+  const binding = profile.bindings[target];
+  if (binding && binding.mode !== 'auto') return 'custom';
+  if (target.startsWith('key:')) {
+    const part = target === 'key:Shift+Enter' ? 'head' : 'body';
+    const zone = profile.hotspots.find(item => item.part === part);
+    const areas = caps.interactions.filter(item => item.part === part);
+    const area = (areas.length || part === 'head' ? areas : caps.interactions)[0];
+    if (zone) return resourceUseSource(`zone:${zone.id}`, profile, caps);
+    if (area) return resourceUseSource(`area:${area.area}`, profile, caps);
+  }
+  return 'matched';
 }

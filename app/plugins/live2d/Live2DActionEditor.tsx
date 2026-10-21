@@ -42,11 +42,14 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
   const [error, setError] = useState('');
   const [mobileDetail, setMobileDetail] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [hitFeedback, setHitFeedback] = useState('');
+  const testPointer = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
   const [testIdle, setTestIdle] = useState(false);
+  const [simulatedMood, setSimulatedMood] = useState<'idle' | 'analyzing' | 'success' | 'error'>('idle');
   const [undoProfile, setUndoProfile] = useState<ActionProfile | null>(null);
   const [assigning, setAssigning] = useState(false);
   const uses = effectiveResourceUses(profile, capabilities);
-  useEffect(() => { setTesting(false); setTestIdle(false); setEditing(false); setAssigning(false); canvas.current?.stopAction(); }, [view]);
+  useEffect(() => { setTesting(false); setTestIdle(false); setSimulatedMood('idle'); setEditing(false); setAssigning(false); canvas.current?.stopAction(); }, [view]);
   const [search, setSearch] = useState('');
   const [useFilter, setUseFilter] = useState('all');
   const [kind, setKind] = useState('all');
@@ -204,6 +207,8 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
       {view === 'rules' && <BehaviorSettings pauseWhenIdle={pauseWhenIdle} profile={profile} caps={capabilities} onChange={onChange} selectedTarget={target} ready={ready}
         onEdit={id => { setTarget(id); setAssigning(true); }} onTest={id => {
           setEditing(false); setTesting(true); setTestIdle(id === 'idle');
+          if (id.startsWith('mood:')) { setSimulatedMood(id.slice(5) as typeof simulatedMood); return; }
+          setSimulatedMood('idle');
           if (id === 'idle') return;
           void canvas.current?.triggerTarget(id);
         }} />}
@@ -213,9 +218,16 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
         {view === 'resources' && assigning && selected && <ResourceAssignment key={selected.id} action={selected} profile={profile} caps={capabilities} onChange={onChange} onDone={() => setAssigning(false)} />}
         <section className="live2d-action-preview" aria-label={t("独立角色预览")}>
           <div className="live2d-action-stage" ref={stage} tabIndex={testing ? 0 : undefined} role={testing ? 'group' : undefined} aria-label={testing ? t('试用互动，轻点角色或使用快捷键') : undefined}
-            onPointerUp={event => { if (testing && !editing) void canvas.current?.tapAt(event.clientX, event.clientY); }}
+            onPointerDown={event => { if (testing && !editing && event.button === 0 && event.isPrimary) testPointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false }; }}
+            onPointerMove={event => { const pointer = testPointer.current; if (pointer && pointer.id === event.pointerId && Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) >= 5) pointer.moved = true; }}
+            onPointerCancel={() => { testPointer.current = null; }}
+            onPointerUp={event => { const pointer = testPointer.current; testPointer.current = null; if (testing && !editing && pointer?.id === event.pointerId && !pointer.moved) void canvas.current?.tapAt(event.clientX, event.clientY); }}
             onKeyDown={event => { if (event.target !== event.currentTarget || !testing || event.repeat) return; const key = shortcutFromEvent(event); if (key && canvas.current?.triggerShortcut(key)) event.preventDefault(); }}>
-            {source && <Live2DCanvas ref={canvas} source={source} preview interactionProfile={profile} testBehaviors={testIdle} trackPointer={false} pauseWhenIdle={!testIdle} onReady={() => setReady(true)} onError={cause => setError(cause.message)} onActionState={receivePlayback} />}
+            {source && <Live2DCanvas ref={canvas} source={source} preview testCompanion={testing} mood={testing ? simulatedMood : 'idle'} interactionProfile={profile} testBehaviors={testIdle} trackPointer={false} pauseWhenIdle={!testIdle} onReady={() => setReady(true)} onError={cause => setError(cause.message)} onActionState={receivePlayback} onHitFeedback={(id, result, overlaps) => {
+              const label = id ? resourceTargetLabel(id, profile, t) : t('空白区域');
+              const effect = result.status === 'action' ? displayName(result.action) : t(result.status === 'disabled' ? '已禁用' : result.status === 'missing' ? '绑定资源已缺失' : '尚未设置用途');
+              setHitFeedback(t('命中 {0} → {1}', label, effect) + (overlaps > 1 ? ' · ' + t('{0} 个区域重叠，按列表优先级执行', overlaps) : ''));
+            }} />}
             {editing && projection && <svg className="live2d-hotspot-overlay" aria-label={t("绘制和移动热区，可使用下方数字输入调整")} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={finish} onPointerCancel={finish} onLostPointerCapture={finish}>
               <g transform={`matrix(${projection.a} ${projection.b} ${projection.c} ${projection.d} ${projection.tx} ${projection.ty})`}>
                 {[...profile.hotspots].reverse().map(item => <g key={item.id}>
@@ -226,7 +238,7 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
             </svg>}
             {!ready && !error && <span className="live2d-action-loading">{t("正在加载预览…")}</span>}
           </div>
-          {view === 'rules' && <div className="live2d-action-buttons"><button type="button" className="nd-ghost-btn" aria-pressed={testing} onClick={() => { setEditing(false); setTestIdle(false); setTesting(!testing); }}>{t('试用互动')}</button><button type="button" className="nd-ghost-btn" aria-pressed={editing} onClick={() => { setTesting(false); setTestIdle(false); canvas.current?.resetPose(); setEditing(!editing); }}>{t('编辑区域')}</button></div>}
+          {view === 'rules' && <div className="live2d-action-buttons">{testing && simulatedMood !== 'idle' && <button type="button" className="nd-ghost-btn" onClick={() => setSimulatedMood('idle')}>{t('结束模拟事件')}</button>}<button type="button" className="nd-ghost-btn" aria-pressed={testing} onClick={() => { setEditing(false); setTestIdle(false); setTesting(!testing); }}>{t('试用互动')}</button><button type="button" className="nd-ghost-btn" aria-pressed={editing} onClick={() => { setTesting(false); setTestIdle(false); canvas.current?.resetPose(); setEditing(!editing); }}>{t('编辑区域')}</button></div>}
           <div className="live2d-action-preview-tools">
             <button type="button" className="nd-ghost-btn" disabled={!ready || !filtered.length} onClick={() => adjacent(-1)} aria-label={t("预览上一个动作")}>{t("上一个")}</button>
             <button type="button" className="nd-ghost-btn" disabled={!ready || !selected} onClick={() => play()}>{t("预览一次")}</button>
@@ -234,6 +246,7 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
             <button type="button" className="nd-ghost-btn" disabled={!ready || !filtered.length} onClick={() => adjacent(1)} aria-label={t("预览下一个动作")}>{t("下一个")}</button>
             <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => { setTestIdle(false); canvas.current?.resetPose(); }}>{t("复位姿态／表情")}</button>
           </div>
+          <p className="live2d-hit-feedback" role="status" aria-atomic="true">{testing ? hitFeedback : ''}</p>
           <p className="live2d-action-status" role="status">{testIdle ? t('正在试用待机清单，点击停止结束。') : testing && !editing ? t('轻点预览角色或聚焦后按快捷键；仅影响预览。') : playback.status === 'loading' ? t('正在加载所选资源…') : playback.status === 'playing' ? t('正在预览 · 默认静音，不循环') : playback.status === 'finished' ? t('动作已播放完毕') : playback.status === 'error' ? (playback.error && localizeError(playback.error, locale)) : editing ? t('在角色上拖出矩形；拖动区域移动，拖动右下角调整大小。') : t('预览与桌面角色独立，默认静音，不循环。')}</p>
         </section>
         {view === 'resources' && selected && <section className="live2d-action-fields">
@@ -255,6 +268,14 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
             {missing && binding?.mode === 'manual' && <option value={binding.actionId}>{t("资源已缺失 · 请重新绑定")}</option>}
             {actions.map(action => <option key={action.id} value={action.id}>{displayName(action)} · {action.kind === 'motion' ? t('动作') : t('表情')}</option>)}
           </select></label>
+          {target.startsWith('mood:') && uses.find(use => use.target === target)?.resolution.status === 'action' && (() => {
+            const resolution = uses.find(use => use.target === target)!.resolution;
+            if (resolution.status !== 'action' || resolution.action.kind !== 'expression') return null;
+            const policy = profile.expressionPolicies[target] ?? { mode: 'timed', seconds: 3.5 };
+            return <><label>{t('伴学表情恢复方式')}<select className="nd-input" value={policy.mode === 'event' ? 'event' : 'timed'} onChange={event => change({ expressionPolicies: { ...profile.expressionPolicies, [target]: { ...policy, mode: event.target.value as 'timed' | 'event' } } })}><option value="event">{t('事件结束后恢复')}</option><option value="timed">{t('指定秒数后恢复')}</option></select></label>
+            {policy.mode !== 'event' && <label>{t('持续时间（秒）')}<input className="nd-input" type="number" min="0.5" max="60" step="0.5" value={policy.seconds} onChange={event => change({ expressionPolicies: { ...profile.expressionPolicies, [target]: { mode: 'timed', seconds: Number(event.target.value) } } })} /></label>}
+            <p>{t('事件结束或被新反馈替换时，恢复默认外观。')}</p></>;
+          })()}
           {missing && <p className="live2d-settings-error" role="status">{t("绑定的资源已缺失，此触发方式暂不执行。可重新选择资源或恢复自动。")}</p>}
           <div className="live2d-action-buttons"><button className="nd-ghost-btn" type="button" disabled={!selected} onClick={() => selected && bind({ mode: 'manual', actionId: selected.id })}>{t("绑定所选动作")}</button><button className="nd-ghost-btn" type="button" onClick={() => bind({ mode: 'auto' })}>{t("恢复自动")}</button></div>
           <p>{t("自定义热区优先于原生部位，重叠时列表靠前的区域优先。禁用会阻止该区域触发其他动作。")}</p>

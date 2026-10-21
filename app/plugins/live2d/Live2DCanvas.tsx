@@ -21,7 +21,7 @@ import { detectLive2DCapabilities, type Live2DCapabilities } from './capabilitie
 
 import { idleResources, IdlePlaylist, automaticTargetAction } from './resourceConfig';
 import { ExpressionLifecycle } from './expressionLifecycle';
-import { emptyActionProfile, ActionCommandGate, resolveActionBinding, resolvePartAction, resolvePointerAction, resolveShortcutAction, type ActionProfile, type ActionResolution } from './actionProfile';
+import { emptyActionProfile, ActionCommandGate, resolveActionBinding, resolvePartAction, resolvePointerTarget, resolveShortcutAction, type ActionProfile, type ActionResolution } from './actionProfile';
 
 export type ActionPlaybackState = { actionId: string | null; status: 'loading' | 'playing' | 'finished' | 'stopped' | 'error'; error?: string };
 export type ModelProjection = { a: number; b: number; c: number; d: number; tx: number; ty: number };
@@ -85,7 +85,9 @@ export interface Live2DCanvasProps {
   interactionProfile?: ActionProfile;
   preview?: boolean;
   testBehaviors?: boolean;
+  testCompanion?: boolean;
   onActionState?: (state: ActionPlaybackState) => void;
+  onHitFeedback?: (target: string | null, resolution: ActionResolution, overlaps: number) => void;
   onError?: (error: Error) => void;
   trackPointer?: boolean;
   dragging?: boolean;
@@ -148,7 +150,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
   }), []);
 
   useEffect(() => { refreshRef.current?.(); }, [props.trackPointer, props.mood, props.speech,
-    props.envelope, props.lipSync, props.sensitivity, props.pauseWhenIdle, props.dragging, props.interactionProfile, props.testBehaviors]);
+    props.envelope, props.lipSync, props.sensitivity, props.pauseWhenIdle, props.dragging, props.interactionProfile, props.testBehaviors, props.testCompanion]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -431,7 +433,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
               publish('playing', id);
               if (action.kind === 'expression') {
                 const policy = currentConfig().expressionPolicies[target ?? action.id] ?? currentConfig().expressionPolicies[action.id] ?? { mode: 'timed', seconds: 3.5 };
-                const mode = target?.startsWith('mood:') ? 'timed' : policy.mode;
+                const mode = target?.startsWith('mood:') ? policy.mode === 'event' ? 'event' : 'timed' : policy.mode === 'event' ? 'timed' : policy.mode;
                 expressionUntil = mode === 'timed' ? performance.now() + policy.seconds * 1000 : 0;
                 expressionLife.activate(action.id, mode, policy.seconds, () => {
                   if (disposed || request !== commandNumber) return;
@@ -486,8 +488,10 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         const areas = nextModel.hitTest((clientX - rect.left) / rect.width * nextApp.screen.width,
           (clientY - rect.top) / rect.height * nextApp.screen.height);
         const config = currentConfig();
-        const zone = config.hotspots.find(item => point.x >= item.x && point.x <= item.x + item.width && point.y >= item.y && point.y <= item.y + item.height);
-        return dispatch(resolvePointerAction(config, point, areas, capabilities), zone ? `zone:${zone.id}` : undefined);
+        const hit = resolvePointerTarget(config, point, areas, capabilities);
+        const overlaps = config.hotspots.filter(item => point.x >= item.x && point.x <= item.x + item.width && point.y >= item.y && point.y <= item.y + item.height).length;
+        propsRef.current.onHitFeedback?.(hit.target, hit.resolution, overlaps);
+        return dispatch(hit.resolution, hit.target ?? undefined);
       };
       controlsRef.current = {
         playAction, stopAction, resetPose, clientToModel, getProjection,
@@ -526,8 +530,10 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         if (mood !== currentMood || latest.interactionProfile !== currentProfile) {
           currentMood = mood;
           currentProfile = latest.interactionProfile;
-          if (!manualBusy && !latest.preview) {
-            if (mood !== 'analyzing' && companionMotion) { commandNumber++; commandGate.cancel(); starting = false; playback = null; manager.stopAllMotions(); companionMotion = null; }
+          if (!manualBusy && (!latest.preview || latest.testCompanion)) {
+            // Cancel pending companion loads as well as already playing motions.
+            commandNumber++; commandGate.cancel(); starting = false; playback = null; manager.stopAllMotions(); companionMotion = null;
+            expressionLife.reset();
             const detected = mood === 'idle' ? null : capabilities.moods[mood];
             const auto = capabilities.actions.find(item => detected?.expression ? item.kind === 'expression' && item.group === detected.expression : item.kind === 'motion' && item.group === detected?.motion);
             const result = resolveActionBinding(latest.interactionProfile, `mood:${mood}`, capabilities, auto);

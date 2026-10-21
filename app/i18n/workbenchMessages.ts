@@ -379,5 +379,60 @@ export const workbenchMessages = {
     "zh-TW": "返回動作清單",
     "en": "Back to resources",
     "ko": "리소스 목록으로"
+  },
+  "按名称自动匹配": {
+    "zh-TW": "按名稱自動匹配",
+    "en": "Matched by name",
+    "ko": "이름으로 자동 연결"
+  },
+  "模型声明": {
+    "zh-TW": "模型宣告",
+    "en": "Declared by model",
+    "ko": "모델에 선언됨"
+  },
+  "空白区域": {
+    "zh-TW": "空白區域",
+    "en": "Empty area",
+    "ko": "빈 영역"
+  },
+  "命中 {0} → {1}": {
+    "zh-TW": "命中 {0} → {1}",
+    "en": "Hit {0} → {1}",
+    "ko": "감지 {0} → {1}"
+  },
+  "{0} 个区域重叠，按列表优先级执行": {
+    "zh-TW": "{0} 個區域重疊，按清單優先順序執行",
+    "en": "{0} overlapping regions; list priority applies",
+    "ko": "영역 {0}개 겹침; 목록 우선순위 적용"
+  },
+  "伴学表情恢复方式": {
+    "zh-TW": "伴學表情恢復方式",
+    "en": "Study expression reset",
+    "ko": "학습 표정 복원 방식"
+  },
+  "事件结束后恢复": {
+    "zh-TW": "事件結束後恢復",
+    "en": "Restore when event ends",
+    "ko": "이벤트 종료 시 복원"
+  },
+  "事件结束或被新反馈替换时，恢复默认外观。": {
+    "zh-TW": "事件結束或被新回饋取代時，恢復預設外觀。",
+    "en": "Restore the default appearance when the event ends or another response replaces it.",
+    "ko": "이벤트가 끝나거나 새 반응으로 바뀌면 기본 모습을 복원합니다."
+  },
+  "结束模拟事件": {
+    "zh-TW": "結束模擬事件",
+    "en": "End simulated event",
+    "ko": "모의 이벤트 종료"
+  },
+  "已应用到 {0}：平时播放 {1} 个动作": {
+    "zh-TW": "已套用至 {0}：平時播放 {1} 個動作",
+    "en": "Applied to {0}: {1} idle motions",
+    "ko": "{0}에 적용됨: 대기 동작 {1}개"
+  },
+  "有 {0} 项未保存的修改": {
+    "zh-TW": "有 {0} 項未儲存的修改",
+    "en": "{0} unsaved changes",
+    "ko": "저장하지 않은 변경 {0}개"
   }
 } as const;

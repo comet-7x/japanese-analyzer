@@ -23,6 +23,7 @@ import DictionarySettings from './DictionarySettings';
 import TranslationSettings from './TranslationSettings';
 import { isValidMyMemoryEmail, readTranslationServiceSettings, type TranslationServiceSettings } from '../lib/translationServices';
 import SettingsConfigLayer from './SettingsConfigLayer';
+import { countSettingChanges } from '../plugins/live2d/settingsFeedback';
 import { sanitizeSpeechSettings, type SpeechSettings } from '../lib/speechServices';
 import dynamic from 'next/dynamic';
 import { removeLive2DModelConfig, sanitizeLive2DSettings, type Live2DSettings } from '../plugins/live2d/settings';
@@ -111,6 +112,7 @@ export default function SettingsModal({
   const [speechSettings, setSpeechSettings] = useState(initialSpeechSettings);
   const [live2dSettings, setLive2DSettings] = useState(initialLive2DSettings);
   const [status, setStatus] = useState('');
+  const [live2dSummary, setLive2DSummary] = useState<{ name: string; idleCount: number } | null>(null);
   const [error, setError] = useState('');
   const [defaultMenuOpen, setDefaultMenuOpen] = useState(false);
   const [editingService, setEditingService] = useState<ProviderProfile | null>(null);
@@ -145,6 +147,7 @@ export default function SettingsModal({
     });
   }, [services, activeServiceId, activeModelId, translationSettings, speechSettings, live2dSettings]);
 
+  const changeCount = savedSignature ? countSettingChanges(JSON.parse(savedSignature), JSON.parse(currentSignature)) : 0;
   const hasUnsavedChanges = Boolean(savedSignature && currentSignature !== savedSignature);
   useEffect(() => { if (hasUnsavedChanges) setStatus(''); }, [hasUnsavedChanges, currentSignature]);
 
@@ -320,11 +323,9 @@ export default function SettingsModal({
       live2d: live2dSettings,
     });
     setSavedSignature(newSig);
-    setStatus(t('设置已保存'));
+    setStatus(activeTab === 'live2d' && live2dSummary ? t('已应用到 {0}：平时播放 {1} 个动作', live2dSummary.name, live2dSummary.idleCount) : t('设置已保存'));
     if (closeImmediately) {
       onModalClose();
-    } else {
-      setTimeout(() => onModalClose(), 900);
     }
   };
 
@@ -737,7 +738,7 @@ export default function SettingsModal({
 
             <div style={{ display: activeTab === 'live2d' ? 'block' : 'none' }}>
               {isModalOpen && activeTab === 'live2d' && (
-                <Live2DSettingsPanel value={live2dSettings} onChange={setLive2DSettings} onModelDeleted={id => {
+                <Live2DSettingsPanel onSummary={setLive2DSummary} value={live2dSettings} onChange={setLive2DSettings} onModelDeleted={id => {
                   setLive2DSettings(current => removeLive2DModelConfig(current, id));
                   onLive2DModelDeleted(id);
                 }} />
@@ -747,7 +748,7 @@ export default function SettingsModal({
 
           {/* 底部吸底操作栏 */}
           <footer className="settings-content-footer">
-            <div className="settings-footer-left">
+            <div className="settings-footer-left" role="status" aria-atomic="true">
               {status ? (
                 <span className="settings-footer-status success">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -760,7 +761,7 @@ export default function SettingsModal({
               ) : hasUnsavedChanges ? (
                 <span className="settings-footer-status unsaved">
                   <span className="settings-unsaved-dot" />
-                  <span>{t('有未保存的修改')}</span>
+                  <span>{t('有 {0} 项未保存的修改', changeCount)}</span>
                 </span>
               ) : null}
             </div>

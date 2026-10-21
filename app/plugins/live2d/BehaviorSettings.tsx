@@ -31,7 +31,7 @@ export function BehaviorSettings({ profile, caps, onChange, onEdit, onTest, read
     {(['tap', 'key', 'mood'] as const).map((kind, index) => <section key={kind} className="live2d-rule-group">
       <h4>{t(['点击部位', '键盘快捷键', '伴学反馈'][index])}</h4>
       {uses.filter(use => kind === 'tap' ? /^(area|zone):/.test(use.target) : use.target.startsWith(`${kind}:`)).map(use => <article className="live2d-rule-row" key={use.target} data-selected={selectedTarget === use.target}>
-        <div><strong>{resourceTargetLabel(use.target, profile, t)}</strong><p>{use.resolution.status === 'action' ? actionName(use.resolution.action, profile, undefined, t) : t(({ disabled: '已禁用', missing: '绑定资源已缺失', none: '尚未设置用途' })[use.resolution.status])}</p><small>{t(use.source === 'custom' ? '你设置的' : '来自模型默认')}</small></div>
+        <div><strong>{resourceTargetLabel(use.target, profile, t)}</strong><p>{use.resolution.status === 'action' ? actionName(use.resolution.action, profile, undefined, t) : t(({ disabled: '已禁用', missing: '绑定资源已缺失', none: '尚未设置用途' })[use.resolution.status])}</p><small>{t(use.source === 'custom' ? '你设置的' : use.source === 'matched' ? '按名称自动匹配' : '模型声明')}</small></div>
         <button type="button" className="nd-ghost-btn" onClick={() => onEdit(use.target)}>{t('修改')}</button>
         <button type="button" className="nd-ghost-btn" disabled={!ready || use.resolution.status !== 'action'} onClick={() => onTest(use.target)}>{t('试用')}</button>
         <button type="button" className="nd-ghost-btn" disabled={use.resolution.status === 'disabled'} onClick={() => onChange({ ...profile, bindings: { ...profile.bindings, [use.target]: { mode: 'disabled' } } })}>{t('停用')}</button>

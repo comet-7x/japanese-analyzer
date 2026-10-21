@@ -12,7 +12,7 @@ export interface ActionProfile {
   hotspots: ActionHotspot[];
   idle: { mode: 'model' | 'custom' | 'off'; actionIds: string[]; order: 'random' | 'sequence'; interval: number };
   defaultExpression: string | null;
-  expressionPolicies: Record<string, { mode: 'timed' | 'toggle'; seconds: number }>;
+  expressionPolicies: Record<string, { mode: 'timed' | 'toggle' | 'event'; seconds: number }>;
 }
 export const emptyActionProfile = (): ActionProfile => ({ version: 2, aliases: {}, bindings: {}, hotspots: [],
   idle: { mode: 'model', actionIds: [], order: 'random', interval: 0 }, defaultExpression: null, expressionPolicies: {} });
@@ -30,7 +30,7 @@ export function sanitizeActionProfile(value: unknown): ActionProfile {
   for (const [target, raw] of Object.entries(object(source.expressionPolicies)).slice(0, 512)) {
     if (!safeKey(target)) continue;
     const policy = object(raw);
-    result.expressionPolicies[target] = { mode: policy.mode === 'toggle' ? 'toggle' : 'timed',
+    result.expressionPolicies[target] = { mode: policy.mode === 'event' && target.startsWith('mood:') ? 'event' : policy.mode === 'toggle' ? 'toggle' : 'timed',
       seconds: typeof policy.seconds === 'number' && Number.isFinite(policy.seconds) ? Math.max(.5, Math.min(60, policy.seconds)) : 3.5 };
   }
   for (const [id, alias] of Object.entries(object(source.aliases)).slice(0, 1024)) {
@@ -81,18 +81,21 @@ export function automaticAreaAction(area: string, capabilities: Live2DCapabiliti
 export function hotspotAt(profile: ActionProfile | undefined, point: { x: number; y: number }) {
   return profile?.hotspots.find(zone => point.x >= zone.x && point.x <= zone.x + zone.width && point.y >= zone.y && point.y <= zone.y + zone.height);
 }
-export function resolvePointerAction(profile: ActionProfile | undefined, point: { x: number; y: number }, areas: string[], capabilities: Live2DCapabilities): ActionResolution {
+export function resolvePointerTarget(profile: ActionProfile | undefined, point: { x: number; y: number }, areas: string[], capabilities: Live2DCapabilities): { target: string | null; resolution: ActionResolution } {
   const zone = hotspotAt(profile, point);
   if (zone) {
     const area = capabilities.interactions.find(item => zone.part && item.part === zone.part)?.area;
-    return resolveActionBinding(profile, `zone:${zone.id}`, capabilities, area ? automaticAreaAction(area, capabilities) : undefined);
+    return { target: `zone:${zone.id}`, resolution: resolveActionBinding(profile, `zone:${zone.id}`, capabilities, area ? automaticAreaAction(area, capabilities) : undefined) };
   }
   const head = areas.filter(area => interactionPart(area) === 'head');
   for (const area of head.length ? head : areas) {
     const result = resolveActionBinding(profile, `area:${area}`, capabilities, automaticAreaAction(area, capabilities));
-    if (result.status !== 'none') return result;
+    if (result.status !== 'none') return { target: `area:${area}`, resolution: result };
   }
-  return { status: 'none' };
+  return { target: areas[0] ? `area:${areas[0]}` : null, resolution: { status: 'none' } };
+}
+export function resolvePointerAction(profile: ActionProfile | undefined, point: { x: number; y: number }, areas: string[], capabilities: Live2DCapabilities): ActionResolution {
+  return resolvePointerTarget(profile, point, areas, capabilities).resolution;
 }
 export function resolvePartAction(profile: ActionProfile | undefined, part: InteractionPart | undefined, capabilities: Live2DCapabilities): ActionResolution {
   const zone = profile?.hotspots.find(item => item.part === (part ?? 'body'));

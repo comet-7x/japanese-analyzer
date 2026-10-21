@@ -1,7 +1,8 @@
+import { countSettingChanges } from '../app/plugins/live2d/settingsFeedback';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { capabilitiesFromManifest } from '../app/plugins/live2d/capabilities';
-import { emptyActionProfile, sanitizeActionProfile } from '../app/plugins/live2d/actionProfile';
+import { emptyActionProfile, sanitizeActionProfile, resolvePointerTarget } from '../app/plugins/live2d/actionProfile';
 import { effectiveResourceUses, idleResources, IdlePlaylist } from '../app/plugins/live2d/resourceConfig';
 import { ExpressionLifecycle } from '../app/plugins/live2d/expressionLifecycle';
 
@@ -47,4 +48,39 @@ test('expression replacement, reset and disposal invalidate old timers and resto
   assert.equal(applied.at(-1), baseline); assert.equal(finished, 2);
   life.activate('sad', 'timed', 2, () => finished++); life.destroy(); callbacks[2]();
   assert.equal(finished, 2); assert.equal(applied.at(-1), 'sad');
+});
+
+
+test('event expressions persist until explicit reset and cannot be cleared by a superseded timer', () => {
+  const applied: Array<string | null> = [], callbacks: Array<() => void> = [];
+  const life = new ExpressionLifecycle(id => applied.push(id), () => 'default', callback => { callbacks.push(callback); return callbacks.length as unknown as ReturnType<typeof setTimeout>; }, () => {});
+  life.activate('smile', 'timed', 1, () => {});
+  life.activate('thinking', 'event', 1, () => {});
+  callbacks[0](); assert.equal(applied.at(-1), 'thinking'); assert.equal(callbacks.length, 1);
+  life.reset(); assert.equal(applied.at(-1), 'default');
+  assert.equal(sanitizeActionProfile({ expressionPolicies: { 'mood:analyzing': { mode: 'event' }, resource: { mode: 'event' } } }).expressionPolicies['mood:analyzing'].mode, 'event');
+  assert.equal(sanitizeActionProfile({ expressionPolicies: { resource: { mode: 'event' } } }).expressionPolicies.resource.mode, 'timed');
+});
+test('hit feedback uses the same winning region and disabled resolution as actual dispatch', () => {
+  const profile = emptyActionProfile();
+  profile.hotspots = [{ id: 'top', name: 'Top', x: 0, y: 0, width: 1, height: 1 }, { id: 'under', name: 'Under', x: 0, y: 0, width: 1, height: 1 }];
+  profile.bindings['zone:top'] = { mode: 'disabled' };
+  assert.deepEqual(resolvePointerTarget(profile, { x: .5, y: .5 }, ['Body'], caps), { target: 'zone:top', resolution: { status: 'disabled' } });
+  profile.hotspots = [];
+  assert.equal(resolvePointerTarget(profile, { x: .5, y: .5 }, ['Body'], caps).target, 'area:Body');
+  assert.equal(resolvePointerTarget(profile, { x: .5, y: .5 }, [], caps).target, null);
+});
+test('default keyboard provenance follows user body overrides and disabled bindings', () => {
+  const profile = emptyActionProfile(); profile.bindings['area:Body'] = { mode: 'manual', actionId: caps.actions[0].id };
+  let uses = effectiveResourceUses(profile, caps);
+  assert.equal(uses.find(use => use.target === 'key:Enter')?.source, 'custom');
+  assert.equal(uses.find(use => use.target === 'area:Body')?.source, 'custom');
+  profile.bindings['area:Body'] = { mode: 'disabled' }; uses = effectiveResourceUses(profile, caps);
+  assert.equal(uses.find(use => use.target === 'area:Body')?.source, 'custom');
+  assert.equal(effectiveResourceUses(emptyActionProfile(), caps).find(use => use.target === 'area:Body')?.source, 'matched');
+});
+
+test('save counts compare fields and ordered lists without counting JSON formatting', () => {
+  assert.equal(countSettingChanges({ a: 1, b: { name: 'old', ids: ['a'] } }, { b: { name: 'new', ids: ['a', 'b'] }, a: 1 }), 2);
+  assert.equal(countSettingChanges({ a: 1, b: 2 }, { b: 2, a: 1 }), 0);
 });
