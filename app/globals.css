@@ -4335,16 +4335,6 @@ body {
 .live2d-chat-mode-switch button:disabled { opacity: .45; cursor: default; }
 .live2d-chat-sentence { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; margin: 7px 0 3px; color: var(--ink); font-size: 12px; line-height: 1.6; }
 .live2d-chat-mode-hint { margin: 5px 0 3px; color: var(--ink-3); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
-.live2d-capability-list { display: grid; gap: 0; margin: 0; font-size: 12px; }
-.live2d-capability-list > div { display: flex; justify-content: space-between; gap: 16px; padding-block: 8px; border-bottom: 1px solid var(--line); }
-.live2d-capability-list dt { color: var(--ink); }
-.live2d-capability-list dd { margin: 0; color: var(--ink-2); text-align: end; }
-.live2d-capability-resources { margin-top: 12px; font-size: 12px; color: var(--ink-2); }
-.live2d-capability-resources summary { padding-block: 8px; cursor: pointer; border-radius: 8px; }
-.live2d-capability-resources summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.live2d-capability-resources ul { display: grid; gap: 8px; margin: 8px 0; padding: 0; list-style: none; }
-.live2d-capability-resources li { display: flex; justify-content: space-between; gap: 12px; overflow-wrap: anywhere; }
-.live2d-capability-resources p, .live2d-capability-hint { font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; color: var(--ink-3); }
 .live2d-chat-composer-field { display: flex; align-items: flex-end; gap: 3px; }
 .live2d-chat-composer-field .chat-input { width: 0; min-height: 40px; max-height: 112px; margin: 0; padding: 8px 2px; border-radius: 0; font-size: 13px; line-height: 24px; background: transparent; }
 .live2d-capsule .live2d-chat-send { min-width: 38px; min-height: 38px; margin-bottom: 1px; border-radius: 50%; background: var(--primary); color: white; }

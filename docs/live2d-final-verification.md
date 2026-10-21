@@ -80,3 +80,9 @@ Hiyori 无表情空状态、待机与键盘分发在上一阶段已有记录；�
 - 截图证据：本机 `/tmp/live2d-verification/hotspot-feedback.png`。构建日志位于 `/tmp/live2d-production-build.log`、`/tmp/live2d-package-server.log`、`/tmp/live2d-tauri-build.log`。
 
 最终发布判断：生产与本机 macOS 构建通过，完整跨平台／可访问性验收仍待上述环境可用后补齐。
+
+## 清理与历史决定
+
+删除无人导入的 `Live2DCapabilitySummary.tsx` 及十条专属 CSS；删除临时验收路由和 public 测试 ZIP。配置 v1→v2 迁移与用户资源缺失引用的兼容代码继续保留，它们承担真实数据兼容，不能当成弃用功能删除。
+
+保留既有提交历史，不进行 rebase／squash。原因是前五批的提交哈希已被文档和此前交付引用，重写不会补齐实机验收；当前集成版本和后续批次均可复查。若合并时需要单一提交，可由仓库的合并策略处理。未推送或发布。
