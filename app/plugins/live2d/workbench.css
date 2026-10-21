@@ -1,0 +1,20 @@
+.live2d-workbench { min-width: 0; }
+.settings-modular-layout:has(.live2d-workbench[data-open="true"]) .settings-sidebar { display: none; }
+.live2d-workbench-top, .live2d-workbench-nav, .live2d-resource-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.live2d-workbench-top { justify-content: space-between; margin-bottom: 16px; }
+.live2d-workbench-top label { display: flex; align-items: center; gap: 12px; }
+.live2d-workbench-nav { border-bottom: 1px solid var(--line); padding-bottom: 12px; margin: 16px 0; }
+.live2d-workbench-nav button[aria-current="page"], .live2d-resource-tabs button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft, color-mix(in srgb, var(--accent) 9%, transparent)); }
+.live2d-workbench .live2d-action-heading > button { display: none; }
+.live2d-workbench .live2d-action-workspace { align-items: start; grid-template-columns: minmax(200px, 30%) minmax(0, 1fr); }
+.live2d-workbench .live2d-action-workspace[data-view="rules"] { grid-template-columns: minmax(0, 1fr); }
+.live2d-workbench .live2d-action-preview { position: sticky; top: 0; z-index: 2; background: var(--bg-2); }
+.live2d-catalog-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; align-items: center; padding: 8px; border: 1px solid transparent; border-bottom-color: var(--line); border-radius: 10px; margin-bottom: 6px; }
+.live2d-catalog-row[data-selected="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.live2d-catalog-select { text-align: start; min-width: 0; border: 0; background: transparent; color: var(--ink); padding: 6px; cursor: pointer; }
+.live2d-catalog-select strong, .live2d-catalog-select small { display: block; overflow-wrap: anywhere; }
+.live2d-catalog-select small, .live2d-resource-state { margin-top: 6px; color: var(--ink-2); font-size: 12px; }
+.live2d-resource-state { grid-column: 1 / -1; padding-inline: 6px; }
+.live2d-catalog-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.live2d-workbench .nd-input { width: 100%; min-width: 0; }
+@media (max-width: 700px) { .live2d-workbench .live2d-action-workspace { grid-template-columns: minmax(0, 1fr); } .live2d-workbench .live2d-action-library { position: static; max-height: none; height: auto; } .live2d-workbench .live2d-action-resources { max-height: 250px; } .live2d-workbench .live2d-action-preview { position: static; } .live2d-workbench-top label { width: 100%; flex-wrap: wrap; } }
