@@ -1,7 +1,7 @@
 import http from 'node:http';
 import https from 'node:https';
 
-const ROUTES = ['/', '/api/auth', '/api/daily-sentence?locale=zh-CN'];
+const ROUTES = ['/', '/api/auth'];
 
 /** Use a direct local request so a shell's proxy configuration cannot intercept warmup. */
 function requestRoute(url, signal) {
@@ -18,7 +18,7 @@ function requestRoute(url, signal) {
 
 /** Compile routes once, without blocking readiness, retrying upstream calls, or invoking paid services. */
 export async function warmDevelopmentRoutes(baseUrl, { signal, timeoutMs = 45_000, log = console.log } = {}) {
-  log('[dev] 后台预热首页和每日一句…');
+  log('[dev] 后台预编译本地首页和登录状态…');
   const results = [];
   for (const path of ROUTES) {
     if (signal?.aborted) break;

@@ -1,8 +1,7 @@
-import { hasDailySentenceReadings, isOnlineDailySentence, type DailySentence } from './dailySentences';
+import { hasDailySentenceReadings, isAttributedDailySentence, type DailySentence } from './dailySentences';
 import { LOCALES } from '../i18n';
 
 export const MAX_SENTENCE_PACK_SIZE = 500;
-export const MAX_SENTENCE_PACK_BYTES = 1_000_000;
 export const SENTENCE_PACK_SCHEMA_VERSION = 3;
 export interface SentencePack {
   schemaVersion: typeof SENTENCE_PACK_SCHEMA_VERSION;
@@ -26,15 +25,10 @@ export function parseSentencePack(value: unknown): SentencePack {
   }
   const ids = new Set<number>(); const texts = new Set<string>();
   for (const sentence of pack.sentences) {
-    if (!isOnlineDailySentence({ ...sentence, date: pack.publishedAt }) || !hasDailySentenceReadings(sentence)
+    if (!isAttributedDailySentence({ ...sentence, date: pack.publishedAt }) || !hasDailySentenceReadings(sentence)
       || !LOCALES.every(locale => sentence.translation[locale]?.trim())
       || ids.has(sentence.source!.id) || texts.has(sentence.text)) throw new Error('Invalid or duplicate packed sentence');
     ids.add(sentence.source!.id); texts.add(sentence.text);
   }
   return pack;
-}
-
-export function sentencePackBatch(pack: SentencePack, date: string) {
-  return { date, packSchemaVersion: pack.schemaVersion, packVersion: pack.version, packPublishedAt: pack.publishedAt,
-    sentences: pack.sentences.map(sentence => ({ ...sentence, date })) };
 }

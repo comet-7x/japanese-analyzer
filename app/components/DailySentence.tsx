@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getPosClass } from '../utils/helpers';
-import { getApiEndpoint } from '../services/api';
 import {
   getJstDateKey,
   isCompleteDailySentence,
@@ -11,10 +10,7 @@ import {
   type DailySentence as DailySentenceData,
 } from '../utils/dailySentences';
 import { Icon } from './Icons';
-import { LatestRequest } from '../utils/latestRequest';
-import type { Locale } from '../i18n';
 import { createDailySentencePool } from '../services/dailySentenceClient';
-import { DAILY_SENTENCE_CLIENT_TIMEOUT_MS } from '../utils/dailySentencePolicy';
 import { bundledSentencePack } from '../utils/bundledSentencePack';
 
 interface DailySentenceProps {
@@ -22,37 +18,13 @@ interface DailySentenceProps {
   disabled?: boolean;
 }
 
-/** Background-only fetch; the candidate pool owns validation and persistence. */
-async function fetchOnlineBatch(date: string, locale: Locale, signal: AbortSignal) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), DAILY_SENTENCE_CLIENT_TIMEOUT_MS);
-  const abort = () => { clearTimeout(timer); controller.abort(); };
-  signal.addEventListener('abort', abort, { once: true });
-  if (signal.aborted) abort();
-  try {
-    if (controller.signal.aborted) return null;
-    const response = await fetch(getApiEndpoint(`/daily-sentence?locale=${locale}&refresh=1`), { signal: controller.signal, cache: 'no-store' });
-    if (!response.ok) return null;
-    const data: unknown = await response.json();
-    if (controller.signal.aborted || getJstDateKey() !== date) return null;
-    return data;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-    signal.removeEventListener('abort', abort);
-  }
-}
-
 /** 首页「今日一句」：用解析结果的样子展示一句日语，点击即解析 */
 export default function DailySentence({ onAnalyze, disabled = false }: DailySentenceProps) {
   const { t, locale, localeReady } = useLanguage();
   const [sentence, setSentence] = useState<DailySentenceData | null>(null);
   const currentSentence = useRef<DailySentenceData | null>(null);
-  const requests = useRef(new LatestRequest());
   const manualBusy = useRef(false);
   const pool = useRef<ReturnType<typeof createDailySentencePool> | null>(null);
-  const syncInBackground = useRef(() => {});
   const display = useCallback((next: DailySentenceData) => {
     currentSentence.current = next;
     setSentence(next);
@@ -81,46 +53,10 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
     if (!localeReady) return;
     const deck = pool.current ??= createDailySentencePool();
     deck.installPack(bundledSentencePack, dateKey);
-    const requestManager = requests.current;
     const previous = currentSentence.current;
     const initial = (previous?.date === dateKey && isCompleteDailySentence(previous, locale) ? previous : null)
       ?? deck.current(dateKey, locale) ?? deck.take(dateKey, locale);
     display(initial);
-    let disposed = false;
-    let pending = false;
-    let retryTimer: ReturnType<typeof setTimeout> | undefined;
-    const load = async () => {
-      if (disposed || pending || navigator.onLine === false || getJstDateKey() !== dateKey) return;
-      clearTimeout(retryTimer);
-      const delay = deck.syncDelay(dateKey, locale);
-      if (delay > 0) { retryTimer = setTimeout(() => { void load(); }, delay); return; }
-      pending = true;
-      const ticket = requestManager.start();
-      try {
-        const batch = await fetchOnlineBatch(dateKey, locale, ticket.signal);
-        if (disposed || !ticket.isCurrent() || getJstDateKey() !== dateKey) return;
-        if (!deck.addBatch(batch, dateKey, locale)) deck.failed(locale);
-        // Keep the displayed sentence stable. New candidates are consumed only on the next selection.
-      } finally {
-        pending = false;
-        if (!disposed && ticket.isCurrent()) {
-          retryTimer = setTimeout(() => { void load(); }, Math.max(1_000, deck.syncDelay(dateKey, locale)));
-        }
-      }
-    };
-    const sync = () => { void load(); };
-    syncInBackground.current = sync;
-    sync();
-    window.addEventListener('online', sync);
-    window.addEventListener('focus', sync);
-    return () => {
-      disposed = true;
-      clearTimeout(retryTimer);
-      window.removeEventListener('online', sync);
-      window.removeEventListener('focus', sync);
-      syncInBackground.current = () => {};
-      requestManager.cancel();
-    };
   }, [dateKey, locale, localeReady, display]);
 
   const refreshSentence = () => {
@@ -131,9 +67,8 @@ export default function DailySentence({ onAnalyze, disabled = false }: DailySent
       const date = getJstDateKey();
       if (date !== dateKey) setDateKey(date);
       display(pool.current.take(date, locale, previous.text));
-      syncInBackground.current();
     } finally {
-      // Collapse duplicate clicks from the same event turn without waiting for the network.
+      // Collapse duplicate clicks from the same event turn so each user action selects just one sentence.
       queueMicrotask(() => { manualBusy.current = false; });
     }
   };

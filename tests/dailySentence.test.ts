@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
-import { NextRequest } from 'next/server';
-import { GET } from '../app/api/daily-sentence/route';
-import { DAILY_SENTENCES, getDayNumber, getJstDateKey, hasDailySentenceReadings, isCompleteDailySentence, isOnlineDailySentence, secondsUntilJstMidnight, type DailySentence } from '../app/utils/dailySentences';
-import { createDailySentencePool, DAILY_DECK_KEY, DAILY_ONLINE_KEY, DAILY_POOL_KEY, getLocalDailySentence } from '../app/services/dailySentenceClient';
+import { DAILY_SENTENCES, getDayNumber, getJstDateKey, hasDailySentenceReadings, isCompleteDailySentence, isAttributedDailySentence, secondsUntilJstMidnight, type DailySentence } from '../app/utils/dailySentences';
+import { createDailySentencePool, DAILY_DECK_KEY, LEGACY_DAILY_SENTENCE_KEY, DAILY_POOL_KEY, getLocalDailySentence } from '../app/services/dailySentenceClient';
 import { LOCALES } from '../app/i18n';
+import { bundledSentencePack } from '../app/utils/bundledSentencePack';
 
 const date = '2026-09-24';
 const cachedSentence = (id = 123, text = '今日は図書館で本を読みます。'): DailySentence => ({
@@ -55,105 +54,72 @@ async function main() {
   assert.notEqual(getLocalDailySentence(date, blocked, () => 0, { refresh: true, exclude: refreshed[0] }).text, refreshed[0]);
 
   const sentences = [cachedSentence()];
-  assert.equal(isCompleteDailySentence(sentences[0], 'en'), false, 'A raw API result remains a candidate until annotated');
+  assert.equal(isCompleteDailySentence(sentences[0], 'en'), false, 'An incomplete legacy cache cannot be displayed');
   assert.equal(hasDailySentenceReadings({ text: '本。', tokens: [{ word: '本', pos: '名詞', furigana: 'hon' }, { word: '。', pos: '記号' }] }), false);
   assert.equal(hasDailySentenceReadings({ text: '本。', tokens: [{ word: '本', pos: '名詞', furigana: 'ほん' }] }), false);
   assert.equal(sentences.length, 1);
   assert.equal(sentences[0].translation['zh-TW'], '今天在圖書館看書。');
   assert.equal(sentences[0].source?.translations.en?.license, 'CC0 1.0');
-  assert.equal(isOnlineDailySentence(sentences[0]), true);
-  assert.equal(isOnlineDailySentence({ ...sentences[0], source: { ...sentences[0].source, id: -1 } }), false);
-  assert.equal(isOnlineDailySentence({ ...sentences[0], translation: { en: 42 } }), false);
+  assert.equal(isAttributedDailySentence(sentences[0]), true);
+  assert.equal(isAttributedDailySentence({ ...sentences[0], source: { ...sentences[0].source, id: -1 } }), false);
+  assert.equal(isAttributedDailySentence({ ...sentences[0], translation: { en: 42 } }), false);
   for (const bad of [
     { ...sentences[0], source: { ...sentences[0].source, license: 'unknown' } },
     { ...sentences[0], translation: { en: '<b>text</b>' } },
     cachedSentence(1, '<script>alert(1)</script>'), cachedSentence(1, '今日は図書館です。明日は休みです。'),
     cachedSentence(1, 'これは https://example.com です。'), cachedSentence(1, '短い。'),
-  ]) assert.equal(isOnlineDailySentence(bad), false);
+  ]) assert.equal(isAttributedDailySentence(bad), false);
 
   const poolValues = new Map<string, string>();
   const poolStorage = { getItem: (key: string) => poolValues.get(key) ?? null, setItem: (key: string, value: string) => { poolValues.set(key, value); } };
-  let clock = Date.parse(`${date}T03:00:00Z`);
-  const makePool = (store = poolStorage) => createDailySentencePool(store, () => .5, () => clock);
+  const makePool = (store = poolStorage) => createDailySentencePool(store, () => .5);
   const pool = makePool();
-  assert.equal(pool.syncDelay(date, 'zh-CN'), 0);
   const initial = pool.take(date, 'zh-CN');
-  const batch = { date, sentences: DAILY_SENTENCES.slice(0, 12).map((item, index) => ({ ...cachedSentence(index + 500, item.text), tokens: item.tokens })) };
-  assert.equal(pool.addBatch(batch, date, 'zh-CN'), true);
-  assert.equal(pool.current(date, 'zh-CN')?.text, initial.text, 'A fetched batch never selects or replaces the displayed sentence');
-  assert.equal(pool.syncDelay(date, 'zh-CN'), 86_400_000, 'A sufficiently stocked pool checks for updates after a day');
-  const online = pool.take(date, 'zh-CN', initial.text);
-  assert.ok(online.source);
-  assert.notEqual(online.text, initial.text);
-  assert.equal(makePool().current(date, 'zh-CN')?.text, online.text, 'Current choice survives reload');
-  const used = new Set([initial.text, online.text]);
+  pool.installPack(bundledSentencePack, date);
+  assert.equal(pool.current(date, 'zh-CN')?.text, initial.text, 'Installing bundled presets keeps the current local choice');
+  const selected = pool.take(date, 'zh-CN', initial.text);
+  assert.ok(selected.source);
+  assert.notEqual(selected.text, initial.text);
+  assert.equal(makePool().current(date, 'zh-CN')?.text, selected.text, 'Current choice survives reload');
+  const used = new Set([initial.text, selected.text]);
   for (let i = 0; i < 10; i++) {
     const next = pool.take(date, 'zh-CN', pool.current(date, 'zh-CN')!.text);
-    if (!next.source) break;
     assert.ok(!used.has(next.text), 'Candidate pool consumes each sentence once');
     used.add(next.text);
   }
-  assert.ok(pool.syncDelay(date, 'zh-CN') <= 15 * 60_000, 'Low stock permits replenishment after a cooldown');
-  const localChoice = pool.take(date, 'zh-CN', pool.current(date, 'zh-CN')!.text);
-  assert.equal(makePool().current(date, 'zh-CN')?.text, localChoice.text);
-  pool.failed('en');
-  assert.equal(makePool().syncDelay(date, 'en'), 15 * 60_000, 'Failure backoff persists across page reloads');
-  clock += 15 * 60_000;
-  assert.equal(makePool().syncDelay(date, 'en'), 0);
-  pool.failed('en');
-  assert.equal(pool.syncDelay(date, 'en'), 30 * 60_000, 'Repeated failures increase the retry interval');
-  assert.equal(pool.addBatch({ date: '2026-09-23', sentences: batch.sentences }, date, 'en'), false);
-  assert.equal(pool.addBatch({ date, sentences: [{ text: '<script>' }] }, date, 'en'), false);
-  const blockedPool = createDailySentencePool(blocked, () => .5, () => clock);
+  const blockedPool = createDailySentencePool(blocked, () => .5);
   const blockedInitial = blockedPool.take(date, 'zh-CN');
-  assert.equal(blockedPool.addBatch(batch, date, 'zh-CN'), true);
+  blockedPool.installPack(bundledSentencePack, date);
   const inMemory = blockedPool.take(date, 'zh-CN', blockedInitial.text);
-  assert.ok(inMemory.source, 'Unwritable storage still supports an in-memory online candidate pool');
+  assert.ok(inMemory.source, 'Unwritable storage still supports an in-memory preset pool');
   assert.notEqual(blockedPool.take(date, 'zh-CN', inMemory.text).text, inMemory.text);
+
   poolValues.clear();
-  poolValues.set(DAILY_ONLINE_KEY, JSON.stringify({ sentence: sentences[0], history: [{ date, id: 123, text: sentences[0].text }] }));
+  const legacy = { ...bundledSentencePack.sentences[0], tokens: [], date };
+  poolValues.set(LEGACY_DAILY_SENTENCE_KEY, JSON.stringify({ sentence: legacy, history: [{ date, id: legacy.source!.id, text: legacy.text }] }));
   const migrated = makePool();
   assert.equal(migrated.current(date, 'en'), null, 'Incomplete legacy choices are not restored');
-  assert.equal(migrated.addBatch({ date, sentences }, date, 'en'), true);
-  assert.equal(migrated.take(date, 'en', sentences[0].text).source, undefined, 'Migration retains seen IDs and text');
+  migrated.installPack(bundledSentencePack, date);
+  assert.equal(migrated.current(date, 'en')?.text, legacy.text, 'A bundled preset upgrades the legacy selection in place');
+  assert.notEqual(migrated.take(date, 'en', legacy.text).text, legacy.text, 'Migration retains seen IDs and text');
   assert.ok(poolValues.has(DAILY_POOL_KEY));
-  assert.equal(makePool().current(date, 'en')?.source, undefined, 'A saved local choice takes priority over legacy online cache');
+
   poolValues.clear();
   const aging = makePool();
-  aging.addBatch(batch, date, 'zh-CN');
-  const nextDay = '2026-09-25';
-  assert.ok(makePool().take(nextDay, 'zh-CN').source, 'Unseen candidates remain usable offline on subsequent days');
-  assert.equal(makePool().take('2026-10-02', 'zh-CN').source, undefined, 'Candidate packs expire after seven days');
+  aging.installPack(bundledSentencePack, date);
+  assert.ok(makePool().take('2026-10-02', 'zh-CN').source, 'Unused bundled presets remain usable beyond seven days');
   poolValues.set(DAILY_POOL_KEY, '{');
   assert.ok(makePool().take(date, 'en').text, 'Corrupt storage falls back safely');
 
   poolValues.clear();
-  const incomplete = makePool();
-  assert.equal(incomplete.addBatch({ date, sentences }, date, 'en'), true);
-  assert.equal(incomplete.take(date, 'en').source, undefined, 'Raw API candidates without readings cannot be displayed');
-  const noTranslation = { ...batch.sentences[0], translation: {} };
-  assert.equal(incomplete.addBatch({ date, sentences: [noTranslation] }, date, 'ko'), true);
-  assert.ok(isCompleteDailySentence(incomplete.take(date, 'ko'), 'ko'), 'Missing locale translations fall back to complete local examples');
-
-  const originalFetch = globalThis.fetch;
-  const code = process.env.CODE;
-  try {
-    delete process.env.CODE;
-    let calls = 0;
-    globalThis.fetch = async () => { calls++; throw new Error('No external calls expected'); };
-    const req = () => new NextRequest('http://localhost/api/daily-sentence?locale=en');
-    const responses = await Promise.all([GET(req()), GET(req()), GET(new NextRequest('http://localhost/api/daily-sentence?locale=zh-CN&refresh=1'))]);
-    assert.ok(responses.every(response => response.status === 200));
-    const body = await responses[0].json();
-    assert.equal(body.sentences.length, 92);
-    assert.ok(body.sentences.every(isOnlineDailySentence));
-    assert.equal(calls, 0, 'Serving and refreshing bundled snapshots never depends on a public upstream');
-    process.env.CODE = 'secret';
-    assert.equal((await GET(req())).status, 401);
-  } finally {
-    globalThis.fetch = originalFetch;
-    if (code === undefined) delete process.env.CODE; else process.env.CODE = code;
-  }
-  console.log('Daily sentences passed: 60 annotated examples, shuffle cycles, stable days, storage failures, safe public data, translations, history, caching and authentication.');
+  poolValues.set(DAILY_POOL_KEY, JSON.stringify({ current: cachedSentence(), candidates: sentences, history: [],
+    packVersion: '2099-01-01-123456789abc', packSchemaVersion: 3, packIds: [123] }));
+  const retired = makePool();
+  retired.installPack(bundledSentencePack, date);
+  assert.equal(retired.current(date, 'en'), null, 'Retired remote examples cannot override the shipped presets');
+  const installed = JSON.parse(poolValues.get(DAILY_POOL_KEY)!);
+  assert.equal(installed.packVersion, bundledSentencePack.version);
+  assert.ok(installed.candidates.every((sentence: DailySentence) => bundledSentencePack.sentences.some(item => item.text === sentence.text)));
+  console.log('Daily sentences passed: annotated presets, shuffle cycles, stable days, storage failures, attribution validation, history, migration and offline persistence.');
 }
 void main().catch(error => { console.error(error); process.exitCode = 1; });
