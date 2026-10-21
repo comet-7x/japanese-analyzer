@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { localizeError } from '../../i18n';
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import type { Live2DCanvasHandle, ActionPlaybackState, ModelProjection } from './Live2DCanvas';
 import { getLive2DModelFiles } from './modelLibrary';
 import Live2DScrollFeedback from './Live2DScrollFeedback';
@@ -11,6 +11,8 @@ import { Icon } from '../../components/Icons';
 import { defaultActionName, hitAreaLabel } from './actionLabels';
 import type { Live2DCapabilities } from './capabilities';
 import { effectiveResourceUses } from './resourceConfig';
+import { ResourceAssignment } from './ResourceAssignment';
+import { BehaviorSettings } from './BehaviorSettings';
 import { ResourceCatalog } from './ResourceCatalog';
 import { resourceTargetLabel } from './resourceLabels';
 import { INTERACTION_PARTS } from './interaction';
@@ -37,9 +39,13 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
   const [source, setSource] = useState<File[] | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
+  const [testing, setTesting] = useState(false);
+  const [testIdle, setTestIdle] = useState(false);
+  const [undoProfile, setUndoProfile] = useState<ActionProfile | null>(null);
   const [assigning, setAssigning] = useState(false);
   const uses = effectiveResourceUses(profile, capabilities);
   const [search, setSearch] = useState('');
+  const [useFilter, setUseFilter] = useState('all');
   const [kind, setKind] = useState('all');
   const [selectedId, setSelectedId] = useState(capabilities.actions[0]?.id ?? '');
   const [target, setTarget] = useState(capabilities.interactions[0] ? `area:${capabilities.interactions[0].area}` : 'key:Enter');
@@ -86,8 +92,8 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
   const bind = (next: ActionBinding) => change({ bindings: { ...latest.current.bindings, [target]: next } });
   const actions = capabilities.actions;
   const displayName = (action: typeof actions[number]) => actionName(action, profile, actions.indexOf(action) + 1, t);
-  const filtered = useMemo(() => actions.filter(action => (kind === 'all' || action.kind === kind)
-    && `${actionName(action, profile, actions.indexOf(action) + 1, t)} ${action.name} ${action.file}`.toLowerCase().includes(search.toLowerCase())), [actions, kind, search, profile, t]);
+  const filtered = actions.filter(action => (useFilter === 'all' || (useFilter === 'unused' ? !uses.some(use => use.resolution.status === 'action' && use.resolution.action.id === action.id) : uses.some(use => use.resolution.status === 'action' && use.resolution.action.id === action.id && (useFilter === 'idle' ? use.target === 'idle' : useFilter === 'tap' ? /^(area|zone):/.test(use.target) : use.target.startsWith(useFilter + ':'))))) && (kind === 'all' || action.kind === kind)
+    && `${actionName(action, profile, actions.indexOf(action) + 1, t)} ${action.name} ${action.file}`.toLowerCase().includes(search.toLowerCase()));
   const selected = actions.find(action => action.id === selectedId);
   const zone = profile.hotspots.find(item => item.id === selectedZoneId);
   const keys = [...new Set([...DEFAULT_KEYS, ...Object.keys(profile.bindings).filter(key => key.startsWith('key:')).map(key => key.slice(4))])];
@@ -106,7 +112,7 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
     next.x = Math.min(next.x, 1 - next.width); next.y = Math.min(next.y, 1 - next.height);
     change({ hotspots: profile.hotspots.map(item => item.id === zone.id ? next : item) });
   };
-  const play = (id = selectedId) => { setEditing(false); void canvas.current?.playAction(id); };
+  const play = (id = selectedId) => { setTestIdle(false); setTesting(false); setEditing(false); void canvas.current?.playAction(id); };
   const receivePlayback = (state: ActionPlaybackState) => {
     setPlayback(state);
     setResourceStates(current => {
@@ -159,7 +165,7 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
   };
   const addShortcut = () => {
     if (!isActionShortcut(shortcut)) { setShortcutError('请按字母、数字、Enter 或空格，可搭配 Shift；方向键用于移动角色。'); return; }
-    if (keys.includes(shortcut)) { setShortcutError('此快捷键已存在，请直接选择对应触发方式。'); return; }
+    if (keys.includes(shortcut)) { setTarget(`key:${shortcut}`); setAssigning(true); setShortcutError('此快捷键已存在，请直接选择对应触发方式。'); return; }
     change({ bindings: { ...latest.current.bindings, [`key:${shortcut}`]: { mode: 'auto' } } });
     setTarget(`key:${shortcut}`); setShortcut(''); setShortcutError('');
   };
@@ -169,7 +175,7 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
     const next = removeActionHotspot(current, id);
     const neighbour = next.hotspots[Math.min(index, next.hotspots.length - 1)];
     if (gesture.current?.zone.id === id) gesture.current = null;
-    onChange(next);
+    setUndoProfile(current); onChange(next);
     if (selectedZoneId === id) setSelectedZoneId(neighbour?.id ?? null);
     if (target === `zone:${id}`) setTarget(neighbour ? `zone:${neighbour.id}` : 'key:Enter');
   };
@@ -193,6 +199,7 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
         <div className="live2d-resource-tabs" role="group" aria-label={t('资源类型')}>
           {['all', 'motion', 'expression'].map((id, index) => <button type="button" className="nd-ghost-btn" key={id} aria-pressed={kind === id} onClick={() => setKind(id)}>{t(['全部', '动作', '表情'][index])} {actions.filter(item => id === 'all' || item.kind === id).length}</button>)}
         </div>
+        <label>{t('按用途筛选')}<select className="nd-input" value={useFilter} onChange={event => setUseFilter(event.target.value)}>{['all', 'idle', 'tap', 'key', 'mood', 'unused'].map((id, index) => <option key={id} value={id}>{t(['全部', '平时自动播放', '点击部位', '键盘快捷键', '伴学反馈', '尚未设置用途'][index])}</option>)}</select></label>
         <div className="live2d-action-resources" ref={setResourcesTarget}>
           <ResourceCatalog actions={filtered} profile={profile} uses={uses} selectedId={selectedId} states={resourceStates}
             onSelect={id => { setSelectedId(id); setAssigning(false); }} onPreview={id => { setSelectedId(id); play(id); }} />
@@ -200,10 +207,19 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
           {!filtered.length && search && <button type="button" className="nd-ghost-btn" onClick={() => setSearch('')}>{t('清除搜索')}</button>}
         </div>
       </section>}
+      {view === 'rules' && <BehaviorSettings profile={profile} caps={capabilities} onChange={onChange} selectedTarget={target} ready={ready}
+        onEdit={id => { setTarget(id); setAssigning(true); }} onTest={id => {
+          setEditing(false); setTesting(true); setTestIdle(id === 'idle');
+          if (id === 'idle') return;
+          const use = uses.find(item => item.target === id);
+          if (use?.resolution.status === 'action') void canvas.current?.playAction(use.resolution.action.id);
+        }} />}
       <div className="live2d-action-detail">
         <section className="live2d-action-preview" aria-label={t("独立角色预览")}>
-          <div className="live2d-action-stage" ref={stage}>
-            {source && <Live2DCanvas ref={canvas} source={source} preview trackPointer={false} pauseWhenIdle onReady={() => setReady(true)} onError={cause => setError(cause.message)} onActionState={receivePlayback} />}
+          <div className="live2d-action-stage" ref={stage} tabIndex={testing ? 0 : undefined} role={testing ? 'group' : undefined} aria-label={testing ? t('试用互动，轻点角色或使用快捷键') : undefined}
+            onPointerUp={event => { if (testing && !editing) void canvas.current?.tapAt(event.clientX, event.clientY); }}
+            onKeyDown={event => { if (event.target !== event.currentTarget || !testing || event.repeat) return; const key = shortcutFromEvent(event); if (key && canvas.current?.triggerShortcut(key)) event.preventDefault(); }}>
+            {source && <Live2DCanvas ref={canvas} source={source} preview interactionProfile={profile} testBehaviors={testIdle} trackPointer={false} pauseWhenIdle onReady={() => setReady(true)} onError={cause => setError(cause.message)} onActionState={receivePlayback} />}
             {editing && projection && <svg className="live2d-hotspot-overlay" aria-label={t("绘制和移动热区，可使用下方数字输入调整")} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={finish} onPointerCancel={finish} onLostPointerCapture={finish}>
               <g transform={`matrix(${projection.a} ${projection.b} ${projection.c} ${projection.d} ${projection.tx} ${projection.ty})`}>
                 {[...profile.hotspots].reverse().map(item => <g key={item.id}>
@@ -214,12 +230,13 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
             </svg>}
             {!ready && !error && <span className="live2d-action-loading">{t("正在加载预览…")}</span>}
           </div>
+          {view === 'rules' && <div className="live2d-action-buttons"><button type="button" className="nd-ghost-btn" aria-pressed={testing} onClick={() => { setEditing(false); setTestIdle(false); setTesting(!testing); }}>{t('试用互动')}</button><button type="button" className="nd-ghost-btn" aria-pressed={editing} onClick={() => { setTesting(false); setTestIdle(false); canvas.current?.resetPose(); setEditing(!editing); }}>{t('编辑区域')}</button></div>}
           <div className="live2d-action-preview-tools">
             <button type="button" className="nd-ghost-btn" disabled={!ready || !filtered.length} onClick={() => adjacent(-1)} aria-label={t("预览上一个动作")}>{t("上一个")}</button>
             <button type="button" className="nd-ghost-btn" disabled={!ready || !selected} onClick={() => play()}>{t("预览一次")}</button>
-            <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => canvas.current?.stopAction()}>{t("停止")}</button>
+            <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => { setTestIdle(false); canvas.current?.stopAction(); }}>{t("停止")}</button>
             <button type="button" className="nd-ghost-btn" disabled={!ready || !filtered.length} onClick={() => adjacent(1)} aria-label={t("预览下一个动作")}>{t("下一个")}</button>
-            <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => canvas.current?.resetPose()}>{t("复位姿态／表情")}</button>
+            <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => { setTestIdle(false); canvas.current?.resetPose(); }}>{t("复位姿态／表情")}</button>
           </div>
           <p className="live2d-action-status" role="status">{playback.status === 'loading' ? t('正在加载所选资源…') : playback.status === 'playing' ? t('正在预览 · 默认静音，不循环') : playback.status === 'finished' ? t('动作已播放完毕') : playback.status === 'error' ? (playback.error && localizeError(playback.error, locale)) : editing ? t('在角色上拖出矩形；拖动区域移动，拖动右下角调整大小。') : t('预览与桌面角色独立，默认静音，不循环。')}</p>
         </section>
@@ -229,8 +246,9 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
           <p className="live2d-action-file">{t('当前用途')}：{uses.filter(use => use.resolution.status === 'action' && use.resolution.action.id === selected.id).map(use => resourceTargetLabel(use.target, profile, t)).join('、') || t('尚未设置用途')}</p>
           <button className="nd-btn" type="button" aria-expanded={assigning} onClick={() => setAssigning(!assigning)}>{t('用于…')}</button>
         </section>}
-        {(view === 'rules' || assigning) && <section className="live2d-action-fields">
-          <h4>{t("触发与绑定")}</h4>
+        {view === 'resources' && assigning && selected && <ResourceAssignment key={selected.id} action={selected} profile={profile} caps={capabilities} onChange={onChange} onDone={() => setAssigning(false)} />}
+        {view === 'rules' && assigning && <section className="live2d-action-fields">
+          <h4>{resourceTargetLabel(target, profile, t)}</h4>
           <label>{t("触发方式")}<select value={target} onChange={event => { setTarget(event.target.value); if (event.target.value.startsWith('zone:')) setSelectedZoneId(event.target.value.slice(5)); }}>{targets.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
           <label>{t("绑定资源")}<select value={bindingValue} onChange={event => bind(event.target.value === 'auto' || event.target.value === 'disabled' ? { mode: event.target.value } : { mode: 'manual', actionId: event.target.value })}>
             <option value="auto">{t("自动识别")}</option><option value="disabled">{t("禁用此触发方式")}</option>
@@ -241,8 +259,8 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
           <div className="live2d-action-buttons"><button className="nd-ghost-btn" type="button" disabled={!selected} onClick={() => selected && bind({ mode: 'manual', actionId: selected.id })}>{t("绑定所选动作")}</button><button className="nd-ghost-btn" type="button" onClick={() => bind({ mode: 'auto' })}>{t("恢复自动")}</button></div>
           <p>{t("自定义热区优先于原生部位，重叠时列表靠前的区域优先。禁用会阻止该区域触发其他动作。")}</p>
         </section>}
-        {view === 'rules' && <><section className="live2d-action-fields">
-          <h4>{t("自定义热区")}</h4>
+        {view === 'rules' && <><details className="live2d-action-fields" open={editing || undefined}>
+          <summary>{t("自定义热区")}</summary>
           <p>{t("模型未提供头部等区域时，可自行添加。矩形固定在模型画布上，不跟随骨骼变形。")}</p>
           <div className="live2d-action-buttons">
             <button type="button" className="nd-ghost-btn" disabled={!ready} aria-pressed={editing} onClick={() => { canvas.current?.resetPose(); setEditing(!editing); }}>{editing ? t('完成区域编辑') : t('在角色上绘制区域')}</button>
@@ -258,14 +276,15 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
             <div className="live2d-hotspot-numbers">{(['x', 'y', 'width', 'height'] as const).map((key, index) => <label key={key}>{t(['横向位置', '纵向位置', '宽度', '高度'][index])}（%）<input type="number" min={key === 'width' || key === 'height' ? 1 : 0} max="100" step="0.5" value={Math.round(zone[key] * 1000) / 10} onChange={event => { if (event.target.value !== '') patchZone({ [key]: unit(Number(event.target.value) / 100) }); }} /></label>)}</div>
             <div className="live2d-action-buttons"><button className="nd-ghost-btn" type="button" disabled={profile.hotspots[0]?.id === zone.id} onClick={() => reorder(-1)}>{t("优先级上移")}</button><button className="nd-ghost-btn" type="button" disabled={profile.hotspots.at(-1)?.id === zone.id} onClick={() => reorder(1)}>{t("优先级下移")}</button><button className="nd-ghost-btn" type="button" onClick={() => removeZone(zone.id)}>{t("删除当前区域")}</button></div>
           </>}
-        </section>
-        <section className="live2d-action-fields">
-          <h4>{t("键盘快捷键")}</h4><p>{t("仅聚焦桌面角色时生效。Enter／空格触发默认互动，Shift+Enter 触发头部互动；方向键保留用于移动角色。")}</p>
+        </details>
+        <details className="live2d-action-fields">
+          <summary>{t("键盘快捷键")}</summary><p>{t("仅聚焦桌面角色时生效。Enter／空格触发默认互动，Shift+Enter 触发头部互动；方向键保留用于移动角色。")}</p>
           <label>{t("录入快捷键")}<input value={shortcut} placeholder={t("点击此处，再按快捷键")} readOnly onKeyDown={event => { if (event.key === 'Tab') return; event.preventDefault(); const key = shortcutFromEvent(event); if (key) { setShortcut(key); setShortcutError(''); } else setShortcutError('不支持此组合。请使用字母、数字、Enter 或空格，可搭配 Shift。'); }} /></label>
           <button type="button" className="nd-ghost-btn" onClick={addShortcut}>{t("添加快捷键")}</button>
           {target.startsWith('key:') && !DEFAULT_KEYS.includes(target.slice(4)) && <button type="button" className="nd-ghost-btn" onClick={() => { const bindings = { ...profile.bindings }; delete bindings[target]; change({ bindings }); setTarget('key:Enter'); }}>{t("删除此快捷键")}</button>}
           <p className="live2d-settings-error" role="status">{shortcutError && localizeError(shortcutError, locale)}</p>
-        </section>
+        </details>
+        {undoProfile && <button className="nd-ghost-btn" type="button" onClick={() => { const removed = undoProfile.hotspots.find(item => !profile.hotspots.some(zone => zone.id === item.id)); if (removed) { const restored = [...profile.hotspots]; restored.splice(Math.min(undoProfile.hotspots.indexOf(removed), restored.length), 0, removed); onChange({ ...profile, hotspots: restored, bindings: { ...profile.bindings, ...(undoProfile.bindings[`zone:${removed.id}`] ? { [`zone:${removed.id}`]: undoProfile.bindings[`zone:${removed.id}`] } : {}) } }); } setUndoProfile(null); }}>{t('撤销删除区域')}</button>}
         <button className="nd-ghost-btn" type="button" onClick={() => { if (window.confirm(t('重置当前模型的动作名称、绑定、热区和快捷键？大小和其他模型配置保持不变。'))) { onChange(emptyActionProfile()); setTarget('key:Enter'); setSelectedZoneId(null); } }}>{t("重置当前模型互动配置")}</button>
         </>}
         {error && <p className="live2d-settings-error" role="alert">{localizeError(error, locale)}</p>}

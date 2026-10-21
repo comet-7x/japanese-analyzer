@@ -24,7 +24,7 @@ export function automaticTargetAction(target: string, profile: ActionProfile, ca
 /** One effective-use projection for the catalog, rule editor and runtime diagnostics. */
 export function effectiveResourceUses(profile: ActionProfile, caps: Live2DCapabilities): ResourceUse[] {
   const targets = new Set([...caps.interactions.map(item => `area:${item.area}`), ...profile.hotspots.map(item => `zone:${item.id}`),
-    ...Object.keys(caps.moods).map(mood => `mood:${mood}`), ...Object.keys(profile.bindings)]);
+    ...Object.keys(caps.moods).map(mood => `mood:${mood}`), 'key:Enter', 'key:Space', 'key:Shift+Enter', ...Object.keys(profile.bindings)]);
   const uses: ResourceUse[] = [...targets].map(target => ({ target, source: profile.bindings[target]?.mode === 'manual' ? 'custom' : 'model',
     resolution: target.startsWith('key:') ? resolveShortcutAction(profile, target.slice(4), caps) ?? { status: 'none' }
       : resolveActionBinding(profile, target, caps, automaticTargetAction(target, profile, caps)) }));

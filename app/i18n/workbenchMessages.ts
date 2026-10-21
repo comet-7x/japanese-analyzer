@@ -124,5 +124,205 @@ export const workbenchMessages = {
     "zh-TW": "已結束",
     "en": "Finished",
     "ko": "완료"
+  },
+  "设置用途": {
+    "zh-TW": "設定用途",
+    "en": "Assign a use",
+    "ko": "용도 지정"
+  },
+  "将 {0} 用于": {
+    "zh-TW": "將 {0} 用於",
+    "en": "Use {0} for",
+    "ko": "{0} 용도"
+  },
+  "使用方式": {
+    "zh-TW": "使用方式",
+    "en": "Use",
+    "ko": "사용 방식"
+  },
+  "点击角色部位": {
+    "zh-TW": "點擊角色部位",
+    "en": "Tap a character part",
+    "ko": "캐릭터 부위 탭"
+  },
+  "伴学反馈": {
+    "zh-TW": "伴學回饋",
+    "en": "Learning feedback",
+    "ko": "학습 반응"
+  },
+  "什么时候触发": {
+    "zh-TW": "何時觸發",
+    "en": "When to trigger",
+    "ko": "실행 시점"
+  },
+  "模型没有点击区域，请在互动设置中添加区域。": {
+    "zh-TW": "模型沒有點擊區域，請在互動設定中新增區域。",
+    "en": "Add a tap region in Interactions first.",
+    "ko": "먼저 상호작용 설정에서 탭 영역을 추가하세요."
+  },
+  "此触发方式已有指定资源，确认后将替换。": {
+    "zh-TW": "此觸發方式已有指定資源，確認後將取代。",
+    "en": "This trigger already has a resource. Confirm to replace it.",
+    "ko": "이미 리소스가 지정되어 있습니다. 확인하면 교체됩니다."
+  },
+  "只播放此动作": {
+    "zh-TW": "只播放此動作",
+    "en": "Use only this motion",
+    "ko": "이 모션만 재생"
+  },
+  "确认替换": {
+    "zh-TW": "確認取代",
+    "en": "Confirm replacement",
+    "ko": "교체 확인"
+  },
+  "添加用途": {
+    "zh-TW": "新增用途",
+    "en": "Add use",
+    "ko": "용도 추가"
+  },
+  "加入现有待机清单": {
+    "zh-TW": "加入現有待機清單",
+    "en": "Add to idle playlist",
+    "ko": "대기 목록에 추가"
+  },
+  "已加入设置草稿，保存设置后应用到桌面角色。": {
+    "zh-TW": "已加入設定草稿，儲存後套用到桌面角色。",
+    "en": "Changes stay in the draft until you save settings.",
+    "ko": "설정을 저장해야 데스크톱 캐릭터에 적용됩니다."
+  },
+  "互动规则": {
+    "zh-TW": "互動規則",
+    "en": "Interaction rules",
+    "ko": "상호작용 규칙"
+  },
+  "平时动作": {
+    "zh-TW": "平時動作",
+    "en": "Idle behavior",
+    "ko": "대기 동작"
+  },
+  "播放方式": {
+    "zh-TW": "播放方式",
+    "en": "Playback mode",
+    "ko": "재생 방식"
+  },
+  "使用模型默认": {
+    "zh-TW": "使用模型預設",
+    "en": "Use model defaults",
+    "ko": "모델 기본값 사용"
+  },
+  "选择动作": {
+    "zh-TW": "選擇動作",
+    "en": "Choose motions",
+    "ko": "모션 선택"
+  },
+  "关闭动作播放": {
+    "zh-TW": "關閉動作播放",
+    "en": "Disable idle motions",
+    "ko": "대기 모션 끄기"
+  },
+  "待机清单": {
+    "zh-TW": "待機清單",
+    "en": "Idle playlist",
+    "ko": "대기 재생 목록"
+  },
+  "移除用途": {
+    "zh-TW": "移除用途",
+    "en": "Remove use",
+    "ko": "용도 제거"
+  },
+  "播放顺序": {
+    "zh-TW": "播放順序",
+    "en": "Playback order",
+    "ko": "재생 순서"
+  },
+  "随机播放": {
+    "zh-TW": "隨機播放",
+    "en": "Random",
+    "ko": "무작위 재생"
+  },
+  "顺序播放": {
+    "zh-TW": "順序播放",
+    "en": "In sequence",
+    "ko": "순서대로 재생"
+  },
+  "动作间隔（秒）": {
+    "zh-TW": "動作間隔（秒）",
+    "en": "Gap between motions (seconds)",
+    "ko": "모션 간격(초)"
+  },
+  "当前待机清单：{0} 个动作": {
+    "zh-TW": "目前待機清單：{0} 個動作",
+    "en": "Idle playlist: {0} motions",
+    "ko": "대기 목록: 모션 {0}개"
+  },
+  "试用待机": {
+    "zh-TW": "試用待機",
+    "en": "Test idle playback",
+    "ko": "대기 재생 시험"
+  },
+  "点击部位": {
+    "zh-TW": "點擊部位",
+    "en": "Tap regions",
+    "ko": "탭 부위"
+  },
+  "你设置的": {
+    "zh-TW": "你設定的",
+    "en": "Set by you",
+    "ko": "사용자 설정"
+  },
+  "来自模型默认": {
+    "zh-TW": "來自模型預設",
+    "en": "From model defaults",
+    "ko": "모델 기본값"
+  },
+  "修改": {
+    "zh-TW": "修改",
+    "en": "Edit",
+    "ko": "수정"
+  },
+  "试用": {
+    "zh-TW": "試用",
+    "en": "Test",
+    "ko": "시험"
+  },
+  "停用": {
+    "zh-TW": "停用",
+    "en": "Disable",
+    "ko": "사용 안 함"
+  },
+  "模型未提供头部区域，可在下方添加点击区域。": {
+    "zh-TW": "模型未提供頭部區域，可在下方新增點擊區域。",
+    "en": "No head region is provided. Add a custom region below.",
+    "ko": "머리 영역이 없습니다. 아래에서 사용자 영역을 추가하세요."
+  },
+  "尚未添加快捷键，可在下方录入。": {
+    "zh-TW": "尚未新增快捷鍵，可在下方輸入。",
+    "en": "No custom shortcuts. Record one below.",
+    "ko": "사용자 단축키가 없습니다. 아래에서 등록하세요."
+  },
+  "按用途筛选": {
+    "zh-TW": "依用途篩選",
+    "en": "Filter by use",
+    "ko": "용도별 필터"
+  },
+  "试用互动，轻点角色或使用快捷键": {
+    "zh-TW": "試用互動，輕點角色或使用快捷鍵",
+    "en": "Test interactions: tap the character or use shortcuts",
+    "ko": "상호작용 시험: 캐릭터를 탭하거나 단축키 사용"
+  },
+  "试用互动": {
+    "zh-TW": "試用互動",
+    "en": "Test interactions",
+    "ko": "상호작용 시험"
+  },
+  "编辑区域": {
+    "zh-TW": "編輯區域",
+    "en": "Edit regions",
+    "ko": "영역 편집"
+  },
+  "撤销删除区域": {
+    "zh-TW": "復原刪除區域",
+    "en": "Undo region deletion",
+    "ko": "영역 삭제 취소"
   }
 } as const;
