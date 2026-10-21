@@ -6,6 +6,7 @@ import {
   PRESETS,
   createCustomModelId,
   createCustomProfileId,
+  createProfileFromPreset,
   resolveModelSelection,
   sanitizeProfiles,
   migrateModelPreferences,
@@ -62,18 +63,6 @@ function emptyService(): ProviderProfile {
     baseUrl: '',
     apiKey: '',
     models: [{ id: createCustomModelId(), name: '', model: '', caps: { structuredOutput: 'json_object' } }],
-  };
-}
-
-function fromPreset(presetId: string): ProviderProfile | null {
-  const preset = PRESETS.find((p) => p.id === presetId);
-  if (!preset) return null;
-  return {
-    id: createCustomProfileId(),
-    name: preset.name,
-    baseUrl: preset.baseUrl,
-    apiKey: '',
-    models: preset.models.map((m) => ({ ...m, id: createCustomModelId(), caps: m.caps ? { ...m.caps } : undefined })),
   };
 }
 
@@ -361,7 +350,7 @@ export default function SettingsModal({
       setEditingServiceMode('edit');
       return;
     }
-    const service = fromPreset(presetId);
+    const service = createProfileFromPreset(presetId);
     if (service) addService(service, 'create');
   };
 
