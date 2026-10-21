@@ -324,5 +324,40 @@ export const workbenchMessages = {
     "zh-TW": "復原刪除區域",
     "en": "Undo region deletion",
     "ko": "영역 삭제 취소"
+  },
+  "表情恢复方式": {
+    "zh-TW": "表情恢復方式",
+    "en": "Expression reset",
+    "ko": "표정 복원 방식"
+  },
+  "指定秒数后恢复": {
+    "zh-TW": "指定秒數後恢復",
+    "en": "Restore after a duration",
+    "ko": "지정 시간 후 복원"
+  },
+  "再次触发关闭": {
+    "zh-TW": "再次觸發關閉",
+    "en": "Trigger again to turn off",
+    "ko": "다시 실행하면 끄기"
+  },
+  "持续时间（秒）": {
+    "zh-TW": "持續時間（秒）",
+    "en": "Duration (seconds)",
+    "ko": "유지 시간(초)"
+  },
+  "恢复模型默认外观": {
+    "zh-TW": "恢復模型預設外觀",
+    "en": "Restore model appearance",
+    "ko": "모델 기본 외형 복원"
+  },
+  "正在试用待机清单，点击停止结束。": {
+    "zh-TW": "正在試用待機清單，點擊停止結束。",
+    "en": "Testing the idle playlist. Press Stop to finish.",
+    "ko": "대기 목록 시험 중입니다. 중지 버튼으로 종료하세요."
+  },
+  "轻点预览角色或聚焦后按快捷键；仅影响预览。": {
+    "zh-TW": "輕點預覽角色或聚焦後按快捷鍵；僅影響預覽。",
+    "en": "Tap the preview or focus it and use shortcuts. Only the preview is affected.",
+    "ko": "미리보기를 탭하거나 포커스 후 단축키를 사용하세요. 미리보기에만 적용됩니다."
   }
 } as const;

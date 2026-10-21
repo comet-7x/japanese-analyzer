@@ -211,15 +211,14 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
         onEdit={id => { setTarget(id); setAssigning(true); }} onTest={id => {
           setEditing(false); setTesting(true); setTestIdle(id === 'idle');
           if (id === 'idle') return;
-          const use = uses.find(item => item.target === id);
-          if (use?.resolution.status === 'action') void canvas.current?.playAction(use.resolution.action.id);
+          void canvas.current?.triggerTarget(id);
         }} />}
       <div className="live2d-action-detail">
         <section className="live2d-action-preview" aria-label={t("独立角色预览")}>
           <div className="live2d-action-stage" ref={stage} tabIndex={testing ? 0 : undefined} role={testing ? 'group' : undefined} aria-label={testing ? t('试用互动，轻点角色或使用快捷键') : undefined}
             onPointerUp={event => { if (testing && !editing) void canvas.current?.tapAt(event.clientX, event.clientY); }}
             onKeyDown={event => { if (event.target !== event.currentTarget || !testing || event.repeat) return; const key = shortcutFromEvent(event); if (key && canvas.current?.triggerShortcut(key)) event.preventDefault(); }}>
-            {source && <Live2DCanvas ref={canvas} source={source} preview interactionProfile={profile} testBehaviors={testIdle} trackPointer={false} pauseWhenIdle onReady={() => setReady(true)} onError={cause => setError(cause.message)} onActionState={receivePlayback} />}
+            {source && <Live2DCanvas ref={canvas} source={source} preview interactionProfile={profile} testBehaviors={testIdle} trackPointer={false} pauseWhenIdle={!testIdle} onReady={() => setReady(true)} onError={cause => setError(cause.message)} onActionState={receivePlayback} />}
             {editing && projection && <svg className="live2d-hotspot-overlay" aria-label={t("绘制和移动热区，可使用下方数字输入调整")} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={finish} onPointerCancel={finish} onLostPointerCapture={finish}>
               <g transform={`matrix(${projection.a} ${projection.b} ${projection.c} ${projection.d} ${projection.tx} ${projection.ty})`}>
                 {[...profile.hotspots].reverse().map(item => <g key={item.id}>
@@ -238,12 +237,17 @@ export default function Live2DActionEditor({ view = 'resources', modelId, capabi
             <button type="button" className="nd-ghost-btn" disabled={!ready || !filtered.length} onClick={() => adjacent(1)} aria-label={t("预览下一个动作")}>{t("下一个")}</button>
             <button type="button" className="nd-ghost-btn" disabled={!ready} onClick={() => { setTestIdle(false); canvas.current?.resetPose(); }}>{t("复位姿态／表情")}</button>
           </div>
-          <p className="live2d-action-status" role="status">{playback.status === 'loading' ? t('正在加载所选资源…') : playback.status === 'playing' ? t('正在预览 · 默认静音，不循环') : playback.status === 'finished' ? t('动作已播放完毕') : playback.status === 'error' ? (playback.error && localizeError(playback.error, locale)) : editing ? t('在角色上拖出矩形；拖动区域移动，拖动右下角调整大小。') : t('预览与桌面角色独立，默认静音，不循环。')}</p>
+          <p className="live2d-action-status" role="status">{testIdle ? t('正在试用待机清单，点击停止结束。') : testing && !editing ? t('轻点预览角色或聚焦后按快捷键；仅影响预览。') : playback.status === 'loading' ? t('正在加载所选资源…') : playback.status === 'playing' ? t('正在预览 · 默认静音，不循环') : playback.status === 'finished' ? t('动作已播放完毕') : playback.status === 'error' ? (playback.error && localizeError(playback.error, locale)) : editing ? t('在角色上拖出矩形；拖动区域移动，拖动右下角调整大小。') : t('预览与桌面角色独立，默认静音，不循环。')}</p>
         </section>
         {view === 'resources' && selected && <section className="live2d-action-fields">
           <label>{t("动作名称")}<input maxLength={80} value={profile.aliases[selected.id] ?? ''} placeholder={defaultActionName(selected, actions.indexOf(selected) + 1, t)} onChange={event => change({ aliases: { ...profile.aliases, [selected.id]: event.target.value } })} /></label>
           <details className="live2d-action-file"><summary>{t("原始文件信息")}</summary><p>{selected.name}<br />{selected.file || t('未声明文件路径')}</p></details>
           <p className="live2d-action-file">{t('当前用途')}：{uses.filter(use => use.resolution.status === 'action' && use.resolution.action.id === selected.id).map(use => resourceTargetLabel(use.target, profile, t)).join('、') || t('尚未设置用途')}</p>
+          {selected.kind === 'expression' && <>
+            <label>{t('表情恢复方式')}<select className="nd-input" value={profile.expressionPolicies[selected.id]?.mode ?? 'timed'} onChange={event => change({ expressionPolicies: { ...profile.expressionPolicies, [selected.id]: { mode: event.target.value as 'timed' | 'toggle', seconds: profile.expressionPolicies[selected.id]?.seconds ?? 3.5 } } })}><option value="timed">{t('指定秒数后恢复')}</option><option value="toggle">{t('再次触发关闭')}</option></select></label>
+            {(profile.expressionPolicies[selected.id]?.mode ?? 'timed') === 'timed' && <label>{t('持续时间（秒）')}<input className="nd-input" type="number" min="0.5" max="60" step="0.5" value={profile.expressionPolicies[selected.id]?.seconds ?? 3.5} onChange={event => change({ expressionPolicies: { ...profile.expressionPolicies, [selected.id]: { mode: 'timed', seconds: Number(event.target.value) } } })} /></label>}
+            <button type="button" className="nd-ghost-btn" disabled={profile.defaultExpression !== selected.id} onClick={() => change({ defaultExpression: null })}>{t('恢复模型默认外观')}</button>
+          </>}
           <button className="nd-btn" type="button" aria-expanded={assigning} onClick={() => setAssigning(!assigning)}>{t('用于…')}</button>
         </section>}
         {view === 'resources' && assigning && selected && <ResourceAssignment key={selected.id} action={selected} profile={profile} caps={capabilities} onChange={onChange} onDone={() => setAssigning(false)} />}

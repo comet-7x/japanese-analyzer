@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { capabilitiesFromManifest } from '../app/plugins/live2d/capabilities';
 import { emptyActionProfile, sanitizeActionProfile } from '../app/plugins/live2d/actionProfile';
 import { effectiveResourceUses, idleResources, IdlePlaylist } from '../app/plugins/live2d/resourceConfig';
+import { ExpressionLifecycle } from '../app/plugins/live2d/expressionLifecycle';
 
 const caps = capabilitiesFromManifest({ HitAreas: [{ Id: 'Body', Name: 'Body' }], FileReferences: {
   Motions: { Idle: [{ File: 'idle1' }, { File: 'idle2' }], TapBody: [{ File: 'tap' }] }, Expressions: [{ Name: 'Smile', File: 'smile' }],
@@ -31,4 +32,19 @@ test('playlist respects selected resources, sequence, no immediate random repeat
   queue.reject(items[1].id); assert.equal(queue.next(items, 'random')?.id, items[0].id);
   queue.reject(items[0].id); assert.equal(queue.next(items, 'sequence'), undefined);
   queue.reset(); assert.equal(queue.next(items, 'sequence')?.id, items[0].id);
+});
+test('expression replacement, reset and disposal invalidate old timers and restore the current baseline', () => {
+  const callbacks: Array<() => void> = [], applied: Array<string | null> = [];
+  let baseline = 'outfit', finished = 0;
+  const life = new ExpressionLifecycle(id => applied.push(id), () => baseline,
+    callback => { callbacks.push(callback); return callbacks.length as unknown as ReturnType<typeof setTimeout>; }, () => {});
+  life.activate('smile', 'timed', 3.5, () => finished++);
+  life.activate('sad', 'timed', 2, () => finished++);
+  callbacks[0](); assert.equal(applied.at(-1), 'sad'); assert.equal(finished, 0);
+  baseline = 'new-outfit'; callbacks[1](); assert.equal(applied.at(-1), baseline); assert.equal(finished, 1);
+  life.activate('smile', 'toggle', 3.5, () => finished++);
+  life.activate('smile', 'toggle', 3.5, () => finished++);
+  assert.equal(applied.at(-1), baseline); assert.equal(finished, 2);
+  life.activate('sad', 'timed', 2, () => finished++); life.destroy(); callbacks[2]();
+  assert.equal(finished, 2); assert.equal(applied.at(-1), 'sad');
 });
