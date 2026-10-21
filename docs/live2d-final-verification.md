@@ -53,7 +53,7 @@ Hiyori 无表情空状态、待机与键盘分发在上一阶段已有记录；�
 
 ### 性能
 
-执行 `npx tsx scripts/live2d-resource-benchmark.ts`，对 100／1,000／5,000 项目录，预热后运行 30 次索引、用途派生及搜索。首次结果：5,000 项 median 2.91ms、P95 3.63ms，资源目录最多挂载 50 行。基准验证能找到末尾资源；测试也覆盖自定义名称、未使用筛选和分页上限。
+执行 `npx tsx scripts/live2d-resource-benchmark.ts`，对 100／1,000／5,000 项目录，预热后运行 30 次索引、用途派生及搜索。收尾后复测：5,000 项 median 3.39ms、P95 6.08ms（与构建并行；首次结果为 2.91ms／3.63ms），资源目录最多挂载 50 行。基准验证能找到末尾资源；测试也覆盖自定义名称、未使用筛选和分页上限。
 
 这些是 Node 数据处理时间和目录行数上限，**不是浏览器帧率或整个规则编辑器的耗时**。待机选择框及原生绑定下拉仍可能包含大量选项；真实 5,000 项浏览器交互、低端设备与纹理显存尚未完成验收。
 
@@ -65,7 +65,7 @@ Hiyori 无表情空状态、待机与键盘分发在上一阶段已有记录；�
 
 - `npm run build`：Next.js 15.5.26 生产编译、类型／Lint、静态生成及 standalone 输出成功。
 - `npm run desktop:package-server`：桌面服务包含 4,869 个文件。
-- `npx tauri build --bundles app`：生成 macOS arm64 `Japanese Analyzer.app`（374.21 MiB）；未发布、未公证。
+- `npx tauri build --bundles app`：生成 macOS arm64 `Japanese Analyzer.app`（清理后重新构建为 374.19 MiB）；未发布、未公证。
 - 启动打包后的 Node 服务：主页 HTTP 200，9 个页面脚本 HTTP 200，本地 Live2D Core HTTP 200；实际响应 CSP 包含 `worker-src 'self' blob:` 和 `connect-src 'self' blob:`。
 - `npm test`、`npm run test:live2d`、`npm run desktop:test`、`npx tsc --noEmit --pretty false`、变更文件 ESLint、`git diff --check`。
 
@@ -86,3 +86,11 @@ Hiyori 无表情空状态、待机与键盘分发在上一阶段已有记录；�
 删除无人导入的 `Live2DCapabilitySummary.tsx` 及十条专属 CSS；删除临时验收路由和 public 测试 ZIP。配置 v1→v2 迁移与用户资源缺失引用的兼容代码继续保留，它们承担真实数据兼容，不能当成弃用功能删除。
 
 保留既有提交历史，不进行 rebase／squash。原因是前五批的提交哈希已被文档和此前交付引用，重写不会补齐实机验收；当前集成版本和后续批次均可复查。若合并时需要单一提交，可由仓库的合并策略处理。未推送或发布。
+
+## 清理后的最终复核
+
+最终源码重新运行生产构建、桌面服务打包及 `tauri build --bundles app`，均通过。打包服务再检查主页、全部 9 个脚本及 Core 为 HTTP 200，临时 `/live2d-qa` 返回 404。源码 TypeScript 和差异空白检查再次通过。
+
+未配置 Developer ID 的本地包最初不能通过完整的 codesign 资源校验；仅对本次验收产物执行 `codesign --force --deep --sign -` 后，`codesign --verify --deep --strict` 通过。本地 ad-hoc 签名不是 Developer ID 签名／Apple 公证，也未修改产品签名配置。应用未启动实测。
+
+本地最终应用、截图、基准数据和日志保存在 `.desktop-cache/live2d-final-verification/`（已忽略，不入库）。未改动原来的开发 `.next`、桌面包或签名证书。
