@@ -44,6 +44,18 @@ async fn app_locale(
     // Url::domain() is None for IP hosts, dropping our 127.0.0.1 cookie.
     // Match this fixed host explicitly until upstream handles IP addresses.
     let cookies = window.cookies().map_err(|error| error.to_string())?;
+    let languages = locale::preferred_languages();
+    let system_locale = locale::system_locale(languages.iter().map(String::as_str));
+    // Hand the native result to the HTTP homepage before navigation. Only this
+    // supported language code is shared, without granting HTTP native permissions.
+    window
+        .set_cookie(
+            tauri::webview::Cookie::build(("ja_system_language", system_locale))
+                .domain("127.0.0.1")
+                .path("/")
+                .build(),
+        )
+        .map_err(|error| error.to_string())?;
     Ok(locale::saved_locale(
         cookies
             .iter()
@@ -52,6 +64,7 @@ async fn app_locale(
             })
             .map(|cookie| cookie.value()),
     )
+    .unwrap_or(system_locale)
     .to_string())
 }
 

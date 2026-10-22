@@ -1,0 +1,17 @@
+[
+  {"languages":[],"expected":"zh-CN"},
+  {"languages":["en-US"],"expected":"en"},
+  {"languages":["ko-KR"],"expected":"ko"},
+  {"languages":["zh-Hans"],"expected":"zh-CN"},
+  {"languages":["zh-Hant"],"expected":"zh-TW"},
+  {"languages":["zh-HK"],"expected":"zh-TW"},
+  {"languages":["zh-MO"],"expected":"zh-TW"},
+  {"languages":["zh-TW"],"expected":"zh-TW"},
+  {"languages":["zh-SG"],"expected":"zh-CN"},
+  {"languages":["zh-Hans-HK"],"expected":"zh-CN"},
+  {"languages":["zh-Hant-CN"],"expected":"zh-TW"},
+  {"languages":["ZH_hant_HK"],"expected":"zh-TW"},
+  {"languages":["ja-JP","ko-KR","en-US"],"expected":"ko"},
+  {"languages":["de-DE","en-GB"],"expected":"en"},
+  {"languages":["ja-JP","fr-FR"],"expected":"zh-CN"}
+]

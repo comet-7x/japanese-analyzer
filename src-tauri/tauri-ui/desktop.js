@@ -1,6 +1,6 @@
 import { readLauncherLocale } from './locale.mjs';
 
-/* global window, document, localStorage, URLSearchParams, setTimeout, setInterval, clearInterval */
+/* global window, document, localStorage, navigator, URLSearchParams, setTimeout, setInterval, clearInterval */
 // 支持在原生 Tauri 容器或常规浏览器中优雅运行
 const invoke = async (...args) => {
   if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === 'function') {
@@ -35,6 +35,7 @@ const HAS_LAUNCHED_KEY = 'ja_launcher_launched';
 const currentLocale = await readLauncherLocale({
   readNative: window.__TAURI__?.core ? () => invoke('app_locale') : undefined,
   readStored: () => localStorage.getItem('language'),
+  languages: navigator.languages?.length ? navigator.languages : [navigator.language],
 });
 document.documentElement.lang = currentLocale;
 document.title = ({ 'zh-CN': '日本語文章解析器', 'zh-TW': '日本語文章解析器', en: 'Japanese Analyzer', ko: '일본어 문장 분석기' })[currentLocale];
