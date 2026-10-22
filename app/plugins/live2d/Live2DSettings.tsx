@@ -129,11 +129,11 @@ export default function Live2DSettingsPanel({ value, onChange, onModelDeleted, o
   useEffect(() => { onSummary?.(currentName && report ? { name: currentName, idleCount } : null); }, [currentName, idleCount, report, onSummary]);
 
   const navigation = <nav className="live2d-workbench-nav" aria-label={t('角色工作台')}>
-    {(['role', 'resources', 'rules'] as const).map((id, index) => <button key={id} type="button" className="nd-ghost-btn" aria-current={view === id ? 'page' : undefined} disabled={id !== 'role' && (!value.modelId || !detection?.report || detection.id !== value.modelId)} onClick={() => setView(id)}>{t(['角色', '动作与表情', '互动设置'][index])}</button>)}
+    {(['resources', 'rules'] as const).map((id, index) => <button key={id} type="button" className="nd-ghost-btn" aria-current={view === id ? 'page' : undefined} disabled={!value.modelId || !detection?.report || detection.id !== value.modelId} onClick={() => setView(id)}>{t(['动作与表情', '互动设置'][index])}</button>)}
   </nav>;
 
   if (view !== 'role' && value.modelId && detection?.id === value.modelId && detection.report) return <div className="live2d-workbench" data-open="true">
-    <div className="live2d-workbench-top"><button type="button" className="nd-ghost-btn" onClick={() => setView('role')}>
+    <div className="live2d-workbench-top"><button type="button" className="nd-ghost-btn" onClick={() => { setView('role'); requestAnimationFrame(() => manageButton.current?.focus()); }}>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>{t('返回角色设置')}</button>
     <label>{t('当前角色')}<select className="nd-input" value={value.modelId} onChange={event => onChange(selectLive2DModel(valueRef.current, event.target.value))}>{models.map(model => <option value={model.id} key={model.id}>{model.name}</option>)}</select></label></div>
     {navigation}<Live2DActionEditor
