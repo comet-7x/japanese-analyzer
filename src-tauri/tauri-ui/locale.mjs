@@ -9,6 +9,7 @@ export function matchSystemLocale(languages = []) {
     const [language, ...parts] = raw.replaceAll('_', '-').toLowerCase().split('-');
     if (language === 'en' || language === 'ko') return language;
     if (language !== 'zh') continue;
+    // Script tag (Hans/Hant) takes precedence over region (e.g. zh-Hans-HK maps to zh-CN).
     if (parts.includes('hant')) return 'zh-TW';
     if (parts.includes('hans')) return 'zh-CN';
     return parts.some(part => ['tw', 'hk', 'mo'].includes(part)) ? 'zh-TW' : 'zh-CN';

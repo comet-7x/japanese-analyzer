@@ -7,6 +7,7 @@ pub fn system_locale<'a>(languages: impl Iterator<Item = &'a str>) -> &'static s
             "en" => return "en",
             "ko" => return "ko",
             "zh" => {
+                // Script tag (Hans/Hant) takes precedence over region (e.g. zh-Hans-HK maps to zh-CN).
                 if parts.contains(&"hant") {
                     return "zh-TW";
                 }

@@ -110,7 +110,7 @@ export interface Live2DCanvasHandle {
   triggerTarget(target: string): Promise<boolean>;
   clientToModel(x: number, y: number): { x: number; y: number } | null;
   getProjection(): ModelProjection | null;
-  setMouthOpen(value: number): void;
+  setMouthOpen(value: number | null): void;
   playMotion(group: string, index?: number): Promise<boolean>;
   setExpression(id: string): Promise<boolean>;
   playInteraction(part?: InteractionPart): Promise<boolean>;
@@ -408,11 +408,13 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         idleRevision++; idleStarting = false; idlePlaying = false; idleUntil = performance.now() + currentConfig().idle.interval * 1000;
         expressionLife.reset();
         commandNumber++; commandGate.cancel(); starting = false; manualBusy = false; playback = null;
+        manualMouth = null;
         manager.stopAllMotions(); manager.stopSpeaking();
         publish('stopped'); runtime?.wake();
       };
       const resetPose = () => {
         stopAction();
+        manualMouth = null;
         for (const parameter of parameters) core.setParameterValueByIndex(parameter.index, core.getParameterDefaultValue(parameter.index));
         core.saveParameters(); pose.fill(0); internal.focusController.focus(0, 0); runtime?.wake();
       };
@@ -521,7 +523,10 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
           if (!result) return false;
           void dispatch(result, `key:${key}`); return true;
         },
-        setMouthOpen(value) { manualMouth = clampUnit(value); runtime?.wake(); },
+        setMouthOpen(value) {
+          manualMouth = value === null ? null : clampUnit(value);
+          runtime?.wake();
+        },
         playMotion,
         async setExpression(id) {
           const action = capabilities.actions.find(item => item.kind === 'expression' && item.group === id);
@@ -567,7 +572,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         const latest = propsRef.current;
         const frameDt = Math.min(100, nextApp.ticker.deltaMS) / 1000;
         const moodMode = latest.interactionProfile?.bindings[`mood:${latest.mood}`]?.mode;
-        const targets = MOOD_TARGETS[manualBusy || latest.preview || moodMode && moodMode !== 'auto' ? 'idle' : latest.mood ?? 'idle'];
+        const targets = MOOD_TARGETS[(manualBusy || latest.preview || (Boolean(moodMode) && moodMode !== 'auto')) ? 'idle' : (latest.mood ?? 'idle')];
         let poseMoving = false;
         pose.forEach((value, index) => {
           pose[index] = smoothValue(value, targets[index], frameDt);
@@ -583,8 +588,9 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         if (baseMeshCenter) publishVisualCenter();
         // Startup promises are not completion promises; inspect current/reserved priorities.
         const state = manager.state;
-        const activeMotion = !manager.isFinished() && state.currentPriority > 1 || state.reservePriority > 1
-          || internal.parallelMotionManager.some(manager => !manager.isFinished());
+        const activeMotion = (!manager.isFinished() && state.currentPriority > 1)
+          || state.reservePriority > 1
+          || internal.parallelMotionManager.some(parallel => !parallel.isFinished());
         if (playback && !starting && !activeMotion && capabilities.actions.find(item => item.id === playback)?.kind === 'motion') {
           const repeat = latest.preview && latest.repeatActionId === playback ? playback : companionMotion === playback && latest.mood === 'analyzing' ? companionMotion : null;
           publish('finished'); playback = null; manualBusy = false;
@@ -612,7 +618,9 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         }
         runtime?.setBusy(Boolean(speaking || latest.dragging || starting || activeMotion || poseMoving
           || performance.now() < expressionUntil));
-        if (motionPreference.matches) runtime?.setVisible(!document.hidden && inViewport && Boolean(speaking || starting || activeMotion || latest.testBehaviors || performance.now() < expressionUntil));
+        if (motionPreference.matches) {
+          runtime?.setVisible(!document.hidden && inViewport && Boolean(speaking || starting || activeMotion || latest.testBehaviors || performance.now() < expressionUntil));
+        }
       };
       nextApp.ticker.add(update, undefined, UPDATE_PRIORITY.HIGH);
       cleanups.push(() => nextApp.ticker.remove(update));
@@ -626,7 +634,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
         runtime?.wake();
       };
       const pointerLeave = () => { internal.focusController.focus(0, 0); runtime?.wake(); };
-      const visibility = () => runtime?.setVisible(!document.hidden && inViewport && (!motionPreference.matches || starting || manualBusy || !!propsRef.current.speech && propsRef.current.speech.status === 'playing'));
+      const visibility = () => runtime?.setVisible(!document.hidden && inViewport && (!motionPreference.matches || starting || manualBusy || (Boolean(propsRef.current.speech) && propsRef.current.speech?.status === 'playing')));
       motionPreference.addEventListener('change', visibility);
       cleanups.push(() => motionPreference.removeEventListener('change', visibility));
       const focus = () => { visibility(); runtime?.wake(); };
