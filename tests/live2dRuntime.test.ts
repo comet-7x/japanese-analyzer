@@ -162,11 +162,25 @@ test('render quality follows display density and stage growth without losing fra
   assert.equal(large.pixelWidth, 1100);
   assert.equal(large.pixelHeight, 1370);
   assert.equal(small.maskSize, 512);
-  assert.equal(large.maskSize, 1024);
+  assert.equal(large.maskSize, 2048);
   const retina = planRenderQuality(550, 685, 3);
   assert.equal(retina.resolution, 3, '3x screens must not retain the previous fixed 2x cap');
   assert.equal(retina.pixelWidth, 1650);
-  assert.equal(planRenderQuality(550, 685, 1.25).resolution, 1.25, 'browser zoom is not rounded to an integer');
+  assert.equal(planRenderQuality(550, 685, 2.25).resolution, 2.25, 'browser zoom is not rounded to an integer');
+});
+
+test('mobile density and pinch zoom use the same quality policy as desktop', () => {
+  const phone = planRenderQuality(224, 344, 3);
+  assert.equal(phone.resolution, 3);
+  assert.equal(phone.pixelWidth, 672);
+  assert.equal(phone.pixelHeight, 1032);
+  const lowDensity = planRenderQuality(224, 344, 1);
+  assert.equal(lowDensity.resolution, 2, 'small characters on 1x screens get supersampled edges');
+  const zoomed = planRenderQuality(224, 344, 2, 4096, 1.5);
+  assert.equal(zoomed.resolution, 3, 'pinch zoom is independent of devicePixelRatio');
+  assert.equal(planRenderQuality(224, 344, 3, 4096, 3).resolution, 4, 'zoom still respects the density cap');
+  assert.equal(planRenderQuality(224, 344, 3, 4096, 0).resolution, 3, 'inactive viewports do not reduce quality');
+  assert.ok(planRenderQuality(224, 344, 3, 512, 2).maskSize <= 512, 'mask buffers also respect the GPU limit');
 });
 
 test('render quality respects GPU edge and pixel budgets at high density', () => {
@@ -176,7 +190,7 @@ test('render quality respects GPU edge and pixel budgets at high density', () =>
   assert.ok(huge.pixelWidth <= 4096 && huge.pixelHeight <= 4096);
   const limited = planRenderQuality(550, 685, 4, 1024);
   assert.ok(limited.pixelWidth <= 1024 && limited.pixelHeight <= 1024);
-  assert.equal(planRenderQuality(0, NaN, Infinity).resolution, 1);
+  assert.equal(planRenderQuality(0, NaN, Infinity).resolution, 2);
 });
 
 test('runtime idles, holds long activities, prioritizes visibility, wakes, and cancels deadlines', () => {

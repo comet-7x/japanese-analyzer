@@ -211,7 +211,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
       app = nextApp;
       const initialRect = container.getBoundingClientRect();
       // Start within WebGL's conservative minimum limit; use actual GPU limits after init.
-      const initialQuality = planRenderQuality(initialRect.width, initialRect.height, window.devicePixelRatio, 2048);
+      const initialQuality = planRenderQuality(initialRect.width, initialRect.height, window.devicePixelRatio, 2048, window.visualViewport?.scale);
       await nextApp.init({ width: initialQuality.width, height: initialQuality.height, preference: 'webgl', backgroundAlpha: 0,
         antialias: true, autoDensity: true, resolution: initialQuality.resolution,
         sharedTicker: false, autoStart: false });
@@ -352,11 +352,14 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
       const layout = () => {
         if (disposed) return;
         const rect = container.getBoundingClientRect();
-        const quality = planRenderQuality(rect.width, rect.height, window.devicePixelRatio, maxBufferEdge);
+        const quality = planRenderQuality(rect.width, rect.height, window.devicePixelRatio, maxBufferEdge, window.visualViewport?.scale);
         // Preserve fractional CSS sizes and update density on browser zoom / monitor changes.
         if (Math.abs(nextApp.screen.width - quality.width) > .001 || Math.abs(nextApp.screen.height - quality.height) > .001
           || nextApp.renderer.resolution !== quality.resolution) {
           nextApp.renderer.resize(quality.width, quality.height, quality.resolution);
+          // Pixi writes rounded CSS dimensions when resizing; keep the stage responsive.
+          nextApp.canvas.style.width = '100%';
+          nextApp.canvas.style.height = '100%';
         }
         // The SDK's small default mask atlas can soften masked details at large sizes.
         // Grow in coarse buckets only; reallocating it on every slider tick is expensive.
