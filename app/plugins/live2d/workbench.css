@@ -8,7 +8,7 @@
 .live2d-workbench-top { justify-content: space-between; flex: none; margin-bottom: 4px; }
 .live2d-workbench-top label { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
 .live2d-workbench-nav { flex: none; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin: 8px 0; }
-.live2d-workbench-nav button[aria-current="page"], .live2d-resource-tabs button[aria-pressed="true"] { color: var(--primary); background: var(--primary-soft); }
+.live2d-workbench-nav button[aria-current="page"], .live2d-resource-tabs button[aria-pressed="true"] { color: var(--selection-ink, var(--primary)); background: var(--primary-soft); }
 .live2d-workbench .nd-input { width: 100%; min-width: 0; }
 .live2d-workbench .live2d-action-heading { flex: none; }
 .live2d-workbench .live2d-action-heading > button { display: none; }
@@ -72,6 +72,7 @@
 .live2d-workbench .live2d-preview-loop { display: flex; align-items: center; gap: 8px; }
 .live2d-workbench .live2d-preview-loop input { appearance: auto; width: 18px; height: 18px; min-height: 18px; padding: 0; accent-color: var(--primary); }
 .live2d-hit-feedback { overflow-wrap: anywhere; }
+.live2d-workbench .live2d-action-fields .live2d-action-file { color: var(--ink-2); }
 
 .live2d-workbench :is(button, summary, input, select, [tabindex]):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .live2d-workbench :is(.live2d-catalog-row, .live2d-rule-row) { overflow-wrap: anywhere; }

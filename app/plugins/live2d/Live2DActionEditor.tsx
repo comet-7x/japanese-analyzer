@@ -36,12 +36,20 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
   const editor = useRef<HTMLDivElement>(null);
   const detail = useRef<HTMLDivElement>(null);
   const library = useRef<HTMLElement>(null);
+  const mobileBack = useRef<HTMLButtonElement>(null);
+  const pendingFocus = useRef<'detail' | 'library' | null>(null);
   const [scrollTarget, setScrollTarget] = useState<HTMLElement | null>(null);
   const [resourcesTarget, setResourcesTarget] = useState<HTMLDivElement | null>(null);
   const [source, setSource] = useState<File[] | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
   const [mobileDetail, setMobileDetail] = useState(false);
+  useEffect(() => {
+    if (!pendingFocus.current || view !== 'resources') return;
+    if (pendingFocus.current === 'detail') mobileBack.current?.focus();
+    else library.current?.querySelector<HTMLButtonElement>('.live2d-catalog-select[aria-pressed="true"]')?.focus();
+    pendingFocus.current = null;
+  }, [mobileDetail, view]);
   const [testing, setTesting] = useState(false);
   const [hitFeedback, setHitFeedback] = useState('');
   const testPointer = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
@@ -97,7 +105,10 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
   const filtered = useMemo(() => filterResources(actions, profile, useIndex, search, kind, useFilter, t), [actions, profile, useIndex, search, kind, useFilter, t]);
   const currentPage = Math.min(page, Math.max(0, Math.ceil(filtered.length / RESOURCE_PAGE_SIZE) - 1));
   const pageItems = filtered.slice(currentPage * RESOURCE_PAGE_SIZE, (currentPage + 1) * RESOURCE_PAGE_SIZE);
-  const selectResource = (id: string) => { setRepeatActionId(null); canvas.current?.stopAction(); setSelectedId(id); setMobileDetail(true); setAssigning(false); };
+  const selectResource = (id: string) => {
+    if (window.matchMedia('(max-width: 700px)').matches) pendingFocus.current = 'detail';
+    setRepeatActionId(null); canvas.current?.stopAction(); setSelectedId(id); setMobileDetail(true); setAssigning(false);
+  };
 
   const selected = actions.find(action => action.id === selectedId);
   const zone = profile.hotspots.find(item => item.id === selectedZoneId);
@@ -223,7 +234,7 @@ export default function Live2DActionEditor({ view = 'resources', pauseWhenIdle, 
           void canvas.current?.triggerTarget(id);
         }} />}
       <div className="live2d-action-detail" ref={detail}>
-        {view === 'resources' && <button className="nd-ghost-btn live2d-mobile-back" type="button" onClick={() => setMobileDetail(false)}>{t('返回动作列表')}</button>}
+        {view === 'resources' && <button ref={mobileBack} className="nd-ghost-btn live2d-mobile-back" type="button" onClick={() => { pendingFocus.current = 'library'; setMobileDetail(false); }}>{t('返回动作列表')}</button>}
         {view === 'resources' && selected && <div className="live2d-resource-toolbar"><strong>{displayName(selected)}</strong><button type="button" className="nd-primary-btn" aria-expanded={assigning} onClick={() => { if (detail.current) detail.current.scrollTop = 0; setAssigning(!assigning); }}>{t('用于…')}</button></div>}
         {view === 'resources' && assigning && selected && <ResourceAssignment key={selected.id} action={selected} profile={profile} caps={capabilities} onChange={onChange} onDone={() => setAssigning(false)} />}
         <section className="live2d-action-preview" aria-label={t("独立角色预览")}>

@@ -23,7 +23,10 @@
   --primary: #6d4cdb;
   --primary-2: #5a39c8;
   --primary-soft: #f0ecfa;
+  --primary-button: #6d4cdb;
+  --primary-button-hover: #5a39c8;
   --error-text: #bb7049;
+  --success-text: #0f7b57;
   /* 词性颜色 */
   --pos-n: #4f75be;      /* 名词 blue */
   --pos-v: #388774;      /* 动词 green */
@@ -60,7 +63,10 @@
   --primary: #8b6fff;
   --primary-2: #7a5cff;
   --primary-soft: #3b305a;
+  --primary-button: #6d4cdb;
+  --primary-button-hover: #5a39c8;
   --error-text: #d39a78;
+  --success-text: #6ee7b7;
   --selection-ink: #c6b5ff;
   --playing-cue-bg: #263c50;
   --playing-cue-border: #4d7192;
@@ -1787,7 +1793,15 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="search"]):not(.setti
   font-weight: 500;
 }
 .settings-footer-status.success {
-  color: #10b981;
+  color: var(--success-text);
+}
+@media (max-width: 700px) {
+  .settings-content-footer { flex-wrap: wrap; gap: 8px; }
+  .settings-footer-left { flex-basis: 100%; }
+  .settings-footer-actions { margin-inline-start: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-unsaved-dot { animation: none !important; }
 }
 .settings-footer-status.error {
   color: var(--error-text);
@@ -1833,12 +1847,12 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="search"]):not(.setti
   border: none;
 }
 .settings-save-button.primary {
-  background: var(--primary);
+  background: var(--primary-button);
   color: #fff;
   box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 .settings-save-button.primary:hover {
-  background: color-mix(in srgb, var(--primary) 88%, white);
+  background: var(--primary-button-hover);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 45%, transparent);
   transform: translateY(-0.5px);
 }
