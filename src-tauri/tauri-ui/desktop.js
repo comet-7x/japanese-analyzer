@@ -1,4 +1,6 @@
-/* global window, document, localStorage, navigator, URLSearchParams, setTimeout, setInterval, clearInterval */
+import { readLauncherLocale } from './locale.mjs';
+
+/* global window, document, localStorage, URLSearchParams, setTimeout, setInterval, clearInterval */
 // 支持在原生 Tauri 容器或常规浏览器中优雅运行
 const invoke = async (...args) => {
   if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === 'function') {
@@ -28,22 +30,14 @@ if (element('settings')) {
 // ==========================================
 const HAS_LAUNCHED_KEY = 'ja_launcher_launched';
 
-function getAppLocale() {
-  try {
-    const saved = localStorage.getItem('language');
-    if (saved && ['zh-CN', 'zh-TW', 'en', 'ko'].includes(saved)) {
-      return saved;
-    }
-  } catch {}
-
-  const sysLang = (navigator.language || '').toLowerCase();
-  if (sysLang.startsWith('zh-tw') || sysLang.startsWith('zh-hk')) return 'zh-TW';
-  if (sysLang.startsWith('zh')) return 'zh-CN';
-  if (sysLang.startsWith('ko')) return 'ko';
-  return 'en';
-}
-
-const currentLocale = getAppLocale();
+// The launcher and HTTP homepage have separate localStorage origins. The native
+// lookup reads only the validated UI-language cookie, never other browser data.
+const currentLocale = await readLauncherLocale({
+  readNative: window.__TAURI__?.core ? () => invoke('app_locale') : undefined,
+  readStored: () => localStorage.getItem('language'),
+});
+document.documentElement.lang = currentLocale;
+document.title = ({ 'zh-CN': '日本語文章解析器', 'zh-TW': '日本語文章解析器', en: 'Japanese Analyzer', ko: '일본어 문장 분석기' })[currentLocale];
 
 const UI_MESSAGES = {
   starting: {

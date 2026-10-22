@@ -14,7 +14,7 @@
     "desktop:dev": "node scripts/desktop/dev.mjs",
     "desktop:package-server": "node scripts/desktop/package-server.mjs",
     "desktop:build": "node scripts/desktop/check-node.mjs && npm run build && npm run desktop:package-server && tauri build",
-    "desktop:test": "node --test tests/desktop.test.mjs",
+    "desktop:test": "node --test tests/desktop.test.mjs tests/desktopLocale.test.mjs",
     "dictionary:prepare": "node scripts/dictionary/prepare.mjs && node scripts/dictionary/prepare-locales.mjs",
     "dictionary:check": "node scripts/dictionary/update.mjs --check && node scripts/dictionary/update-locales.mjs --check",
     "predev": "npm run daily:check && npm run dictionary:prepare && npm run analyzer:prepare",

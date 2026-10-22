@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod locale;
 mod navigation;
 mod server;
 
@@ -29,6 +30,27 @@ fn authorize(window: &WebviewWindow, server: &server::Server) -> Result<(), Stri
     } else {
         Err("Native commands are only available to packaged desktop pages.".into())
     }
+}
+
+#[tauri::command]
+async fn app_locale(
+    window: WebviewWindow,
+    server: tauri::State<'_, server::Server>,
+) -> Result<String, String> {
+    authorize(&window, &server)?;
+    // The app's HTTP content has no native permissions. Read just its preference
+    // from the shared cookie store; never expose cookies to the launcher page.
+    let url = tauri::Url::parse("http://127.0.0.1/").unwrap();
+    let cookies = window
+        .cookies_for_url(url)
+        .map_err(|error| error.to_string())?;
+    Ok(locale::saved_locale(
+        cookies
+            .iter()
+            .filter(|cookie| cookie.name() == "ja_ui_language")
+            .map(|cookie| cookie.value()),
+    )
+    .to_string())
 }
 
 #[tauri::command]
@@ -207,6 +229,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             server_status,
+            app_locale,
             restart_server,
             reassign_port,
             check_update,

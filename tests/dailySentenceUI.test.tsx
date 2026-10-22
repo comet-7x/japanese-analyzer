@@ -72,6 +72,7 @@ async function main() {
     const heading = renderer!.root.findByProps({ className: 'daily-label daily-analyze' });
     assert.equal(heading.findAllByProps({ className: 'daily-go' }).length, 1, 'The heading keeps its arrow animation');
     await act(async () => { language.setLocale('en'); });
+    assert.match(document.cookie, /ja_ui_language=en;/, 'The desktop launcher can recover the selected homepage language');
     const savedEnglish = text();
     await unmount(); await mount();
     assert.equal(text(), savedEnglish, 'Restoring the saved locale happens before selection');
@@ -114,6 +115,7 @@ async function main() {
     const blockedChoice = text();
     assert.notEqual(blockedChoice, blockedInitial);
     await act(async () => { language.setLocale('en'); });
+    assert.match(document.cookie, /ja_ui_language=en;/, 'The desktop launcher can recover the selected homepage language');
     assert.equal(text().split('：').at(-1), blockedChoice.split('：').at(-1), 'Blocked persistence retains the in-memory current choice during locale changes');
     await act(async () => { refresh().props.onClick(); });
     assert.notEqual(text(), blockedChoice, 'Blocked persistence cannot reuse the consumed choice');

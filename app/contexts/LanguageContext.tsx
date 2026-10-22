@@ -10,6 +10,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [localeReady, setLocaleReady] = useState(false);
   const applyLocale = useCallback((value: Locale) => {
     document.documentElement.lang = value;
+    // The packaged launcher uses a separate origin. Native code reads this one
+    // non-sensitive preference cookie to match the homepage on the next launch.
+    try { document.cookie = `ja_ui_language=${value}; Path=/; Max-Age=31536000; SameSite=Lax`; } catch {}
     const t = createTranslator(value);
     document.title = t('日本語文章解析器 - AI驱动');
     document.querySelector('meta[name="description"]')?.setAttribute('content', t('AI驱动・深入理解日语句子结构与词义'));
