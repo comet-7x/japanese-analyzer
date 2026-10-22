@@ -248,7 +248,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
       let mouth = 0;
       let wasSpeaking = false;
       let manualMouth: number | null = null;
-      
+
       let currentMood: CompanionMood | undefined;
       let currentProfile: ActionProfile | undefined;
       let expressionUntil = 0;
@@ -731,4 +731,3 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
 });
 
 export default Live2DCanvas;
-
