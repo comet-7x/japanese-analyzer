@@ -49,7 +49,11 @@ Tauri 按目录递归打包 `resources/server/`，保留隐藏的 `.next`。运�
 
 首次启动用 `TcpListener::bind("127.0.0.1:0")` 选择端口，释放后交给 Node。该端口写入应用数据目录的 `server-port`，之后重启和更新继续使用：WebView 的 localStorage 按 origin（包含端口）隔离，每次随机端口会使 Key、语言、主题和历史记录看起来丢失。这个持久化是对原随机端口方案的必要补充。
 
-启动页与主页统一默认简体中文。主页仍以 `language` localStorage 为语言偏好，同时写入仅含语言代码的 `ja_ui_language` 功能 Cookie；打包启动页通过受限的 `app_locale` 命令读取该偏好，只返回四种受支持的语言代码，不向网页开放原生权限或其他 Cookie。已有安装进入新版主页一次后即可同步原来的语言偏好。macOS Wry 0.57 的 `cookies_for_url` 对 IP 地址筛选有缺陷，读取时明确匹配 `127.0.0.1` 主机与固定 Cookie 名。已实测中→英→中切换及重启，启动页与主页保持一致。
+启动页与主页共用语言选择规则：已有手动选择优先；没有选择或选择「跟随系统」时，Mac 读取 `NSLocale.preferredLanguages`，Windows 读取 `GetUserPreferredUILanguages(MUI_LANGUAGE_NAME)` 返回的界面语言顺序，依次匹配简体中文、繁体中文、英文、韩文；都不支持时回退简体中文。中文优先按 Hans／Hant 脚本匹配，再按地区区分；不会把键盘输入法或日期地区格式当成界面语言。Web 端使用浏览器首选语言列表，并在自动模式下响应 `languagechange`。
+
+主页的 `language` localStorage 保存手动语言代码或 `system`；旧的有效语言代码继续视为手动选择。`ja_ui_language` 功能 Cookie 共享的是选择模式，自动匹配结果不会被误存成手动选择。受限的 `app_locale` 命令还通过 `ja_system_language` Cookie 将原生系统匹配结果传给主页；不向 HTTP 页面开放原生权限或其他 Cookie。macOS Wry 0.57 的 `cookies_for_url` 对 IP 地址筛选有缺陷，读取时明确匹配 `127.0.0.1` 与固定 Cookie 名。已有安装进入新版主页一次后可同步原来的手动选择。
+
+语言菜单新增「跟随系统」并显示当前匹配语言；Mac 和 Windows 都在下次启动时重新读取系统偏好。手动语言不会随系统变化而覆盖，用户可以随时恢复自动模式。安装器语言选择不属于此功能，本次未改 NSIS 安装界面。
 
 已保存端口被其他进程占用时显示启动错误，释放占用后点击重试。不会静默换端口导致用户进入一个空的存储空间。不要随意删除 `server-port`；删除它会生成新 origin，原 WebView 数据不会自动迁移。
 

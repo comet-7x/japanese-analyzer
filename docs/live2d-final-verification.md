@@ -20,8 +20,29 @@
 | QA-04 | 实际系统“减少动态效果” | 代码及媒体查询路径已修复，尚未在实际系统偏好下验收 | 打开偏好后停用持续自动动作／跟随，保留显式预览与朗读；关闭后恢复；测试结束还原偏好 |
 | QA-05 | 强制颜色模式 | 现有系统颜色替代样式尚未运行验证 | 支持环境中检查焦点、选中状态、滑杆、滚动条、按钮边界；所有关键状态可辨 |
 | QA-06 | 低端移动设备与真实大模型压力 | 数据目录测试不覆盖纹理显存、发热或整页帧率 | 多模型与大纹理长时间切换、缩放、滚动、朗读；记录帧耗时、内存和 WebGL context 丢失，按设备给出结果 |
+| QA-07 | Windows 系统语言识别 | 本机无 Windows 环境／交叉目标 | 在 Windows 上分别验证简体、繁体、英文、韩文、未支持语言顺序匹配；首次启动、手动覆盖、恢复跟随系统、重启后启动页与主页一致；原生 API 实测通过后再关闭此项 |
 
 本机证据（已忽略，不入库）：`.desktop-cache/live2d-final-verification/` 下的 `desktop-reading.png`、`desktop-final-workbench.png`、`narrow-keyboard.png`、`zoom-200-preview.png`、`dark-contrast.json`、`catalog-5000-browser.json` 及 `live2d-20261022-*.log`。最终应用也在此目录。
+
+## 2026-10-22 系统语言自动识别
+
+提交 `76230f7` 接入原生／浏览器系统语言匹配与手动覆盖。此处的默认行为取代此前「首次默认中文」描述；找不到支持的首选语言时仍回退简体中文。已有手动语言继续保留，新增「跟随系统」入口并显示实际匹配语言。
+
+实现与测试：
+
+- Mac 使用 `NSLocale.preferredLanguages`，Windows 使用 `GetUserPreferredUILanguages(MUI_LANGUAGE_NAME)`；按用户首选顺序匹配，简繁脚本优先于地区推断。原生和 JavaScript 的 15 组匹配样例共用同一份 JSON 测试契约。
+- 启动页使用原生匹配结果；仅将受支持的语言代码通过 `ja_system_language` 共享给主页。`ja_ui_language` 保存手动选择或 `system` 模式，不把自动结果误存为手动语言。
+- `npm test`、`npm run desktop:test`（8 项）、Rust 单元测试（7 项）、TypeScript、变更文件 ESLint、diff 检查、生产构建、桌面服务打包和 macOS arm64 构建通过。
+- Mac 原配置：原来的手动简体中文在升级后保留；菜单检测到系统 English。选择 System 后主页使用英文；重启时启动页显示英文 Loading，主页仍为英文且保持 System。随后恢复原来的手动简体中文。
+- 新建独立测试包标识／数据目录，未清空用户配置：首次启动的动画提示和译文自动采用英文，进入新主页后为英文，语言菜单默认选中 System English；没有导入任何模型、密钥或历史。完成后已关闭独立测试应用。
+- 键盘实测：Down 打开语言菜单并聚焦选中项，End 到末项，Escape 关闭并恢复语言按钮焦点。菜单使用已有 menuitemradio 语义和勾选状态；VoiceOver 未实测，不扩大可访问性验收结论。
+- Windows 接口代码通过独立 Rust metadata 类型检查，**未在 Windows 上链接、运行或验收**，保留 QA-07。跨平台匹配契约通过不能代替原生接口实测。
+
+审查范围内无新增可操作的可访问性问题；Approve 仅覆盖语言菜单的上述名称、状态与键盘路径。原有 QA-01～QA-07 仍按各自证据关闭。
+
+本机证据与最终应用：`.desktop-cache/system-language-verification/` 中的 `Japanese Analyzer.app`、`system-language-menu.png`、`first-launch-home.png`、`first-launch-system.png`、构建及测试日志。首次启动使用的独立 QA 包也留在该目录供复查。两份本地包均采用 ad-hoc 签名，未发布／公证；未更改本机系统语言，未推送远程。
+
+原生接口依据：[Apple preferredLanguages](https://developer.apple.com/documentation/foundation/locale/preferredlanguages)、[Microsoft GetUserPreferredUILanguages](https://learn.microsoft.com/en-us/windows/win32/api/winnls/nf-winnls-getuserpreferreduilanguages)。安装器语言选择本轮未改动。
 
 ## 2026-10-22 新问题修复与回归
 
