@@ -4,7 +4,12 @@
 .claude
 .codex-dev
 .desktop-cache
-src-tauri
+# React shares language negotiation with the packaged desktop launcher.
+# Include only that module, keeping Rust sources, bundles and caches out.
+src-tauri/*
+!src-tauri/tauri-ui
+src-tauri/tauri-ui/*
+!src-tauri/tauri-ui/locale.mjs
 .github
 node_modules
 coverage
