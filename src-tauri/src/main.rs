@@ -40,14 +40,16 @@ async fn app_locale(
     authorize(&window, &server)?;
     // The app's HTTP content has no native permissions. Read just its preference
     // from the shared cookie store; never expose cookies to the launcher page.
-    let url = tauri::Url::parse("http://127.0.0.1/").unwrap();
-    let cookies = window
-        .cookies_for_url(url)
-        .map_err(|error| error.to_string())?;
+    // Wry 0.57 cookies_for_url compares cookie.domain() with Url::domain().
+    // Url::domain() is None for IP hosts, dropping our 127.0.0.1 cookie.
+    // Match this fixed host explicitly until upstream handles IP addresses.
+    let cookies = window.cookies().map_err(|error| error.to_string())?;
     Ok(locale::saved_locale(
         cookies
             .iter()
-            .filter(|cookie| cookie.name() == "ja_ui_language")
+            .filter(|cookie| {
+                cookie.domain() == Some("127.0.0.1") && cookie.name() == "ja_ui_language"
+            })
             .map(|cookie| cookie.value()),
     )
     .to_string())
