@@ -24,6 +24,12 @@
 
 本机证据（已忽略，不入库）：`.desktop-cache/live2d-final-verification/` 下的 `desktop-reading.png`、`desktop-final-workbench.png`、`narrow-keyboard.png`、`zoom-200-preview.png`、`dark-contrast.json`、`catalog-5000-browser.json` 及 `live2d-20261022-*.log`。最终应用也在此目录。
 
+## 2026-10-22 验收产物清理
+
+已按用户要求清理旧应用包、编译输出和独立临时生产工作区。现在仅保留 `.desktop-cache/system-language-verification/Japanese Analyzer.app`；历史章节提到的其他 `.app`、QA 专用包和临时构建目录已删除，截图、JSON、日志证据保留。所有 `~/Library` 应用运行数据（包括独立 QA 数据）均未删除，Chrome 内模型和配置也未改动。
+
+新增受限清理命令及桌面构建成功后的自动清理钩子，使用方式和保留策略见 [桌面文档](desktop.md#调试产物清理)。自动化不触及用户数据与编译缓存。13 项桌面测试通过，包含预览无副作用、保留最新应用、7 天保留期、运行中保护、符号链接边界、未知目录保护、进程查询失败中止及旧解压目录处理；已实际运行自动钩子，保留应用签名校验通过。
+
 ## 2026-10-22 系统语言自动识别
 
 提交 `76230f7` 接入原生／浏览器系统语言匹配与手动覆盖。此处的默认行为取代此前「首次默认中文」描述；找不到支持的首选语言时仍回退简体中文。已有手动语言继续保留，新增「跟随系统」入口并显示实际匹配语言。

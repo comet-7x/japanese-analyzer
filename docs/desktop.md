@@ -147,3 +147,16 @@ cargo test --manifest-path src-tauri/Cargo.toml
 更新最终验收需要仓库签名 secrets 和两个实际测试版本：先安装旧版本，再发布更高版本的签名 Release，验证 macOS 完整更新与 Windows 手动安装入口。单次本机构建或静态检查不能替代这个发布链路验收。
 
 Node SEA、托盘、本地服务端 Key 配置面板和 Windows 自动安装策略均不在一期范围。
+
+
+## 调试产物清理
+
+`npm run desktop:clean` 仅预览；`npm run desktop:clean:apply` 执行清理。范围限于 `scripts/desktop/cleanup.mjs` 中显式登记的验收目录，保留其中最新的 `Japanese Analyzer.app`，清理旧应用包。截图、日志、下载归档和不在白名单中的目录不自动删除。新验收目录需显式加入白名单。
+
+每次 `npm run desktop:build` 成功后，npm 的 `postdesktop:build` 钩子自动执行保守清理：保留最新普通测试包，旧包至少保留 7 天，解压临时目录至少保留 1 天。`package-server.mjs` 本身已在 `finally` 中删除正常解压目录，本钩子处理崩溃后的旧残留。直接调用 `npx tauri build` 不触发 npm 钩子，可手动运行 `npm run postdesktop:build`。
+
+需要回收编译缓存时，手动运行 `npm run desktop:clean:apply -- --build-cache`，额外清理 `src-tauri/target`、`src-tauri/resources/server` 和重复的 Node 解压目录，保留已下载的 Node 压缩包。自动模式禁止此选项，避免每次构建后都丢失编译缓存；手动清理后下次桌面构建会重新生成这些输出，耗时可能增加。
+
+清理前检查符号链接及目录边界，跳过正在运行的应用和活跃编译；获取进程列表失败时不删除。自动钩子失败只报告跳过，不把已经成功的构建标为失败。脚本不扫描 `~/Library`，不清理模型、密钥、历史、应用 Cookie，也不删除开发 `.next`、`node_modules`、字典、Core 或源码。
+
+2026-10-22 已执行一次手动清理：7 个验收应用包保留最新 1 个，移除旧包、编译／服务输出、重复 Node 解压目录，并单独移除该轮工具创建的临时生产工作区。固定白名单内共移除 9 项、约 9.20 GiB 文件逻辑体积；临时工作区额外占约 5.6 GiB。APFS 克隆使逻辑体积不等于实际回收空间；磁盘可用空间实测增加约 11.4 GiB（约 12 GB）。保留应用通过运行后签名校验，相关截图及日志仍在原目录。
