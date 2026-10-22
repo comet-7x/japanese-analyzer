@@ -23,6 +23,22 @@
 
 本机证据（已忽略，不入库）：`.desktop-cache/live2d-final-verification/` 下的 `desktop-reading.png`、`desktop-final-workbench.png`、`narrow-keyboard.png`、`zoom-200-preview.png`、`dark-contrast.json`、`catalog-5000-browser.json` 及 `live2d-20261022-*.log`。最终应用也在此目录。
 
+## 2026-10-22 新问题修复与回归
+
+| 问题／等级 | 位置 | 原因与修复 | 证据与边界 |
+| --- | --- | --- | --- |
+| 手机画质／MEDIUM | `app/plugins/live2d/renderQuality.ts:3`、`Live2DCanvas.tsx` | 手机与桌面原本已经共用引擎；旧策略在 DPR=1 时只绘制 1×，并忽略 pinch zoom。统一最低目标 2×，按 DPR×visualViewport.scale 计算，保留 4×／6MP／GPU 上限；遮罩最高 2048；resize 后保持 CSS 尺寸 100% | Chrome 390px 的 DPR=1 窄屏环境中，同一舞台约 249×344 的缓冲变为 497×688；单元测试覆盖 DPR=3、捏合倍率与 GPU 上限。不将桌面窄屏模拟记为手机实机通过，QA-02／QA-06 继续保留 |
+| 启动语言／MEDIUM | `src-tauri/tauri-ui/desktop.js`、`src-tauri/src/main.rs:35`、`app/contexts/LanguageContext.tsx:11` | 两个 localStorage 来源隔离，且启动页按系统语言、主页默认中文。统一默认中文，桥接受支持的语言偏好。首次实测暴露 Wry 的 IP 主机 Cookie 过滤问题，进一步修复固定主机匹配 | 最终 macOS 包依次验证中文启动→中文主页、切换英文并重启→英文启动／主页、恢复中文并重启→中文启动／主页；未新增偏好文件；原语言已恢复。繁中／韩语通过解析测试，未分别启动实测 |
+| 重复导航／LOW | `app/plugins/live2d/Live2DSettings.tsx:131` | 删除「角色」按钮，保留动作与表情／互动设置，使用唯一返回入口；返回后聚焦「管理角色」 | Chrome DOM 与 macOS 实际窗口确认两个按钮；浏览器实际返回焦点为「管理角色」 |
+
+**Approve 仅覆盖上述实际检查的界面与修复范围。** 未执行手机实机、Safari、屏幕阅读器或系统偏好专项，不扩大可访问性通过范围。布局密度及预览中角色占比保持现有设计。
+
+捏合缩放不会改变 DPR，倍率来自 [MDN devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio) 与 [VisualViewport.scale](https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport/scale)。这也是独立监听 visualViewport resize 并更新缓冲的原因。
+
+本次提交：`1added6`（统一画质与缩放）、`d1f3db1`（去掉重复角色入口）、`bba468a` 与 `81e2195`（启动语言及实测修正）。通过 `npm test`、`npm run desktop:test`（7 项）、`cargo test --manifest-path src-tauri/Cargo.toml`（5 项）、TypeScript、变更文件 ESLint 与 diff 检查；独立目录的 Next 生产构建、桌面服务打包和 macOS arm64 应用构建通过（374.33 MiB），运行后 `codesign --verify --deep --strict` 通过。
+
+本轮最终应用与证据保存在 `.desktop-cache/live2d-followup/`：`Japanese Analyzer.app`、`desktop-navigation.png` 及 `live2d-followup-*.log`。手机尺寸截图因当前浏览器截图工具输出缩放异常，仅作操作记录，不用于判断真实手机画质；缓冲尺寸读取记录与单元测试用于验证渲染策略。原开发视口已恢复，原模型配置未改动。
+
 ## 已交付批次
 
 | 批次 | 提交 | 结果 |

@@ -49,6 +49,8 @@ Tauri 按目录递归打包 `resources/server/`，保留隐藏的 `.next`。运�
 
 首次启动用 `TcpListener::bind("127.0.0.1:0")` 选择端口，释放后交给 Node。该端口写入应用数据目录的 `server-port`，之后重启和更新继续使用：WebView 的 localStorage 按 origin（包含端口）隔离，每次随机端口会使 Key、语言、主题和历史记录看起来丢失。这个持久化是对原随机端口方案的必要补充。
 
+启动页与主页统一默认简体中文。主页仍以 `language` localStorage 为语言偏好，同时写入仅含语言代码的 `ja_ui_language` 功能 Cookie；打包启动页通过受限的 `app_locale` 命令读取该偏好，只返回四种受支持的语言代码，不向网页开放原生权限或其他 Cookie。已有安装进入新版主页一次后即可同步原来的语言偏好。macOS Wry 0.57 的 `cookies_for_url` 对 IP 地址筛选有缺陷，读取时明确匹配 `127.0.0.1` 主机与固定 Cookie 名。已实测中→英→中切换及重启，启动页与主页保持一致。
+
 已保存端口被其他进程占用时显示启动错误，释放占用后点击重试。不会静默换端口导致用户进入一个空的存储空间。不要随意删除 `server-port`；删除它会生成新 origin，原 WebView 数据不会自动迁移。
 
 Rust 以 `current_dir=resources/server` 启动 Node，设置 `HOSTNAME=127.0.0.1`、`PORT`、`NODE_ENV=production`、`NEXT_TELEMETRY_DISABLED=1`，移除继承的 `NODE_OPTIONS` 和 `NODE_PATH`。Windows 不弹出 Node 控制台。
