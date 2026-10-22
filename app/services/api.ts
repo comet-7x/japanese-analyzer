@@ -1521,7 +1521,7 @@ export async function streamChat(
   userApiKey?: string,
   endpoint: EndpointPayload = { baseUrl: '', model: '' },
   signal?: AbortSignal,
-  options?: { companion?: boolean; chatMode?: 'sentence' | 'free'; sentenceContext?: string }
+  options?: { chatMode?: 'sentence' | 'free'; sentenceContext?: string }
 ): Promise<void> {
   try {
     const apiUrl = getApiEndpoint('/chat');
@@ -1533,7 +1533,6 @@ export async function streamChat(
       signal,
       body: JSON.stringify({
         messages,
-        companion: options?.companion === true,
         chatMode: options?.chatMode,
         sentenceContext: options?.chatMode === 'sentence' ? options.sentenceContext : undefined,
         ...getRequestProviderPayload(endpoint),

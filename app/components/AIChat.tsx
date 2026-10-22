@@ -186,7 +186,7 @@ export default function AIChat({ userApiKey, activeService, endpoint, currentSen
         userApiKey,
         endpoint,
         controller.signal,
-        { companion: !!companion, chatMode: mode, sentenceContext: mode === 'sentence' ? currentSentence : undefined },
+        { chatMode: mode, sentenceContext: mode === 'sentence' ? currentSentence : undefined },
       );
     } catch (error) {
       if (!isCurrent()) return;
