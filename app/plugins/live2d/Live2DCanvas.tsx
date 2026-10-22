@@ -191,6 +191,9 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
     const initialize = async () => {
       await loadCubismCore();
       if (disposed) return;
+      // Official Pixi CSP implementation: replace generated functions before renderer init.
+      // Despite the module name, this removes the need for script-src 'unsafe-eval'.
+      await import('pixi.js/unsafe-eval');
       const [{ Application, Assets, Point, extensions, UPDATE_PRIORITY }, engine] = await Promise.all([
         import('pixi.js'), import('untitled-pixi-live2d-engine/cubism'),
       ]);
