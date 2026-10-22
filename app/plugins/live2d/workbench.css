@@ -88,3 +88,12 @@
  .live2d-workbench :focus-visible { outline-color: Highlight; }
  .live2d-workbench :is(button, input, select) { border: 1px solid ButtonText; }
 }
+/* At high browser zoom, navigation must scroll too instead of consuming the viewport. */
+@media (max-height: 560px) {
+ .settings-tab-pane:has(.live2d-workbench[data-open="true"]) { display: block; overflow-y: auto; }
+ .settings-tab-pane > div:has(> .live2d-workbench[data-open="true"]) { height: auto; flex: none; }
+ .live2d-workbench[data-open="true"], .live2d-workbench .live2d-action-editor { display: block; height: auto; }
+ .live2d-workbench .live2d-action-workspace { display: block; height: auto; overflow: visible; }
+ .live2d-workbench :is(.live2d-action-library, .live2d-action-detail, .live2d-behaviors) { height: auto; overflow: visible; }
+ .live2d-workbench .live2d-action-resources { max-height: 320px; overflow-y: auto; }
+}
