@@ -19,6 +19,7 @@ export function ProviderLogo({ profile, className = 'h-4 w-4' }: ProviderLogoPro
   if (src) {
     return (
       <Image
+        unoptimized
         width={16}
         height={16}
         src={src}
