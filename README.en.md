@@ -82,9 +82,10 @@ npm run desktop:dev
 Next.js hot reload works in the desktop WebView. Closing the app also stops the development server. To package on the target OS and architecture:
 
 ```bash
-npm run build             # Build with Node 22
 npm run desktop:build     # Download/verify runtime, create .app/.dmg or NSIS
 ```
+
+To include Live2D Core, first read and agree to its software terms, then run `npm run desktop:build:live2d -- --accept-license`. This downloads Core from its official host, verifies the pinned hash, caches it and builds the app. Omit the acknowledgement flag when reusing a verified local file or cache. For Web builds, use `npm run build:live2d -- --accept-license`. Ordinary builds do not require Core, and users still provide character models. The software acknowledgement does not grant a Publication License. See [Core preparation](docs/live2d.md#准备-cubism-core) for offline import, pinned versions and licensing details.
 
 See [desktop development](docs/desktop.md) for architecture, signing, release setup, logs, and acceptance checks.
 

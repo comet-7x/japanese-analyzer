@@ -4,11 +4,46 @@ Live2D 是可关闭的客户端插件。启用后，桌面页面左侧显示透�
 
 ## 准备 Cubism Core
 
-1. 阅读 [Live2D 官方 SDK 下载页](https://www.live2d.com/en/sdk/download/web/)上的软件许可协议，按协议取得 Cubism SDK for Web。
-2. 将 SDK 中的 `live2dcubismcore.min.js` 放到 `public/live2d/core/live2dcubismcore.min.js`。插件只在启用并加载模型时按需读取 `/live2d/core/live2dcubismcore.min.js`。
-3. 启动项目后打开「设置 → 虚拟角色服务」，导入模型 ZIP，选中角色并保存设置。
+先阅读 [Live2D 官方 SDK 下载页](https://www.live2d.com/en/sdk/download/web/)上的软件许可协议。在已阅读并同意相关软件条款后，开发者可以运行：
 
-Core 文件已被 Git 忽略。它不在 npm 依赖中，也不会从第三方 CDN 自动下载。缺少该文件时，角色卡片会显示加载错误；项目其余功能仍可使用。桌面打包会复制 `public/`，因此维护者在构建发行包时也需单独准备 Core，并核对许可允许相应的打包与分发方式。[官方 SDK 手册](https://docs.live2d.com/en/cubism-sdk-manual/cubism-sdk-for-web/)说明 Core 受专有协议约束，未在 GitHub 发布。
+```bash
+npm ci
+npm run live2d:prepare -- --accept-license
+```
+
+脚本从官方托管地址下载运行必需的 `live2dcubismcore.min.js`，校验字节长度和 SHA-256，再放入 `public/live2d/core/`；不下载完整 SDK、样例模型或其他资源。插件只在启用并加载模型时按需读取 `/live2d/core/live2dcubismcore.min.js`。启动项目后打开「设置 → 虚拟角色服务」，导入模型 ZIP，选中角色并保存设置。
+
+也可以直接准备 Core 并构建应用，无需先单独执行 `live2d:prepare`：
+
+```bash
+# macOS / Windows 桌面应用；前提是已安装 Node 22、Rust 和平台编译工具
+npm run desktop:build:live2d -- --accept-license
+
+# Web 生产构建
+npm run build:live2d -- --accept-license
+```
+
+`--accept-license` 表示执行者确认已阅读并同意软件条款，不代表取得应用发布许可。脚本不会替执行者默认接受条款；缺少有效文件、缓存和明确确认时，会在下载或构建之前退出。已安装的文件与缓存每次重新校验，通过后可以离线复用，无需再次传确认参数。支持 `--help` 查看选项。
+
+### 固定版本、缓存和离线导入
+
+`live2d-core.lock.json` 记录当前已验证的 SDK `5-r.4`、Core 5.2 系列官方 URL、字节长度、SHA-256 和许可链接。官方版本系列 URL 也可能更新内容，因此哈希是最终固定依据；不使用浮动的 Latest 地址。内容变化、超出预期长度、网络失败或重定向时直接报错，不绕过验证、不改用第三方镜像，也不覆盖现有文件。升级需要维护者核对新 SDK、更新锁文件并重新验证真实模型。
+
+校验后的缓存位于 `.desktop-cache/live2d-core/<SHA-256>/live2dcubismcore.min.js`。缓存和最终的 Core 文件均被 Git 忽略；仅脚本与锁文件进入仓库。下载内容原样保留，包括其版权与许可声明。
+
+没有网络或官方下载失败时，可从已按协议取得的 SDK 中选择与锁文件一致的 Core：
+
+```bash
+npm run live2d:prepare -- --source "/path/to/CubismSdkForWeb-5-r.4/Core/live2dcubismcore.min.js"
+# 或直接离线准备并构建；包含空格的路径也应加引号
+npm run desktop:build:live2d -- --source "/path/to/Core/live2dcubismcore.min.js"
+```
+
+`--source` 显式指定的文件不匹配时直接报错，不悄悄改用联网下载。也可手动将匹配的文件放到 `public/live2d/core/live2dcubismcore.min.js`，再运行准备或包含 Core 的构建命令。
+
+CI 可在维护者自行确认软件许可后设置 `LIVE2D_ACCEPT_LICENSE=1` 并执行上述命令；`LIVE2D_CORE_PATH` 可指定已取得的本地 Core。现有 CI／发布工作流未自动打开下载或接受许可。普通 `npm run build`、`npm run desktop:build` 不强制准备 Core，缺少时仍可构建，其余功能可用，但角色卡片会显示加载错误。桌面打包会复制 `public/`，因此使用包含 Core 的命令构建时会将其一起打包；发布前仍须核对相应的许可。
+
+下载与构建脚本的测试命令为 `npm run test:live2d:build`，同时包含在 `npm test` 和 `npm run test:live2d` 中。[官方 SDK 手册](https://docs.live2d.com/en/cubism-sdk-manual/cubism-sdk-for-web/)说明 Core 受专有协议约束，未在 GitHub 发布。
 
 ## 导入与切换角色
 

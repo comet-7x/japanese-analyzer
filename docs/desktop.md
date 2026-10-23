@@ -24,9 +24,10 @@ npm run desktop:dev
 请不要同时运行 `next dev` 和 `next build`：它们共用 `.next/`。开发结束后重新构建生产产物。
 
 ```bash
-npm run build
 npm run desktop:build
 ```
+
+包含 Live2D Core 的构建使用 `npm run desktop:build:live2d -- --accept-license`：在执行者已阅读并同意软件许可后，从官方来源下载固定内容、校验并缓存 Core，再执行同一桌面构建流程。已准备好匹配的 Core 或缓存时可省略确认参数；离线可传 `--source "<Core 文件路径>"`。普通桌面构建不会强制启用 Core。具体锁定版本、环境变量和发布许可边界见 [准备 Cubism Core](live2d.md#准备-cubism-core)。
 
 输出位于 `src-tauri/target/release/bundle/`：macOS 为 `.app` / `.dmg`，Windows 为 NSIS 安装包。本机最终用户无需安装 Node 或 Rust。不要跨 OS / 架构复用 standalone：Next.js 可选原生模块可能被追踪进产物，必须使用目标平台上的 Node 22 重新构建。
 
@@ -37,7 +38,7 @@ npm run desktop:build
 `npm run desktop:package-server`：
 
 1. 校验 standalone、static、公用资源与许可文件齐全，以及构建来自 Node 22 和当前原生平台。
-2. 从 `https://nodejs.org/dist/v<version>/` 下载 macOS arm64/x64 `.tar.xz` 或 Windows x64 `.zip`，按同站官方 `SHASUMS256.txt` 校验 SHA-256。缓存位于被 Git 忽略的 `.desktop-cache/`，每次复核校验和。
+2. 从 `https://nodejs.org/dist/v<version>/` 下载 macOS arm64/x64 `.tar.xz` 或 Windows x64 `.zip`，按同站官方 `SHASUMS256.txt` 校验 SHA-256。缓存位于被 Git 忽略的 `.desktop-cache/`，每次复核校验和。这一步准备的是 Node 运行时；可选 Core 由 `live2d:prepare` 或包含 Live2D 的构建命令单独准备。
 3. 清空固定生成目录 `src-tauri/resources/server/`，复制 standalone、`.next/static`、`public`、`LICENSE`、`NOTICE`、`LICENSING.md`、`LICENSES/`，并剔除所有 `.env` / `.env.*` 文件。内置运行时只保留 `node`（Windows 为 `node.exe` 与同目录 DLL）以及 Node 许可文本。
 4. 给复制后的 Next routes manifest 添加桌面 CSP 响应头，不修改原始 Web 产物；生成 `server-manifest.json`，记录应用版本、Node 版本、平台、发行包校验和及每个文件的 SHA-256。
 

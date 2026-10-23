@@ -158,3 +158,19 @@ Hiyori 无表情空状态、待机与键盘分发在上一阶段已有记录；�
 未配置 Developer ID 的本地包最初不能通过完整的 codesign 资源校验；仅对本次验收产物执行 `codesign --force --deep --sign -` 后，`codesign --verify --deep --strict` 通过。本地 ad-hoc 签名不是 Developer ID 签名／Apple 公证，也未修改产品签名配置。应用未启动实测。
 
 本地最终应用、截图、基准数据和日志保存在 `.desktop-cache/live2d-final-verification/`（已忽略，不入库）。未改动原来的开发 `.next`、桌面包或签名证书。
+
+## Core 自动准备与构建（2026-10-23）
+
+新增 `live2d:prepare`、`build:live2d` 和 `desktop:build:live2d`。当前锁定 SDK 5-r.4 对应 Core 5.2，官方版本系列 URL 配合精确 SHA-256 固定内容；不下载完整 SDK 或角色模型。首次联网下载要求执行者明确确认软件许可，现有 CI／发布工作流未启用自动下载。
+
+本轮通过：
+
+- 从官方主机真实下载 207,155 字节，SHA-256 与锁文件及原有本地 Core 一致；删除临时安装文件后，在禁止联网的条件下从缓存恢复成功。下载验证使用独立的 `.desktop-cache/` 临时目录，完成后清理。
+- `npm run test:live2d:build`：17 项通过，覆盖首次许可确认、离线导入和缓存、损坏文件恢复、下载中断／内容变更／超限、固定来源，以及构建调用顺序和 Windows 含空格路径参数。
+- `npm test`、`npm run lint`、`git diff --check` 通过；lint 仍有 TranslationSettings.tsx 的两个现存未使用导入警告。
+- `npm run desktop:build:live2d` 在 Node 22.23.3、macOS arm64 上完成，实际执行 Next 生产构建、Node 运行时校验、服务组装及 Tauri 打包，生成 `.app` 和 `.dmg`。
+- 校验打包服务及最终 `.app` 中的 Core：字节长度和 SHA-256 一致，原始版权与许可头保留。
+
+本轮在没有运行 Next 开发服务时使用当前工作区构建；构建日志位于 `.desktop-cache/live2d-core-desktop-build.log`，测试和 lint 日志分别为 `.desktop-cache/live2d-core-tests.log`、`.desktop-cache/live2d-core-lint.log`。
+
+以上不代表已取得 Live2D 发布授权，也不增加 Safari／iOS、Windows 实机构建、Developer ID／公证或 UI 实机验收的通过范围。原有待验收事项继续保留。

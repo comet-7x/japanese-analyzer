@@ -91,9 +91,10 @@ npm run desktop:dev
 前端支持 Next.js 热更新；退出桌面窗口会同时清理开发服务。生产打包：
 
 ```bash
-npm run build             # 在目标 OS / 架构上使用 Node 22 构建
 npm run desktop:build     # 下载校验内置运行时，生成 .app/.dmg 或 NSIS
 ```
+
+需要包含 Live2D Core 时，在阅读并同意其软件许可后执行 `npm run desktop:build:live2d -- --accept-license`，自动从官方来源下载、校验并缓存 Core 后构建。已准备好匹配文件或缓存时可以省略确认参数；Web 构建对应 `npm run build:live2d -- --accept-license`。普通构建不强制包含 Core，角色模型仍由用户导入。离线导入、锁定版本与独立的发布许可要求见 [虚拟角色服务](docs/live2d.md#准备-cubism-core)。
 
 完整架构、签名与发布设置、日志位置及验收步骤见 [桌面开发文档](docs/desktop.md)。
 

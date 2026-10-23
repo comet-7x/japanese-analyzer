@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "sdkVersion": "5-r.4",
+  "coreSeries": "5.2",
+  "url": "https://cubism.live2d.com/sdk-web/core/05/live2dcubismcore.min.js",
+  "bytes": 207155,
+  "sha256": "25ae938cb4fe282ce189b357bcc97e603d1e1f7ec78bf04150d401c23cdc792f",
+  "downloadPage": "https://www.live2d.com/en/sdk/download/web/",
+  "licenseUrls": [
+    "https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html",
+    "https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html"
+  ]
+}

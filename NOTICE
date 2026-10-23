@@ -84,3 +84,14 @@ Live2D interface icons
 Grip, Hand, Book Open and Circle User Round SVG paths are adapted from Lucide
 (https://lucide.dev/). Copyright Lucide Icons and Contributors; ISC/MIT terms
 are preserved in LICENSES/Lucide-LICENSE.txt.
+
+Optional Live2D Cubism Core
+--------------------------
+Copyright Live2D Inc. Core is proprietary and is not relicensed under AGPL.
+Its original notices are preserved verbatim when an optional build includes it.
+Core itself is excluded from this source repository; live2d-core.lock.json
+records the official source and checksum used by the opt-in preparation script.
+Software terms: https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html
+Publication licensing: https://www.live2d.com/en/sdk/license/
+Preparing Core does not establish Publication License approval or compatibility
+between the application's AGPL license and Live2D's terms. See docs/live2d.md.
