@@ -1,0 +1,99 @@
+/* Keep navigation and save controls visible; each desktop column owns its scroll. */
+.live2d-workbench { min-width: 0; }
+.settings-modular-layout:has(.live2d-workbench[data-open="true"]) .settings-sidebar { display: none; }
+.settings-tab-pane:has(.live2d-workbench[data-open="true"]) { overflow: hidden; display: flex; flex-direction: column; }
+.settings-tab-pane > div:has(> .live2d-workbench[data-open="true"]) { flex: 1; height: 100%; min-height: 0; }
+.live2d-workbench[data-open="true"] { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.live2d-workbench-top, .live2d-workbench-nav, .live2d-resource-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.live2d-workbench-top { justify-content: space-between; flex: none; margin-bottom: 4px; }
+.live2d-workbench-top label { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.live2d-workbench-nav { flex: none; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin: 8px 0; }
+.live2d-workbench-nav button[aria-current="page"], .live2d-resource-tabs button[aria-pressed="true"] { color: var(--selection-ink, var(--primary)); background: var(--primary-soft); }
+.live2d-workbench .nd-input { width: 100%; min-width: 0; }
+.live2d-workbench .live2d-action-heading { flex: none; }
+.live2d-workbench .live2d-action-heading > button { display: none; }
+.live2d-workbench .live2d-action-editor { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.live2d-workbench .live2d-action-workspace { flex: 1; min-height: 0; overflow: hidden; align-items: start; grid-template-columns: minmax(200px, 30%) minmax(0, 1fr); }
+.live2d-workbench .live2d-action-workspace[data-view="rules"] { grid-template-columns: minmax(240px, .95fr) minmax(260px, 1fr); }
+.live2d-workbench .live2d-action-library { position: static; height: 100%; min-height: 0; grid-template-rows: auto auto auto minmax(0, 1fr); }
+.live2d-workbench .live2d-action-detail { position: static; height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 12px 16px 4px; scrollbar-gutter: stable; }
+.live2d-workbench .live2d-action-preview { position: static; background: var(--bg-2); }
+.live2d-workbench .live2d-action-stage { height: clamp(180px, 32dvh, 300px); }
+.live2d-catalog-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px; align-items: center; padding: 8px; border: 1px solid transparent; border-bottom-color: var(--line); border-radius: 10px; margin-bottom: 6px; }
+.live2d-catalog-row[data-selected="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.live2d-catalog-select { text-align: start; min-width: 0; border: 0; background: transparent; color: var(--ink); padding: 6px; cursor: pointer; }
+.live2d-catalog-select strong, .live2d-catalog-select small { display: block; overflow-wrap: anywhere; }
+.live2d-catalog-select small, .live2d-resource-state { margin-top: 6px; color: var(--ink-2); font-size: 12px; }
+.live2d-resource-state { grid-column: 1 / -1; padding-inline: 6px; }
+.live2d-catalog-select:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+.live2d-workbench .live2d-behaviors { min-width: 0; height: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: 16px; scrollbar-gutter: stable; }
+.live2d-rule-group { margin: 24px 0; }
+.live2d-rule-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.live2d-rule-row > div { flex: 1 1 160px; min-width: 0; }
+.live2d-rule-row p { margin: 4px 0; overflow-wrap: anywhere; }
+.live2d-rule-row small { color: var(--ink-2); }
+.live2d-rule-row[data-selected="true"] { border-bottom-color: var(--primary); }
+.live2d-idle-selection { border: 1px solid var(--line); border-radius: 10px; padding: 12px; max-height: 220px; overflow-y: auto; overscroll-behavior: contain; }
+.live2d-workbench .live2d-idle-selection label { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 8px 0; }
+.live2d-workbench .live2d-idle-selection input[type="checkbox"] { appearance: auto; width: 18px; height: 18px; min-height: 18px; padding: 0; margin: 0; flex: 0 0 18px; accent-color: var(--primary); }
+.live2d-assignment { border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.live2d-workbench details > summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
+.live2d-resource-uses { list-style: none; margin: 0; padding: 0; }
+.live2d-resource-uses li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-block: 6px; border-bottom: 1px solid var(--line); }
+.live2d-mobile-back { display: none; }
+@media (max-width: 700px) {
+ .live2d-workbench .live2d-action-workspace { display: block; overflow-y: auto; overscroll-behavior: contain; }
+ .live2d-workbench .live2d-action-library, .live2d-workbench .live2d-behaviors, .live2d-workbench .live2d-action-detail { height: auto; overflow: visible; padding: 0; }
+ .live2d-workbench .live2d-action-library { margin-bottom: 16px; }
+ .live2d-workbench .live2d-action-resources { display: block; max-height: none; }
+ .live2d-workbench-top label { width: 100%; flex-wrap: wrap; }
+ .live2d-mobile-back { display: inline-flex; margin-bottom: 12px; }
+ .live2d-action-workspace[data-view="resources"][data-detail="false"] .live2d-action-detail { display: none; }
+ .live2d-action-workspace[data-view="resources"][data-detail="true"] .live2d-action-library { display: none; }
+ .live2d-workbench .live2d-action-workspace[data-view="rules"] { display: flex; flex-direction: column; }
+ .live2d-workbench .live2d-action-workspace[data-view="rules"] .live2d-action-detail { order: -1; flex: none; width: 100%; }
+}
+/* Compact repeated headings so resource rows and primary actions fit laptop screens. */
+.settings-modular-layout:has(.live2d-workbench[data-open="true"]) .settings-content-header { padding-block: 12px; }
+.settings-modular-layout:has(.live2d-workbench[data-open="true"]) .settings-content-header p { display: none; }
+.settings-tab-pane:has(.live2d-workbench[data-open="true"]) { padding: 12px 24px 16px; }
+.live2d-workbench .live2d-action-heading { margin-bottom: 12px; }
+.live2d-workbench .live2d-action-heading h3 { margin: 4px 0; font-size: 16px; }
+.live2d-workbench .live2d-action-heading p { margin: 4px 0; }
+.live2d-workbench .live2d-action-library { gap: 8px; }
+.live2d-workbench .live2d-action-stage { height: clamp(140px, 24dvh, 200px); }
+.live2d-resource-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.live2d-resource-toolbar strong { overflow-wrap: anywhere; }
+@media (max-width: 700px) { .settings-tab-pane:has(.live2d-workbench[data-open="true"]) { padding: 12px 16px; } }
+
+.live2d-resource-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.live2d-resource-pagination p { flex-basis: 100%; margin: 0; font-variant-numeric: tabular-nums; }
+.live2d-workbench .live2d-action-library { grid-template-rows: auto auto auto minmax(0, 1fr) auto; }
+.live2d-workbench .live2d-preview-loop { display: flex; align-items: center; gap: 8px; }
+.live2d-workbench .live2d-preview-loop input { appearance: auto; width: 18px; height: 18px; min-height: 18px; padding: 0; accent-color: var(--primary); }
+.live2d-hit-feedback { overflow-wrap: anywhere; }
+.live2d-workbench .live2d-action-fields .live2d-action-file { color: var(--ink-2); }
+
+.live2d-workbench :is(button, summary, input, select, [tabindex]):focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.live2d-workbench :is(.live2d-catalog-row, .live2d-rule-row) { overflow-wrap: anywhere; }
+.live2d-workbench :is(.live2d-action-detail, .live2d-behaviors, .live2d-action-resources) { scroll-padding-block: 8px; }
+@media (pointer: coarse), (max-width: 700px) {
+ .live2d-workbench :is(input, select, textarea) { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ .live2d-workbench *, .settings-modal-content, .settings-config-dialog { animation: none !important; transition: none !important; }
+}
+@media (forced-colors: active) {
+ .live2d-catalog-row[data-selected="true"] { border-color: Highlight; }
+ .live2d-workbench :focus-visible { outline-color: Highlight; }
+ .live2d-workbench :is(button, input, select) { border: 1px solid ButtonText; }
+}
+/* At high browser zoom, navigation must scroll too instead of consuming the viewport. */
+@media (max-height: 560px) {
+ .settings-tab-pane:has(.live2d-workbench[data-open="true"]) { display: block; overflow-y: auto; }
+ .settings-tab-pane > div:has(> .live2d-workbench[data-open="true"]) { height: auto; flex: none; }
+ .live2d-workbench[data-open="true"], .live2d-workbench .live2d-action-editor { display: block; height: auto; }
+ .live2d-workbench .live2d-action-workspace { display: block; height: auto; overflow: visible; }
+ .live2d-workbench :is(.live2d-action-library, .live2d-action-detail, .live2d-behaviors) { height: auto; overflow: visible; }
+ .live2d-workbench .live2d-action-resources { max-height: 320px; overflow-y: auto; }
+}

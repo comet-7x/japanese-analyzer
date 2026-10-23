@@ -49,20 +49,22 @@ export default function Header({ services, activeServiceId, activeModelId, onSel
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/" className="brand-home flex min-w-0 items-center" aria-label={t("返回首页")} title={t("返回首页")}>
         <Image
-          src="/logo/logo-text.png"
+          src="/logo/logo-text.webp"
           alt={t("日本語文章解析")}
           width={1323}
           height={330}
           priority
+          unoptimized
           sizes="(min-width: 640px) 290px, 210px"
           className="brand-logo brand-logo-light h-9 w-auto max-w-[210px] object-contain sm:h-11 sm:max-w-[290px]"
         />
         <Image
-          src="/logo/logo-text-dark.png"
+          src="/logo/logo-text-dark.webp"
           alt={t("日本語文章解析")}
           width={1323}
           height={330}
           priority
+          unoptimized
           sizes="(min-width: 640px) 290px, 210px"
           className="brand-logo brand-logo-dark h-9 w-auto max-w-[210px] object-contain sm:h-11 sm:max-w-[290px]"
         />

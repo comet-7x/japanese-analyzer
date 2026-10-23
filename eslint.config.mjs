@@ -22,6 +22,7 @@ const eslintConfig = [
       "src-tauri/resources/**",
       ".desktop-cache/**",
       "public/local-analyzer/**",
+      "public/live2d/**",
       "crates/**/target/**",
     ],
   },

@@ -20,15 +20,16 @@ test('warmup consumes complete responses once and reports auth and route errors 
   await withServer((req, res) => {
     paths.push(req.url);
     if (req.url === '/') {
+      res.writeHead(503);
       res.write('<html>');
       setTimeout(() => res.end('</html>'), 20);
     } else {
-      res.writeHead(req.url === '/api/auth' ? 401 : 503).end();
+      res.writeHead(401).end();
     }
   }, async url => {
     const results = await warmDevelopmentRoutes(url, { log: message => messages.push(message) });
-    assert.deepEqual(paths, ['/', '/api/auth', '/api/daily-sentence?locale=zh-CN']);
-    assert.deepEqual(results.map(result => result.status), [200, 401, 503]);
+    assert.deepEqual(paths, ['/', '/api/auth']);
+    assert.deepEqual(results.map(result => result.status), [503, 401]);
     assert.ok(messages.some(message => message.includes('保留访问验证')));
     assert.ok(messages.some(message => message.includes('HTTP 503')));
     assert.ok(!messages.some(message => message.includes('在线句源')));
@@ -43,8 +44,8 @@ test('a stalled route has a deadline and does not prevent subsequent warmup', as
     if (req.url !== '/') res.end('ready');
   }, async url => {
     const results = await warmDevelopmentRoutes(url, { timeoutMs: 100, log() {} });
-    assert.deepEqual(results.map(result => result.status), [null, 200, 200]);
-    assert.equal(paths.length, 3);
+    assert.deepEqual(results.map(result => result.status), [null, 200]);
+    assert.equal(paths.length, 2);
   });
 });
 

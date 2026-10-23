@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
-import { effectiveCaps, getModelPreferences, sanitizeProfiles, type ProviderProfile } from '../app/lib/aiModels';
+import { createProfileFromPreset, effectiveCaps, getModelPreferences, normalizeEndpointUrl, PRESETS, sanitizeProfiles, type ProviderProfile } from '../app/lib/aiModels';
+import { getProviderIcon, PROVIDER_ICONS } from '../app/lib/providerIcons';
 import { loadAISettingsFromStorage, saveAISettingsToStorage, type StorageLike } from '../app/services/api';
 import { buildCompletionPayload, ProviderConfigError, resolveProviderConfig } from '../app/api/_utils/providerConfig';
 import { POST as analyze } from '../app/api/analyze/route';
@@ -20,6 +21,33 @@ const services: ProviderProfile[] = [{
   ],
 }];
 async function main() {
+  for (const preset of PRESETS) {
+    const profile = createProfileFromPreset(preset.id)!;
+    const another = createProfileFromPreset(preset.id)!;
+    assert.notEqual(profile.id, another.id, 'Multiple configurations of the same brand stay independent');
+    assert.equal(profile.presetId, preset.id);
+    assert.equal(getProviderIcon(profile), PROVIDER_ICONS[preset.id], 'New preset configurations retain their brand logo');
+    const presetStorage = new Storage();
+    const edited = { ...profile, name: 'Renamed service', baseUrl: 'https://gateway.example/v1', apiKey: 'test' };
+    saveAISettingsToStorage(presetStorage, { services: [edited], activeServiceId: profile.id, activeModelId: profile.models[0].id, geminiApiKey: '' });
+    const restored = loadAISettingsFromStorage(presetStorage).services[0];
+    assert.equal(restored.presetId, preset.id, 'Brand survives saving and reloading');
+    assert.equal(getProviderIcon(restored), PROVIDER_ICONS[preset.id], 'Renaming or using a gateway preserves the preset logo');
+    assert.equal(getProviderIcon({ id: 'custom-old', name: 'Renamed service', baseUrl: preset.baseUrl }), PROVIDER_ICONS[preset.id], 'Existing saved configurations recover their logo from the official endpoint');
+    assert.equal(getProviderIcon({ id: preset.id, name: preset.name }), PROVIDER_ICONS[preset.id], 'Legacy IDs and speech/translation logos remain supported');
+  }
+  assert.equal(createProfileFromPreset('unknown'), null);
+  assert.equal(getProviderIcon(null), undefined);
+  for (const baseUrl of ['invalid', 'https://api.openai.com.example/v1', 'https://gateway.example/v1']) {
+    assert.equal(getProviderIcon({ id: 'custom', name: 'OpenAI', baseUrl }), undefined, 'Unknown endpoints retain the initial-letter fallback');
+  }
+  assert.equal(sanitizeProfiles([{ ...services[0], presetId: 'unknown' }])[0].presetId, undefined);
+  const volcengine = createProfileFromPreset('volcengine')!;
+  assert.equal(volcengine.baseUrl, 'https://ark.cn-beijing.volces.com/api/plan/v3');
+  assert.equal(volcengine.models[0].model, 'doubao-seed-2.1-lite');
+  assert.equal(normalizeEndpointUrl(volcengine.baseUrl), 'https://ark.cn-beijing.volces.com/api/plan/v3/chat/completions');
+  assert.equal(getProviderIcon({ id: 'custom-old', name: 'Volcengine', baseUrl: 'https://ark.cn-beijing.volces.com/api/v3' }), PROVIDER_ICONS.volcengine);
+
   const storage = new Storage();
   storage.setItem('thinkingEnabled', 'true'); storage.setItem('useStream', 'false');
   storage.setItem('providerSettings', JSON.stringify({ services, activeServiceId: 'provider', activeModelId: 'a' }));

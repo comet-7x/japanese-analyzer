@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod locale;
 mod navigation;
 mod server;
 
@@ -29,6 +30,42 @@ fn authorize(window: &WebviewWindow, server: &server::Server) -> Result<(), Stri
     } else {
         Err("Native commands are only available to packaged desktop pages.".into())
     }
+}
+
+#[tauri::command]
+async fn app_locale(
+    window: WebviewWindow,
+    server: tauri::State<'_, server::Server>,
+) -> Result<String, String> {
+    authorize(&window, &server)?;
+    // The app's HTTP content has no native permissions. Read just its preference
+    // from the shared cookie store; never expose cookies to the launcher page.
+    // Wry 0.57 cookies_for_url compares cookie.domain() with Url::domain().
+    // Url::domain() is None for IP hosts, dropping our 127.0.0.1 cookie.
+    // Match this fixed host explicitly until upstream handles IP addresses.
+    let cookies = window.cookies().map_err(|error| error.to_string())?;
+    let languages = locale::preferred_languages();
+    let system_locale = locale::system_locale(languages.iter().map(String::as_str));
+    // Hand the native result to the HTTP homepage before navigation. Only this
+    // supported language code is shared, without granting HTTP native permissions.
+    window
+        .set_cookie(
+            tauri::webview::Cookie::build(("ja_system_language", system_locale))
+                .domain("127.0.0.1")
+                .path("/")
+                .build(),
+        )
+        .map_err(|error| error.to_string())?;
+    Ok(locale::saved_locale(
+        cookies
+            .iter()
+            .filter(|cookie| {
+                cookie.domain() == Some("127.0.0.1") && cookie.name() == "ja_ui_language"
+            })
+            .map(|cookie| cookie.value()),
+    )
+    .unwrap_or(system_locale)
+    .to_string())
 }
 
 #[tauri::command]
@@ -207,6 +244,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             server_status,
+            app_locale,
             restart_server,
             reassign_port,
             check_update,

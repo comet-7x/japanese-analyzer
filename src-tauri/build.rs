@@ -6,6 +6,7 @@ fn main() {
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(
         tauri_build::AppManifest::new().commands(&[
             "server_status",
+            "app_locale",
             "restart_server",
             "reassign_port",
             "check_update",

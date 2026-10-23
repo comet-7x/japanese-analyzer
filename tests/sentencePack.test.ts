@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import { zipSync, strToU8 } from 'fflate';
 import { bundledSentencePack } from '../app/utils/bundledSentencePack';
-import { parseSentencePack, sentencePackBatch, MAX_SENTENCE_PACK_BYTES, type SentencePack } from '../app/utils/sentencePack';
-import { createSentencePackStore, verifySentencePack } from '../app/api/_utils/sentencePackStore';
+import { parseSentencePack, type SentencePack } from '../app/utils/sentencePack';
 import { buildSentencePack, digest } from '../scripts/daily-sentence/build';
 import { createDailySentencePool, DAILY_POOL_KEY } from '../app/services/dailySentenceClient';
 import { DAILY_SENTENCES, hasDailySentenceReadings, isCompleteDailySentence } from '../app/utils/dailySentences';
@@ -15,7 +14,8 @@ function revision(date: string, sentences = bundledSentencePack.sentences): Sent
 }
 
 async function main() {
-  const pack = verifySentencePack(bundledSentencePack);
+  const pack = parseSentencePack(bundledSentencePack);
+  assert.equal(digest(JSON.stringify(pack.sentences)), pack.sha256);
   assert.equal(pack.sentences.length, 92);
   assert.ok(pack.sentences.every(sentence => hasDailySentenceReadings(sentence) && LOCALES.every(locale => isCompleteDailySentence(sentence, locale))));
   const all = [...DAILY_SENTENCES, ...pack.sentences];
@@ -38,7 +38,6 @@ async function main() {
   assert.equal(pack.sentences.find(sentence => sentence.source?.id === 187853)?.tokens.find(token => token.word === '何')?.furigana, 'なん');
   assert.equal(pack.sentences.find(sentence => sentence.source?.id === 234717)?.tokens.find(token => token.word === '空い')?.furigana, 'すい');
   assert.ok(pack.sentences.every(sentence => sentence.translation.en && sentence.source?.owner && sentence.source.translations.en?.owner));
-  assert.throws(() => verifySentencePack({ ...pack, sentences: pack.sentences.slice(1) }), /checksum/);
   assert.throws(() => parseSentencePack({ ...pack, schemaVersion: 1 }), /metadata/);
   assert.throws(() => parseSentencePack({ ...pack, schemaVersion: 2 }), /metadata/);
   assert.throws(() => parseSentencePack({ ...pack, publishedAt: '2026-02-31' }));
@@ -78,10 +77,10 @@ async function main() {
   assert.ok(JSON.parse(values.get(DAILY_POOL_KEY)!).candidates.length > 0, 'Bundled snapshot candidates remain usable beyond a week offline');
   const nextText = '今日は友達と図書館に行きます。';
   const newer = revision('2026-10-29', [{ ...pack.sentences[0], text: nextText, tokens: await annotateSentence(nextText), source: { ...pack.sentences[0].source!, id: 999_999 } }]);
-  restored.addBatch(sentencePackBatch(newer, '2026-10-29'), '2026-10-29', 'en');
+  restored.installPack(newer, '2026-10-29');
   assert.equal(JSON.parse(values.get(DAILY_POOL_KEY)!).candidates.length, 1, 'A new snapshot removes retired entries');
   restored.installPack(pack, '2026-10-29');
-  assert.equal(JSON.parse(values.get(DAILY_POOL_KEY)!).packVersion, newer.version, 'An older bundled pack cannot replace a cached update');
+  assert.equal(JSON.parse(values.get(DAILY_POOL_KEY)!).packVersion, pack.version, 'The installed application replaces retired remote snapshots with its bundled pack');
 
   values.clear();
   const legacy = { ...pack.sentences[0], tokens: [], date: '2026-10-19' };
@@ -106,41 +105,6 @@ async function main() {
   bilingual.installPack(pack, '2026-10-20');
   assert.equal(JSON.parse(values.get(DAILY_POOL_KEY)!).packVersion, pack.version, 'A four-language schema upgrade replaces a newer-date bilingual cache');
 
-  let clock = Date.parse('2026-10-21'); let calls = 0;
-  let resolve!: (response: Response) => void;
-  const warnings: unknown[] = [];
-  const store = createSentencePackStore({ url: 'https://sentences.example/pack.json', now: () => clock,
-    fetcher: async (_url, init) => {
-      calls++; assert.equal(init?.redirect, 'error'); assert.ok(init?.signal);
-      assert.equal(new Headers(init?.headers).has('Authorization'), false);
-      return new Promise<Response>(done => { resolve = done; });
-    }, warn: (...args) => warnings.push(args) });
-  assert.equal(store.get().version, pack.version, 'Serving a pack never waits for a stalled update');
-  store.get(); assert.equal(calls, 1, 'Background updates are coalesced');
-  const update = store.refresh();
-  const next = revision('2026-10-20');
-  resolve(Response.json(next, { headers: { ETag: '"pack-2"' } }));
-  await update;
-  assert.equal(store.get().version, next.version);
-  assert.equal(calls, 1, 'Successful snapshots check for updates at most once a day');
-  clock += 86_400_000;
-  const rejected = store.refresh(); resolve(Response.json({ ...next, sha256: '0'.repeat(64) })); await rejected;
-  assert.equal(store.get().version, next.version, 'An invalid download preserves the last verified snapshot');
-  assert.equal(calls, 2); assert.equal(warnings.length, 1);
-  clock += 15 * 60_000;
-  const unchanged = store.refresh(); resolve(new Response(null, { status: 304 })); await unchanged;
-  assert.equal(store.get().version, next.version);
-  assert.equal(warnings.length, 1, 'ETag 304 keeps the verified snapshot');
-
-  let cancelled = false;
-  const oversized = new Response(new ReadableStream({ cancel() { cancelled = true; } }), { headers: { 'content-length': String(MAX_SENTENCE_PACK_BYTES + 1) } });
-  const bounded = createSentencePackStore({ url: 'https://sentences.example/pack.json', fetcher: async () => oversized, warn() {} });
-  await bounded.refresh(); assert.equal(cancelled, true); assert.equal(bounded.get().version, pack.version);
-  for (const url of ['http://sentences.example/pack.json', 'https://127.0.0.1/pack.json', 'https://user:secret@sentences.example/pack.json']) {
-    let fetched = false;
-    const protectedStore = createSentencePackStore({ url, fetcher: async () => { fetched = true; return Response.json(next); }, warn() {} });
-    await protectedStore.refresh(); assert.equal(fetched, false); assert.equal(protectedStore.get().version, pack.version);
-  }
-  console.log('Sentence packs passed: pinned source, approved rows, checksums, offline selection, persistent versions, retired entries, non-blocking updates, ETags, bounds and retry fallback.');
+  console.log('Sentence packs passed: pinned source, approved rows, checksums, four-language offline selection, persistent versions, retired entries and annotation upgrades.');
 }
 void main().catch(error => { console.error(error); process.exitCode = 1; });

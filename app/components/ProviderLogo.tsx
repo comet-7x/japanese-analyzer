@@ -1,11 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import type { ProviderProfile } from '../services/api';
-import { PROVIDER_ICONS } from '../lib/providerIcons';
+import { getProviderIcon, type ProviderLogoProfile } from '../lib/providerIcons';
 
 interface ProviderLogoProps {
-  profile: Pick<ProviderProfile, 'id' | 'name'> | null;
+  profile: ProviderLogoProfile | null;
   className?: string;
 }
 
@@ -15,12 +14,12 @@ function letterOf(name: string): string {
 }
 
 export function ProviderLogo({ profile, className = 'h-4 w-4' }: ProviderLogoProps) {
-  const brand = profile?.id;
-  const src = brand ? PROVIDER_ICONS[brand] : undefined;
+  const src = getProviderIcon(profile);
 
   if (src) {
     return (
       <Image
+        unoptimized
         width={16}
         height={16}
         src={src}

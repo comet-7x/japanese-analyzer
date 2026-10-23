@@ -3,7 +3,7 @@
 import SettingsConfigLayer from './SettingsConfigLayer';
 import { ConfigAdvanced, ConfigInputTypes, ConfigField } from './ModelConfigFields';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   createSpeechProvider,
@@ -20,10 +20,14 @@ import {
   type SpeechSettings,
   type SpeechProtocol,
 } from '../lib/speechServices';
-import { getJapaneseTtsAudioUrl } from '../utils/helpers';
+import { getJapaneseTtsAudio } from '../utils/helpers';
+import { beginAudioSpeech, endSpeechPlayback, setSpeechPlaybackStatus } from '../lib/speechPlaybackStore';
+import type { SpeechBoundary } from '../lib/speechReading';
 import { Icon } from './Icons';
 import { ProviderLogo } from './ProviderLogo';
 import { LatestRequest } from '../utils/latestRequest';
+
+const SPEECH_PREVIEW_TEXT = 'こんにちは。日本語の音声テストです。';
 
 export default function SpeechServices({
   settings,
@@ -43,7 +47,17 @@ export default function SpeechServices({
   const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
   const [rowAudioUrl, setRowAudioUrl] = useState<string | null>(null);
   const rowAudioRef = useRef<HTMLAudioElement | null>(null);
+  const rowAudioBlobRef = useRef<Blob | null>(null);
+  const rowBoundariesRef = useRef<SpeechBoundary[] | undefined>(undefined);
+  const rowSpeechSessionIdRef = useRef<number | null>(null);
   const previewRequest = useRef(new LatestRequest());
+
+  const endRowSpeechSession = useCallback(() => {
+    if (rowSpeechSessionIdRef.current !== null) {
+      endSpeechPlayback(rowSpeechSessionIdRef.current);
+      rowSpeechSessionIdRef.current = null;
+    }
+  }, []);
 
   const providers = settings.providers && settings.providers.length > 0
     ? settings.providers
@@ -80,16 +94,18 @@ export default function SpeechServices({
   useEffect(() => {
     let current = true;
     if (rowAudioUrl && rowAudioRef.current) {
-      rowAudioRef.current.play().catch(() => { if (current) setPlayingVoiceId(null); });
+      rowAudioRef.current.play().catch(() => {
+        if (current) { endRowSpeechSession(); setPlayingVoiceId(null); }
+      });
     }
     return () => { current = false; };
-  }, [rowAudioUrl]);
+  }, [rowAudioUrl, endRowSpeechSession]);
 
   useEffect(() => {
     const manager = previewRequest.current;
     const audio = rowAudioRef.current;
-    return () => { manager.cancel(); audio?.pause(); };
-  }, []);
+    return () => { manager.cancel(); endRowSpeechSession(); audio?.pause(); };
+  }, [endRowSpeechSession]);
 
   useEffect(() => {
     return () => {
@@ -99,7 +115,9 @@ export default function SpeechServices({
 
   const previewRowVoice = async (provider: SpeechProviderProfile, voice: SpeechVoice) => {
     previewRequest.current.cancel();
+    endRowSpeechSession();
     rowAudioRef.current?.pause();
+    rowAudioBlobRef.current = null;
     setRowAudioUrl(null);
     if (playingVoiceId === voice.id) {
       if (rowAudioRef.current) {
@@ -112,8 +130,8 @@ export default function SpeechServices({
     const ticket = previewRequest.current.start();
     setPlayingVoiceId(voice.id);
     try {
-      const url = await getJapaneseTtsAudioUrl(
-        'こんにちは。日本語の音声テストです。',
+      const { url, blob, boundaries } = await getJapaneseTtsAudio(
+        SPEECH_PREVIEW_TEXT,
         provider.apiKey.trim(),
         provider.provider,
         {
@@ -125,6 +143,8 @@ export default function SpeechServices({
         }
       );
       if (!ticket.isCurrent()) { URL.revokeObjectURL(url); return; }
+      rowAudioBlobRef.current = blob;
+      rowBoundariesRef.current = boundaries;
       setRowAudioUrl(url);
     } catch {
       if (ticket.isCurrent()) setPlayingVoiceId(null);
@@ -207,8 +227,10 @@ export default function SpeechServices({
       <audio
         ref={rowAudioRef}
         src={rowAudioUrl || undefined}
-        onEnded={() => setPlayingVoiceId(null)}
-        onError={() => setPlayingVoiceId(null)}
+        onPlay={event => { rowSpeechSessionIdRef.current = beginAudioSpeech(event.currentTarget, rowAudioBlobRef.current, SPEECH_PREVIEW_TEXT, { boundaries: rowBoundariesRef.current }); }}
+        onPause={() => { if (rowSpeechSessionIdRef.current !== null) setSpeechPlaybackStatus(rowSpeechSessionIdRef.current, 'paused'); }}
+        onEnded={() => { endRowSpeechSession(); setPlayingVoiceId(null); }}
+        onError={() => { endRowSpeechSession(); setPlayingVoiceId(null); }}
         className="hidden"
       />
 
@@ -628,6 +650,16 @@ function SpeechVoiceDialog({
   const [audio, setAudio] = useState('');
   const [error, setError] = useState('');
   const controller = useRef<AbortController | null>(null);
+  const audioBlobRef = useRef<Blob | null>(null);
+  const boundariesRef = useRef<SpeechBoundary[] | undefined>(undefined);
+  const speechSessionIdRef = useRef<number | null>(null);
+
+  const endVoiceSpeechSession = useCallback(() => {
+    if (speechSessionIdRef.current !== null) {
+      endSpeechPlayback(speechSessionIdRef.current);
+      speechSessionIdRef.current = null;
+    }
+  }, []);
 
   const update = (patch: Partial<SpeechVoice>) => setDraft((val) => ({ ...val, ...patch }));
 
@@ -642,22 +674,25 @@ function SpeechVoiceDialog({
 
   useEffect(() => {
     return () => {
+      endVoiceSpeechSession();
       if (audio) URL.revokeObjectURL(audio);
     };
-  }, [audio]);
+  }, [audio, endVoiceSpeechSession]);
 
   const valid = Boolean(draft.model.trim() && draft.voice.trim());
 
   const preview = async () => {
     controller.current?.abort();
+    endVoiceSpeechSession();
+    audioBlobRef.current = null;
     const request = new AbortController();
     controller.current = request;
     setTesting(true);
     setError('');
     setAudio('');
     try {
-      const url = await getJapaneseTtsAudioUrl(
-        'こんにちは。日本語の音声テストです。',
+      const { url, blob, boundaries } = await getJapaneseTtsAudio(
+        SPEECH_PREVIEW_TEXT,
         provider.apiKey.trim(),
         provider.provider,
         {
@@ -671,6 +706,8 @@ function SpeechVoiceDialog({
       if (request.signal.aborted) {
         URL.revokeObjectURL(url);
       } else {
+        audioBlobRef.current = blob;
+        boundariesRef.current = boundaries;
         setAudio(url);
       }
     } catch (err) {
@@ -734,7 +771,12 @@ function SpeechVoiceDialog({
               </button>
             </div>
             {error && <p role="alert" className="model-config-error">{error}</p>}
-            {audio && <audio controls autoPlay src={audio} className="w-full" aria-label={t('语音测试结果')} />}
+            {audio && <audio controls autoPlay src={audio} className="w-full" aria-label={t('语音测试结果')}
+              onPlay={event => { speechSessionIdRef.current = beginAudioSpeech(event.currentTarget, audioBlobRef.current, SPEECH_PREVIEW_TEXT, { boundaries: boundariesRef.current }); }}
+              onPause={() => { if (speechSessionIdRef.current !== null) setSpeechPlaybackStatus(speechSessionIdRef.current, 'paused'); }}
+              onEnded={endVoiceSpeechSession}
+              onError={endVoiceSpeechSession}
+            />}
           </ConfigAdvanced>
         </div>
         <footer className="settings-actions model-config-actions">

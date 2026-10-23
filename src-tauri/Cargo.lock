@@ -1848,6 +1848,7 @@ version = "0.1.0"
 dependencies = [
  "ctrlc",
  "dunce",
+ "objc2-foundation",
  "reqwest 0.12.28",
  "serde",
  "serde_json",

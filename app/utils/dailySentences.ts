@@ -175,8 +175,8 @@ export function isCompleteDailySentence(sentence: DailySentence, locale: Locale)
     && !!sentence.translation[locale]?.trim();
 }
 
-/** Validate untrusted network/cache data before selecting or persisting a sentence. */
-export function isOnlineDailySentence(value: unknown): value is DailySentence & { source: NonNullable<DailySentence['source']> } {
+/** Validate attributed sentence-pack data and legacy cached entries. */
+export function isAttributedDailySentence(value: unknown): value is DailySentence & { source: NonNullable<DailySentence['source']> } {
   if (!value || typeof value !== 'object') return false;
   const item = value as DailySentence;
   if (!isDailySentenceText(item.text) || typeof item.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(item.date)

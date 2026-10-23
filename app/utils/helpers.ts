@@ -94,7 +94,10 @@ export const POS_GROUP_LABELS: Record<PosGroup, string> = {
 };
 
 // 朗读日语文本
-export function speakJapanese(text: string): void {
+export function speakJapanese(text: string, callbacks?: {
+  onStart?: () => void; onEnd?: () => void; onBoundary?: (charIndex: number) => void;
+  onPause?: () => void; onResume?: () => void;
+}): void {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
     
@@ -102,6 +105,12 @@ export function speakJapanese(text: string): void {
     utterance.lang = 'ja-JP';
     utterance.rate = 0.9;
     utterance.pitch = 1;
+    utterance.onstart = () => callbacks?.onStart?.();
+    utterance.onend = () => callbacks?.onEnd?.();
+    utterance.onerror = () => callbacks?.onEnd?.();
+    utterance.onboundary = event => callbacks?.onBoundary?.(event.charIndex);
+    utterance.onpause = () => callbacks?.onPause?.();
+    utterance.onresume = () => callbacks?.onResume?.();
     window.speechSynthesis.speak(utterance);
   } else {
     console.warn('浏览器不支持语音朗读功能');
@@ -113,7 +122,10 @@ import type { TokenData } from '../services/api';
 
 export interface TtsAudioPayload {
   url: string;
+  blob: Blob;
   cues?: TokenTimeCue[];
+  /** Preserve raw word boundaries for companions and unanalysed text too. */
+  boundaries?: import('../lib/speechReading').SpeechBoundary[];
 }
 
 // 获取带精确时间戳的 TTS 音频
@@ -125,16 +137,17 @@ export async function getJapaneseTtsAudio(
   tokens?: TokenData[]
 ): Promise<TtsAudioPayload> {
   const result = await synthesizeSpeech(text, provider, options, apiKey);
-  const url = /^audio\/(?:l16|pcm)(?:;|$)/i.test(result.mimeType)
-    ? createPlayableUrlFromPcm(result.audio, result.mimeType)
-    : createPlayableUrlFromAudio(result.audio, result.mimeType);
+  const blob = /^audio\/(?:l16|pcm)(?:;|$)/i.test(result.mimeType)
+    ? createPlayableBlobFromPcm(result.audio, result.mimeType)
+    : createPlayableBlobFromAudio(result.audio, result.mimeType);
+  const url = URL.createObjectURL(blob);
 
   let cues: TokenTimeCue[] | undefined;
   if (result.cues && result.cues.length > 0 && tokens && tokens.length > 0) {
     cues = alignWordBoundariesToTokens(tokens, result.cues);
   }
 
-  return { url, cues };
+  return { url, blob, cues, boundaries: result.cues };
 }
 
 // 获取 TTS 音频 URL (向下兼容)
@@ -149,7 +162,7 @@ export async function getJapaneseTtsAudioUrl(
 }
 
 // 将 Base64 音频数据转换为可播放的 URL (Edge TTS用)
-function createPlayableUrlFromAudio(base64: string, mimeType: string): string {
+function createPlayableBlobFromAudio(base64: string, mimeType: string): Blob {
   const byteString = atob(base64);
   const arrayBuffer = new ArrayBuffer(byteString.length);
   const uint8Array = new Uint8Array(arrayBuffer);
@@ -158,12 +171,11 @@ function createPlayableUrlFromAudio(base64: string, mimeType: string): string {
     uint8Array[i] = byteString.charCodeAt(i);
   }
   
-  const blob = new Blob([arrayBuffer], { type: mimeType });
-  return URL.createObjectURL(blob);
+  return new Blob([arrayBuffer], { type: mimeType });
 }
 
 // 将 Base64 PCM 数据转换为可播放的 WAV URL (Gemini TTS用)
-function createPlayableUrlFromPcm(base64: string, mimeType: string): string {
+function createPlayableBlobFromPcm(base64: string, mimeType: string): Blob {
   const byteString = atob(base64);
   const pcmData = new Uint8Array(byteString.length);
   for (let i = 0; i < byteString.length; i++) {
@@ -203,6 +215,5 @@ function createPlayableUrlFromPcm(base64: string, mimeType: string): string {
     view.setUint8(44 + i, pcmData[i]);
   }
 
-  const wavBlob = new Blob([view], { type: 'audio/wav' });
-  return URL.createObjectURL(wavBlob);
+  return new Blob([view], { type: 'audio/wav' });
 }

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-app-locale"
+description = "Enables the app_locale command without any pre-configured scope."
+commands.allow = ["app_locale"]
+
+[[permission]]
+identifier = "deny-app-locale"
+description = "Denies the app_locale command without any pre-configured scope."
+commands.deny = ["app_locale"]

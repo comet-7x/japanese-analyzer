@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { useModalFocus } from './useModalFocus';
 import { createPortal } from 'react-dom';
 
 /** Keep nested editors outside the animated, scrollable settings container. */
 export default function SettingsConfigLayer({ children, onClose }: { children: ReactNode; onClose: () => void }) {
+  const root = useRef<HTMLDivElement>(null);
+  useModalFocus(root, true);
   useEffect(() => {
     const containers = [document.body, ...document.querySelectorAll<HTMLElement>('.settings-modal-content')];
     const previous = containers.map((element) => element.style.overflow);
@@ -21,5 +24,5 @@ export default function SettingsConfigLayer({ children, onClose }: { children: R
     document.addEventListener('keydown', handleEscape, true);
     return () => document.removeEventListener('keydown', handleEscape, true);
   }, [onClose]);
-  return createPortal(children, document.body);
+  return createPortal(<div ref={root} tabIndex={-1}>{children}</div>, document.body);
 }

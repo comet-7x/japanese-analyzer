@@ -24,9 +24,10 @@ npm run desktop:dev
 请不要同时运行 `next dev` 和 `next build`：它们共用 `.next/`。开发结束后重新构建生产产物。
 
 ```bash
-npm run build
 npm run desktop:build
 ```
+
+包含 Live2D Core 的构建使用 `npm run desktop:build:live2d -- --accept-license`：在执行者已阅读并同意软件许可后，从官方来源下载固定内容、校验并缓存 Core，再执行同一桌面构建流程。已准备好匹配的 Core 或缓存时可省略确认参数；离线可传 `--source "<Core 文件路径>"`。普通桌面构建不会强制启用 Core。具体锁定版本、环境变量和发布许可边界见 [准备 Cubism Core](live2d.md#准备-cubism-core)。
 
 输出位于 `src-tauri/target/release/bundle/`：macOS 为 `.app` / `.dmg`，Windows 为 NSIS 安装包。本机最终用户无需安装 Node 或 Rust。不要跨 OS / 架构复用 standalone：Next.js 可选原生模块可能被追踪进产物，必须使用目标平台上的 Node 22 重新构建。
 
@@ -37,7 +38,7 @@ npm run desktop:build
 `npm run desktop:package-server`：
 
 1. 校验 standalone、static、公用资源与许可文件齐全，以及构建来自 Node 22 和当前原生平台。
-2. 从 `https://nodejs.org/dist/v<version>/` 下载 macOS arm64/x64 `.tar.xz` 或 Windows x64 `.zip`，按同站官方 `SHASUMS256.txt` 校验 SHA-256。缓存位于被 Git 忽略的 `.desktop-cache/`，每次复核校验和。
+2. 从 `https://nodejs.org/dist/v<version>/` 下载 macOS arm64/x64 `.tar.xz` 或 Windows x64 `.zip`，按同站官方 `SHASUMS256.txt` 校验 SHA-256。缓存位于被 Git 忽略的 `.desktop-cache/`，每次复核校验和。这一步准备的是 Node 运行时；可选 Core 由 `live2d:prepare` 或包含 Live2D 的构建命令单独准备。
 3. 清空固定生成目录 `src-tauri/resources/server/`，复制 standalone、`.next/static`、`public`、`LICENSE`、`NOTICE`、`LICENSING.md`、`LICENSES/`，并剔除所有 `.env` / `.env.*` 文件。内置运行时只保留 `node`（Windows 为 `node.exe` 与同目录 DLL）以及 Node 许可文本。
 4. 给复制后的 Next routes manifest 添加桌面 CSP 响应头，不修改原始 Web 产物；生成 `server-manifest.json`，记录应用版本、Node 版本、平台、发行包校验和及每个文件的 SHA-256。
 
@@ -48,6 +49,12 @@ Tauri 按目录递归打包 `resources/server/`，保留隐藏的 `.next`。运�
 ## 端口、数据与生命周期
 
 首次启动用 `TcpListener::bind("127.0.0.1:0")` 选择端口，释放后交给 Node。该端口写入应用数据目录的 `server-port`，之后重启和更新继续使用：WebView 的 localStorage 按 origin（包含端口）隔离，每次随机端口会使 Key、语言、主题和历史记录看起来丢失。这个持久化是对原随机端口方案的必要补充。
+
+启动页与主页共用语言选择规则：已有手动选择优先；没有选择或选择「跟随系统」时，Mac 读取 `NSLocale.preferredLanguages`，Windows 读取 `GetUserPreferredUILanguages(MUI_LANGUAGE_NAME)` 返回的界面语言顺序，依次匹配简体中文、繁体中文、英文、韩文；都不支持时回退简体中文。中文优先按 Hans／Hant 脚本匹配，再按地区区分；不会把键盘输入法或日期地区格式当成界面语言。Web 端使用浏览器首选语言列表，并在自动模式下响应 `languagechange`。
+
+主页的 `language` localStorage 保存手动语言代码或 `system`；旧的有效语言代码继续视为手动选择。`ja_ui_language` 功能 Cookie 共享的是选择模式，自动匹配结果不会被误存成手动选择。受限的 `app_locale` 命令还通过 `ja_system_language` Cookie 将原生系统匹配结果传给主页；不向 HTTP 页面开放原生权限或其他 Cookie。macOS Wry 0.57 的 `cookies_for_url` 对 IP 地址筛选有缺陷，读取时明确匹配 `127.0.0.1` 与固定 Cookie 名。已有安装进入新版主页一次后可同步原来的手动选择。
+
+语言菜单新增「跟随系统」并显示当前匹配语言；Mac 和 Windows 都在下次启动时重新读取系统偏好。手动语言不会随系统变化而覆盖，用户可以随时恢复自动模式。安装器语言选择不属于此功能，本次未改 NSIS 安装界面。
 
 已保存端口被其他进程占用时显示启动错误，释放占用后点击重试。不会静默换端口导致用户进入一个空的存储空间。不要随意删除 `server-port`；删除它会生成新 origin，原 WebView 数据不会自动迁移。
 
@@ -141,3 +148,22 @@ cargo test --manifest-path src-tauri/Cargo.toml
 更新最终验收需要仓库签名 secrets 和两个实际测试版本：先安装旧版本，再发布更高版本的签名 Release，验证 macOS 完整更新与 Windows 手动安装入口。单次本机构建或静态检查不能替代这个发布链路验收。
 
 Node SEA、托盘、本地服务端 Key 配置面板和 Windows 自动安装策略均不在一期范围。
+
+
+## 调试产物清理
+
+`npm run desktop:clean` 仅预览；`npm run desktop:clean:apply` 执行清理。范围限于 `scripts/desktop/cleanup.mjs` 中显式登记的验收目录，保留其中最新的 `Japanese Analyzer.app`，清理旧应用包。截图、日志、下载归档和不在白名单中的目录不自动删除。新验收目录需显式加入白名单。
+
+每次 `npm run desktop:build` 成功后，npm 的 `postdesktop:build` 钩子自动执行保守清理：保留最新普通测试包，旧包至少保留 7 天，解压临时目录至少保留 1 天。`package-server.mjs` 本身已在 `finally` 中删除正常解压目录，本钩子处理崩溃后的旧残留。直接调用 `npx tauri build` 不触发 npm 钩子，可手动运行 `npm run postdesktop:build`。
+
+需要回收编译缓存时，手动运行 `npm run desktop:clean:apply -- --build-cache`，额外清理 `src-tauri/target`、`src-tauri/resources/server` 和重复的 Node 解压目录，保留已下载的 Node 压缩包。自动模式禁止此选项，避免每次构建后都丢失编译缓存；手动清理后下次桌面构建会重新生成这些输出，耗时可能增加。
+
+清理前检查符号链接及目录边界，跳过正在运行的应用和活跃编译；获取进程列表失败时不删除。自动钩子失败只报告跳过，不把已经成功的构建标为失败。脚本不扫描 `~/Library`，不清理模型、密钥、历史、应用 Cookie，也不删除开发 `.next`、`node_modules`、字典、Core 或源码。
+
+2026-10-22 已执行一次手动清理：7 个验收应用包保留最新 1 个，移除旧包、编译／服务输出、重复 Node 解压目录，并单独移除该轮工具创建的临时生产工作区。固定白名单内共移除 9 项、约 9.20 GiB 文件逻辑体积；临时工作区额外占约 5.6 GiB。APFS 克隆使逻辑体积不等于实际回收空间；磁盘可用空间实测增加约 11.4 GiB（约 12 GB）。保留应用通过运行后签名校验，相关截图及日志仍在原目录。
+
+### 系统临时目录边界
+
+2026-10-22 另行检查 macOS 的 `/tmp`（实际为 `/private/tmp`）和当前用户的 `$TMPDIR`，本机没有 `/temp`。清理前分别约 75 MiB 和 213 MiB；后者存在不可读取条目，数字只覆盖可读取部分。确认归属和未被打开后，移除 6 项旧验证副本、语料中间文件及调研下载包，合计约 52 MiB；不足 24 小时的空验证目录、截图、日志和 Haru 测试模型来源保留。明细在本机 `.desktop-cache/system-language-verification/temp-cleanup-applied.json`。
+
+系统临时目录不加入 `desktop:clean` 或构建后自动清理，也不按 `live2d-*` 等宽泛前缀或文件年龄批量删除。其他应用的缓存、套接字和系统服务目录不属于项目清理范围。后续调试产物优先放在项目 `.desktop-cache` 中；短期工作区使用 `try/finally` 主动清理，若需要崩溃残留回收，再显式登记可删除目录及保留期。现有构建解压目录已遵循此机制。

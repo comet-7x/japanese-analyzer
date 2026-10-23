@@ -10,12 +10,18 @@ import { useAnalysisEditing } from './hooks/useAnalysisEditing';
 import { buildReadingGroups } from './utils/analysisEditing';
 import { browserStorage } from './utils/storage';
 import { loadSpeechSettings, SPEECH_PRESETS, SPEECH_SETTINGS_KEY, type SpeechSettings } from './lib/speechServices';
+import dynamic from 'next/dynamic';
+import { DEFAULT_LIVE2D_SETTINGS, removeLive2DModelConfig, LIVE2D_SETTINGS_KEY, loadLive2DSettings, sanitizeLive2DSettings, type Live2DSettings } from './plugins/live2d/settings';
+
+import type { CompanionAnalysisEvent } from './plugins/live2d/companion';
+
+const Live2DWidget = dynamic(() => import('./plugins/live2d/Live2DWidget'), { ssr: false });
 import { readTranslationServiceSettings, TRANSLATION_SERVICES_KEY, type TranslationProviderId, type TranslationServiceSettings } from './lib/translationServices';
 
 import { useLanguage } from './contexts/LanguageContext';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import InputSection from './components/InputSection';
+import InputSection, { type SentenceReaderHandle, type SentenceReaderState } from './components/InputSection';
 import AnalysisResult, { DisplayOptions } from './components/AnalysisResult';
 import TranslationSection from './components/TranslationSection';
 import SettingsModal from './components/SettingsModal';
@@ -34,7 +40,6 @@ import type { AnalysisEngine, LocalProgress } from './lib/localAnalyzerTypes';
 import type { AnalysisSession, AnalysisProgress } from './utils/analysisSession';
 import { selectWordDetailContext } from './utils/wordDetailContext';
 import { getPhraseReading, getPhraseText, mergePhraseTokens, normalizePhraseRange, isPunctuationToken, type PhraseRange } from './utils/phraseRange';
-import { calculateMoraTimeline, getActiveTokenIndexAtTime, type TokenTimeCue } from './utils/moraTiming';
 import { createRequestMetrics, trackAnalyzeUsage, type AnalyzeUsageMetadata } from './utils/analytics';
 import {
   createAnalysisSession,
@@ -65,10 +70,12 @@ export default function Home() {
   const [dictionaryDraft, setDictionaryDraft] = useState('');
   const [mode, setMode] = useState<'analyze' | 'dictionary'>('analyze');
   const [editRange, setEditRange] = useState<{ range: PhraseRange; taskId: number; revision: number } | null>(null);
+  const cancelCompanionRef = useRef<() => void>(() => {});
   const handleDraftChange = useCallback((value: string) => {
     setDraft(value); setEditRange(null);
     if (value !== currentSentence) {
       analysisAbortControllerRef.current?.abort('edit');
+    cancelCompanionRef.current();
       const cancelled = analysisSessionRef.current?.session.getSnapshot();
       if (cancelled && activeAnalysisTypeRef.current === 'model') setAnalyzedTokens(cancelled.confirmedTokens);
       analysisAbortControllerRef.current = null;
@@ -80,6 +87,20 @@ export default function Home() {
   }, [currentSentence, setAnalyzedTokens]);
   const readingGroups = useMemo(() => buildReadingGroups(analyzedTokens, editing.state.groups), [analyzedTokens, editing.state.groups]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [companionEvent, setCompanionEvent] = useState<CompanionAnalysisEvent | null>(null);
+  const companionRequestRef = useRef(0);
+  const startCompanionAnalysis = () => {
+    const requestId = ++companionRequestRef.current;
+    setCompanionEvent({ requestId, phase: 'started', at: Date.now() });
+    return requestId;
+  };
+  cancelCompanionRef.current = () => {
+    const requestId = ++companionRequestRef.current;
+    setCompanionEvent({ requestId, phase: 'cancelled', at: Date.now() });
+  };
+  const finishCompanionAnalysis = (requestId: number, phase: CompanionAnalysisEvent['phase']) => {
+    if (requestId === companionRequestRef.current) setCompanionEvent({ requestId, phase, at: Date.now() });
+  };
   const [analysisError, setAnalysisError] = useState('');
   const [analysisProgress, setAnalysisProgress] = useState<AnalysisProgress | null>(null);
   const analysisSessionRef = useRef<{ session: AnalysisSession; retry: () => Promise<void> } | null>(null);
@@ -102,6 +123,11 @@ export default function Home() {
 
   // API设置相关状态
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<'models' | 'live2d'>('models');
+  const openSettings = (tab: 'models' | 'live2d' = 'models') => {
+    setSettingsInitialTab(tab);
+    setIsSettingsModalOpen(true);
+  };
   const [services, setServices] = useState<ProviderProfile[]>([]);
   const [activeServiceId, setActiveServiceId] = useState('');
   const [activeModelId, setActiveModelId] = useState('');
@@ -134,6 +160,15 @@ export default function Home() {
   const reasoningSummaryControllerRef = useRef<ReasoningSummaryController | null>(null);
   const analysisAbortControllerRef = useRef<AbortController | null>(null);
   const [speechSettings, setSpeechSettings] = useState<SpeechSettings>({ services: [{ ...SPEECH_PRESETS[0] }, { ...SPEECH_PRESETS[1] }], activeId: 'edge' });
+  const [live2dSettings, setLive2dSettings] = useState<Live2DSettings>(DEFAULT_LIVE2D_SETTINGS);
+  const [live2dSettingsLoaded, setLive2dSettingsLoaded] = useState(false);
+  const [companionAnchor, setCompanionAnchor] = useState<HTMLElement | null>(null);
+  const capsuleMoveRef = useRef<((x: number, y: number, commit: boolean) => void) | null>(null);
+  const sentenceReaderRef = useRef<SentenceReaderHandle | null>(null);
+  const [sentenceReaderState, setSentenceReaderState] = useState<SentenceReaderState>({ preparing: false, error: '' });
+  useEffect(() => {
+    if (live2dSettingsLoaded) browserStorage.setItem(LIVE2D_SETTINGS_KEY, JSON.stringify(live2dSettings));
+  }, [live2dSettings, live2dSettingsLoaded]);
   const [translationSettings, setTranslationSettings] = useState<TranslationServiceSettings>(() => {
     return readTranslationServiceSettings(null);
   });
@@ -158,52 +193,9 @@ export default function Home() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isDesktop, setIsDesktop] = useState(true);
 
-  // 语音播放与单词高亮联动状态
-  const [playingTokenIndex, setPlayingTokenIndex] = useState<number | null>(null);
-  const playingTokenIndexRef = useRef<number | null>(null);
-  const playbackCuesRef = useRef<{ sentence: string; duration: number; cues: TokenTimeCue[] } | null>(null);
-  const officialPlaybackCuesRef = useRef<{ sentence: string; cues: TokenTimeCue[] } | null>(null);
-
-  const handleAudioCuesReady = useCallback((cues: TokenTimeCue[] | null) => {
-    if (cues && cues.length > 0) {
-      officialPlaybackCuesRef.current = { sentence: currentSentence, cues };
-    } else {
-      officialPlaybackCuesRef.current = null;
-    }
-  }, [currentSentence]);
-
-  const handleAudioPlaybackUpdate = useCallback((state: { currentTime: number; duration: number } | null) => {
-    if (!state || state.currentTime <= 0 || state.duration <= 0 || !currentSentence || analyzedTokens.length === 0) {
-      if (playingTokenIndexRef.current !== null) {
-        playingTokenIndexRef.current = null;
-        setPlayingTokenIndex(null);
-      }
-      return;
-    }
-
-    let cues: TokenTimeCue[];
-    // 优先使用官方真实 WordBoundary 毫秒级时间轴（方案 B）
-    if (officialPlaybackCuesRef.current && officialPlaybackCuesRef.current.sentence === currentSentence) {
-      cues = officialPlaybackCuesRef.current.cues;
-    } else {
-      // 无官方时间戳时使用方案 A（基于日语韵律声学的动力学时间轴）
-      if (!playbackCuesRef.current || playbackCuesRef.current.sentence !== currentSentence || Math.abs(playbackCuesRef.current.duration - state.duration) > 0.05) {
-        cues = calculateMoraTimeline(analyzedTokens, state.duration);
-        playbackCuesRef.current = { sentence: currentSentence, duration: state.duration, cues };
-      } else {
-        cues = playbackCuesRef.current.cues;
-      }
-    }
-
-    const index = getActiveTokenIndexAtTime(cues, state.currentTime);
-    const target = index >= 0 ? index : null;
-    if (playingTokenIndexRef.current !== target) {
-      playingTokenIndexRef.current = target;
-      setPlayingTokenIndex(target);
-    }
-  }, [currentSentence, analyzedTokens]);
   useEffect(() => {
     analysisAbortControllerRef.current?.abort('language-change');
+    cancelCompanionRef.current();
     const cancelled = analysisSessionRef.current?.session.getSnapshot();
     if (cancelled && cancelled.status !== 'complete' && activeAnalysisTypeRef.current === 'model') setAnalyzedTokens(cancelled.confirmedTokens);
     analysisAbortControllerRef.current = null;
@@ -217,7 +209,6 @@ export default function Home() {
     setSelectedIndex(null);
     setSelectedRange(null);
     setPickAnchor(null);
-    officialPlaybackCuesRef.current = null;
     reasoningTextStore.reset();
     hasDeepseekReasoningRef.current = false;
     setHasDeepseekReasoning(false);
@@ -327,6 +318,8 @@ export default function Home() {
     setGeminiApiKey(storedAISettings.geminiApiKey);
     setAnalysisEngine(browserStorage.getItem('japaneseAnalyzer:analysisEngine') === 'local' ? 'local' : 'model');
     setSpeechSettings(loadSpeechSettings(browserStorage));
+    setLive2dSettings(loadLive2DSettings(browserStorage));
+    setLive2dSettingsLoaded(true);
     const storedTranslation = browserStorage.getItem(TRANSLATION_SERVICES_KEY);
     if (storedTranslation) {
       setTranslationSettings(readTranslationServiceSettings(storedTranslation));
@@ -339,6 +332,7 @@ export default function Home() {
   // 切换模型 / 保存设置后都要清掉的解析与思考状态
   const resetAnalysisState = () => {
     analysisAbortControllerRef.current?.abort('settings-change');
+    cancelCompanionRef.current();
     const cancelled = analysisSessionRef.current?.session.getSnapshot();
     if (cancelled && cancelled.status !== 'complete' && activeAnalysisTypeRef.current === 'model') setAnalyzedTokens(cancelled.confirmedTokens);
     analysisAbortControllerRef.current = null;
@@ -364,6 +358,7 @@ export default function Home() {
     activeModelId: string;
     geminiApiKey: string;
     speechSettings: SpeechSettings;
+    live2dSettings: Live2DSettings;
   }) => {
     setTranslationSettings(settings.translationSettings);
     browserStorage.setItem(TRANSLATION_SERVICES_KEY, JSON.stringify(settings.translationSettings));
@@ -375,6 +370,8 @@ export default function Home() {
     });
     browserStorage.setItem(SPEECH_SETTINGS_KEY, JSON.stringify(settings.speechSettings));
     setSpeechSettings(settings.speechSettings);
+    const nextLive2DSettings = sanitizeLive2DSettings(settings.live2dSettings);
+    setLive2dSettings(nextLive2DSettings);
 
     setServices(settings.services);
     setActiveServiceId(settings.activeServiceId);
@@ -481,6 +478,7 @@ export default function Home() {
     const controller = new AbortController();
     analysisAbortControllerRef.current = controller;
     activeAnalysisTypeRef.current = 'local';
+    const companionRequest = startCompanionAnalysis();
     setAnalysisSignal(controller.signal);
     const current = () => analysisAbortControllerRef.current === controller && !controller.signal.aborted;
     activeAnalysisKeyRef.current = '';
@@ -495,6 +493,7 @@ export default function Home() {
         onPartial: tokens => { if (current()) editing.setVariantTokens('local', tokens); },
       });
       if (!current()) return;
+      finishCompanionAnalysis(companionRequest, 'succeeded');
       editing.setVariantTokens('local', tokens, true);
       editing.updateVariant('local', { status: 'complete', validated: true, model: 'Sudachi' }); history.record(text);
       const correctionKey = localCorrectionCacheKey(text, endpoint, locale, userApiKey, thinkingEnabled);
@@ -503,7 +502,7 @@ export default function Home() {
         editing.startVariant('local-corrected', cachedCorrection, { status: 'complete', validated: true, model: endpoint.model, fromCache: true }, true);
       }
     } catch (error) {
-      if (current()) setAnalysisError(error instanceof Error ? error.message : '本地解析失败，请重试或切换模型解析。');
+      if (current()) { finishCompanionAnalysis(companionRequest, 'failed'); setAnalysisError(error instanceof Error ? error.message : '本地解析失败，请重试或切换模型解析。'); }
     } finally {
       if (current()) { setIsAnalyzing(false); setLocalProgress(null); analysisAbortControllerRef.current = null; }
     }
@@ -512,11 +511,12 @@ export default function Home() {
   const handleCorrectLocal = async () => {
     const local = editing.variants.local;
     if (isAnalyzing || !local?.validated) return;
-    if (!activeService || !activeModel) { setAnalysisError(t('请先在设置中配置模型服务')); setIsSettingsModalOpen(true); return; }
+    if (!activeService || !activeModel) { setAnalysisError(t('请先在设置中配置模型服务')); openSettings(); return; }
     resetAnalysisState(); handleCloseWordDetail(); setEditRange(null);
     const controller = new AbortController();
     analysisAbortControllerRef.current = controller;
     activeAnalysisTypeRef.current = 'correction';
+    let companionRequest = startCompanionAnalysis();
     const frozenTokens = local.editing.tokens;
     const { taskId, revision } = local.editing;
     editing.startVariant('local-corrected', frozenTokens, { status: 'running', validated: false, sourceRevision: revision, model: endpoint.model, progress: null }, true);
@@ -527,6 +527,7 @@ export default function Home() {
     const finish = (result: AnalysisProgress) => {
       if (!current()) return;
       setIsAnalyzing(false);
+      finishCompanionAnalysis(companionRequest, result.status === 'complete' ? 'succeeded' : result.status === 'failed' ? 'failed' : 'cancelled');
       if (result.status === 'complete') {
         editing.setVariantTokens('local-corrected', result.confirmedTokens, true);
         editing.updateVariant('local-corrected', { status: 'complete', validated: true, model: endpoint.model, progress: null, sourceRevision: revision });
@@ -548,11 +549,12 @@ export default function Home() {
       });
       analysisSessionRef.current = { session, retry: async () => {
         if (!current()) return;
+        companionRequest = startCompanionAnalysis();
         setIsAnalyzing(true); setAnalysisError(''); finish(await session.retryFailed());
       } };
       finish(await session.run());
     } catch (error) {
-      if (current()) { setIsAnalyzing(false); setAnalysisError(error instanceof Error ? error.message : '模型校正失败，请重试。'); }
+      if (current()) { finishCompanionAnalysis(companionRequest, 'failed'); setIsAnalyzing(false); setAnalysisError(error instanceof Error ? error.message : '模型校正失败，请重试。'); }
     }
   };
 
@@ -563,7 +565,7 @@ export default function Home() {
 
     if (!activeService || !activeModel) {
       setAnalysisError(t("请先在设置中配置模型服务"));
-      setIsSettingsModalOpen(true);
+      openSettings();
       return;
     }
 
@@ -592,6 +594,7 @@ export default function Home() {
     editing.startWorkspace(text, 'model', [], { status: 'running', validated: false, sourceKey: cacheKey, model: endpoint.model, fromCache: false });
     setEditNotice('');
     analysisAbortControllerRef.current?.abort('superseded');
+    let companionRequest = startCompanionAnalysis();
     const analysisAbortController = new AbortController();
     analysisAbortControllerRef.current = analysisAbortController;
     setAnalysisSignal(analysisAbortController.signal);
@@ -690,6 +693,7 @@ export default function Home() {
     const finish = (result: AnalysisProgress) => {
       if (!isCurrentAnalysis()) return;
       setIsAnalyzing(false);
+      finishCompanionAnalysis(companionRequest, result.status === 'complete' ? 'succeeded' : result.status === 'failed' ? 'failed' : 'cancelled');
       finishReasoningStatus(t(result.status === 'complete' ? '已深度思考' : '深度思考已中止'));
       if (result.status === 'complete') {
         editing.setVariantTokens('model', result.confirmedTokens, true);
@@ -708,6 +712,7 @@ export default function Home() {
     };
     analysisSessionRef.current = { session, retry: async () => {
       if (!isCurrentAnalysis()) return;
+      companionRequest = startCompanionAnalysis();
       setIsAnalyzing(true);
       setAnalysisError('');
       handleCloseWordDetail();
@@ -723,6 +728,7 @@ export default function Home() {
 
     analysisAbortControllerRef.current = null;
     controller.abort('user');
+    cancelCompanionRef.current();
     const cancelled = analysisSessionRef.current?.session.getSnapshot();
     if (cancelled) { setAnalysisProgress(cancelled); if (activeAnalysisTypeRef.current === 'model') editing.setVariantTokens('model', cancelled.confirmedTokens); }
     setLocalProgress(null);
@@ -754,6 +760,7 @@ export default function Home() {
     setAnalysisProgress(null);
     setLocalProgress(null); setLocalNotice('');
     analysisAbortControllerRef.current?.abort();
+    cancelCompanionRef.current();
     analysisAbortControllerRef.current = null;
     setIsAnalyzing(false);
     handleCloseWordDetail();
@@ -831,7 +838,7 @@ export default function Home() {
           activeServiceId={activeService?.id ?? ''}
           activeModelId={activeModel?.id ?? ''}
           onSelectModel={handleSelectModel}
-          onSettingsClick={() => setIsSettingsModalOpen(true)}
+          onSettingsClick={() => openSettings()}
         />
 
         {/* 阅读列居中；点词后详情栏从右侧展开，主列随之左移。 */}
@@ -897,6 +904,8 @@ export default function Home() {
             }} onClear={() => { void clearLocalDictionaryCache().then(() => { setLocalNoticeIsError(false); setLocalNotice('已清除词典缓存。'); }).catch(error => { setLocalNoticeIsError(true); setLocalNotice(error.message); }); }} />
             {analysisEngine === 'local' && localNotice && <p className="tool-note" role={localNoticeIsError ? 'alert' : 'status'}>{errorText(localNotice)}</p>}
             <InputSection
+              sentenceReaderRef={sentenceReaderRef}
+              onSentenceReaderStateChange={setSentenceReaderState}
               originalText={currentSentence || draft}
               draft={draft}
               onDraftChange={handleDraftChange}
@@ -918,7 +927,7 @@ export default function Home() {
                 activeServiceId={activeService?.id ?? ''}
                 activeModelId={activeModel?.id ?? ''}
                 onSelectModel={handleSelectModel}
-                onOpenSettings={() => setIsSettingsModalOpen(true)}
+                onOpenSettings={() => openSettings()}
                 endpoint={endpoint}
                 speechService={activeSpeechService}
                 speechServices={speechSettings.services}
@@ -927,8 +936,6 @@ export default function Home() {
               isAnalyzing={isAnalyzing}
               analysisError={analysisError}
               tokens={analyzedTokens}
-              onAudioCuesReady={handleAudioCuesReady}
-              onAudioPlaybackUpdate={handleAudioPlaybackUpdate}
               compactExtras={shouldShowAnalyzer() && (
                 <DisplayOptions
                   variant="chips"
@@ -1018,7 +1025,6 @@ export default function Home() {
                     onRangeSelect={handleRangeSelect}
                     pickAnchor={pickAnchor}
                     onPickAnchorChange={setPickAnchor}
-                    playingTokenIndex={playingTokenIndex}
                     showDisplayOptions={!isReading}
                   />
                 )}
@@ -1031,7 +1037,7 @@ export default function Home() {
                     useStream={useStream}
                     trigger={translationTrigger}
                     analysisReady={!isAnalyzing && analysisValidated}
-                    onConfigureModel={() => setIsSettingsModalOpen(true)}
+                    onConfigureModel={() => openSettings()}
                     analysisSignal={analysisSignal}
                     settings={translationSettings}
                     onProviderChange={(provider: TranslationProviderId) => {
@@ -1068,10 +1074,25 @@ export default function Home() {
           activeModelId={activeModelId}
           geminiApiKey={geminiApiKey}
           speechSettings={speechSettings}
+          live2dSettings={live2dSettings}
+          initialTab={settingsInitialTab}
+          onLive2DModelDeleted={(id) => {
+            setLive2dSettings(current => removeLive2DModelConfig(current, id));
+          }}
           onSaveSettings={handleSaveSettings}
           isModalOpen={isSettingsModalOpen}
           onModalClose={() => setIsSettingsModalOpen(!isSettingsModalOpen)}
         />
+        {live2dSettings.enabled && <Live2DWidget
+          analysisEvent={companionEvent}
+          onCapsuleAnchorChange={setCompanionAnchor}
+          capsuleMoveRef={capsuleMoveRef}
+          settings={live2dSettings}
+          onSettingsChange={update => setLive2dSettings(current => sanitizeLive2DSettings(
+            typeof update === 'function' ? update(current) : update,
+          ))}
+          onOpenSettings={() => openSettings('live2d')}
+        />}
       </div>
 
       {/* 移动端词汇详情模态 */}
@@ -1102,6 +1123,19 @@ export default function Home() {
       {/* AI聊天助手 */}
       <AIChat
         hidden={isSettingsModalOpen}
+        companion={live2dSettings.enabled && live2dSettings.modelId && companionAnchor ? {
+          anchor: companionAnchor,
+          collapsed: live2dSettings.minimized,
+          onMoveCapsule: (x, y, commit) => capsuleMoveRef.current?.(x, y, commit),
+          preparing: sentenceReaderState.preparing,
+          readingAvailable: !!(currentSentence || draft).trim(),
+          readingText: currentSentence || draft,
+          readingError: sentenceReaderState.error,
+          onRead: () => sentenceReaderRef.current?.toggle(),
+          onSettings: () => openSettings('live2d'),
+          onCollapse: () => setLive2dSettings(current => ({ ...current, minimized: true })),
+          onRestore: () => setLive2dSettings(current => ({ ...current, minimized: false })),
+        } : undefined}
         userApiKey={userApiKey}
         activeService={activeService}
         endpoint={endpoint}

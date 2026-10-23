@@ -5,7 +5,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import type { TokenData } from '../services/api';
 import type { LearningModel } from '../services/learning';
 import { isMultiWordLookup } from '../lib/dictionary';
-import { getPosGroup, getJapaneseTtsAudioUrl, speakJapanese } from '../utils/helpers';
+import { getPosGroup, getJapaneseTtsAudio, speakJapanese } from '../utils/helpers';
+import { beginAudioSpeech, beginSystemSpeech, endSpeechPlayback, setSpeechPlaybackStatus, setSystemSpeechBoundary } from '../lib/speechPlaybackStore';
 import { loadSpeechSettings } from '../lib/speechServices';
 import { browserStorage } from '../utils/storage';
 import { trackTtsUsage } from '../utils/analytics';
@@ -110,15 +111,54 @@ export default function SelectionDetailPanel({ selectedText, pos, reading, conte
   const speak = async () => {
     speechCleanup.current();
     const controller = new AbortController(); let audio: HTMLAudioElement | undefined; let url: string | undefined;
-    const cleanup = () => { controller.abort(); if (audio) { audio.pause(); audio.removeAttribute('src'); audio.load(); } if (url) { URL.revokeObjectURL(url); url = undefined; } };
+    let sessionId: number | null = null;
+    const cleanup = () => {
+      controller.abort();
+      if (sessionId !== null) { endSpeechPlayback(sessionId); sessionId = null; }
+      if (audio) {
+        audio.onplay = null;
+        audio.onpause = null;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+      }
+      if (url) { URL.revokeObjectURL(url); url = undefined; }
+    };
     speechCleanup.current = cleanup;
     try {
       const settings = loadSpeechSettings(browserStorage); const service = settings.services.find(item => item.id === settings.activeId) ?? settings.services[0];
       const gender = browserStorage.getItem('ttsGender') === 'male' ? 'male' : 'female';
       const rate = Number(browserStorage.getItem('ttsRate')) || 0;
-      url = await getJapaneseTtsAudioUrl(selectedText, service.apiKey, service.provider, { baseUrl: service.baseUrl, model: service.model, voice: service.voice, speed: service.speed, gender, rate, signal: controller.signal });
-      if (controller.signal.aborted) { cleanup(); return; } audio = new Audio(url); audio.onended = cleanup; audio.onerror = cleanup; await audio.play(); trackTtsUsage(service.provider, service.model);
-    } catch { if (!controller.signal.aborted) { cleanup(); speakJapanese(selectedText); } }
+      const payload = await getJapaneseTtsAudio(selectedText, service.apiKey, service.provider, { baseUrl: service.baseUrl, model: service.model, voice: service.voice, speed: service.speed, gender, rate, signal: controller.signal });
+      url = payload.url;
+      if (controller.signal.aborted) { cleanup(); return; }
+      audio = new Audio(url);
+      audio.onplay = () => { if (audio) sessionId = beginAudioSpeech(audio, payload.blob, selectedText, { boundaries: payload.boundaries }); };
+      audio.onpause = () => { if (sessionId !== null) setSpeechPlaybackStatus(sessionId, 'paused'); };
+      audio.onended = cleanup;
+      audio.onerror = cleanup;
+      await audio.play();
+      trackTtsUsage(service.provider, service.model);
+    } catch {
+      if (!controller.signal.aborted) {
+        cleanup();
+        let active = true;
+        let systemId: number | null = null;
+        speechCleanup.current = () => {
+          active = false;
+          if (systemId !== null) endSpeechPlayback(systemId);
+        };
+        speakJapanese(selectedText, {
+          onStart: () => { if (active) systemId = beginSystemSpeech(selectedText); },
+          onBoundary: index => { if (systemId !== null) setSystemSpeechBoundary(systemId, index); },
+          onPause: () => { if (systemId !== null) setSpeechPlaybackStatus(systemId, 'paused'); },
+          onResume: () => { if (systemId !== null) setSpeechPlaybackStatus(systemId, 'playing'); },
+          onEnd: () => { if (systemId !== null) endSpeechPlayback(systemId); systemId = null; },
+        });
+      }
+    }
   };
   const lemma = analysis?.dictionaryForm ?? '';
 

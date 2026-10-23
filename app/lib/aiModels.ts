@@ -35,8 +35,10 @@ export interface ModelConfig {
 
 /** 浏览器里持久化的一个模型服务商配置（可挂多个模型） */
 export interface ProviderProfile {
-  /** 稳定标识：预设 id（如 'deepseek'）或自定义 slug */
+  /** 配置实例的稳定标识；同一服务商可以添加多份配置。 */
   id: string;
+  /** 创建此配置的预设品牌，用于显示 logo，与实例 id、名称及地址独立。 */
+  presetId?: string;
   /** 展示名称 */
   name: string;
   /** 例如 https://api.deepseek.com 或 https://api.openai.com/v1 */
@@ -113,8 +115,8 @@ export const PRESETS: readonly ProviderPreset[] = [
   {
     id: 'volcengine',
     name: 'Volcengine',
-    baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
-    models: [{ id: 'doubao-seed-1-6-250615', name: 'doubao-seed-1-6-250615', model: 'doubao-seed-1-6-250615', caps: { structuredOutput: 'json_schema' } }],
+    baseUrl: 'https://ark.cn-beijing.volces.com/api/plan/v3',
+    models: [{ id: 'doubao-seed-2.1-lite', name: 'doubao-seed-2.1-lite', model: 'doubao-seed-2.1-lite', caps: { structuredOutput: 'json_schema' } }],
   },
   {
     id: 'gemini',
@@ -158,6 +160,20 @@ export function createCustomProfileId(prefix = 'custom'): string {
 /** 为自定义模型生成一个稳定的本地 id（仅客户端使用） */
 export function createCustomModelId(prefix = 'model'): string {
   return `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/** 创建独立的配置实例，同时保留预设品牌。 */
+export function createProfileFromPreset(presetId: string): ProviderProfile | null {
+  const preset = PRESETS.find((item) => item.id === presetId);
+  if (!preset) return null;
+  return {
+    id: createCustomProfileId(),
+    presetId: preset.id,
+    name: preset.name,
+    baseUrl: preset.baseUrl,
+    apiKey: '',
+    models: preset.models.map((model) => ({ ...model, id: createCustomModelId(), caps: model.caps ? { ...model.caps } : undefined })),
+  };
 }
 
 /** 合并服务商与模型的能力位，得到请求要发送的完整 caps */
@@ -266,6 +282,7 @@ export function sanitizeProfiles(raw: unknown): ProviderProfile[] {
     if (models.length === 0 && (!Array.isArray(item.models) || item.models.length > 0)) continue;
     profiles.push({
       id,
+      ...(typeof item.presetId === 'string' && PRESETS.some((preset) => preset.id === item.presetId) ? { presetId: item.presetId } : {}),
       name: typeof item.name === 'string' && item.name.trim() ? item.name.trim() : id,
       baseUrl,
       apiKey: typeof item.apiKey === 'string' ? item.apiKey : '',

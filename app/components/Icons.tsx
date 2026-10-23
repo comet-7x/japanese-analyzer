@@ -25,6 +25,14 @@ export const I = ({ children, w = 18, sw = 1.7, fill = 'none' }: IconWrapProps) 
 );
 
 export const Icon = {
+  // Lucide icons (ISC/MIT); attribution in LICENSES/Lucide-LICENSE.txt.
+  companion: <I><path d="M17.925 20.056a6 6 0 0 0-11.851.001" /><circle cx="12" cy="11" r="4" /><circle cx="12" cy="12" r="10" /></I>,
+  grip: <I>{[5, 12, 19].flatMap(cy => [5, 12, 19].map(cx => <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="1" />))}</I>,
+  hand: <I><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" /></I>,
+  bookOpen: <I><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z" /></I>,
+  play: <I><path d="m8 5 11 7-11 7V5Z" /></I>,
+  dock: <I><path d="M8 16 20 4M8 8v8h8M4 4v16h16" /></I>,
+  minus: <I w={16}><path d="M5 12h14" /></I>,
   return: <I><path d="m9 10-5 5 5 5M4 15h11a5 5 0 0 0 5-5V4" /></I>,
   trash: <I><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6" /></I>,
   photo: <I w={20} sw={1.6}><rect x="3.5" y="4" width="17" height="16" rx="3" /><circle cx="8.5" cy="9" r="1.5" /><path d="m4 16 4.5-4 3.5 3 4-5 4.5 6" /></I>,

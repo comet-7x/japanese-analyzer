@@ -1,11 +1,13 @@
 'use client';
 
+import { useModalFocus } from './useModalFocus';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   PRESETS,
   createCustomModelId,
   createCustomProfileId,
+  createProfileFromPreset,
   resolveModelSelection,
   sanitizeProfiles,
   migrateModelPreferences,
@@ -22,9 +24,14 @@ import DictionarySettings from './DictionarySettings';
 import TranslationSettings from './TranslationSettings';
 import { isValidMyMemoryEmail, readTranslationServiceSettings, type TranslationServiceSettings } from '../lib/translationServices';
 import SettingsConfigLayer from './SettingsConfigLayer';
+import { countSettingChanges } from '../plugins/live2d/settingsFeedback';
 import { sanitizeSpeechSettings, type SpeechSettings } from '../lib/speechServices';
+import dynamic from 'next/dynamic';
+import { removeLive2DModelConfig, sanitizeLive2DSettings, type Live2DSettings } from '../plugins/live2d/settings';
 
-export type SettingsTabId = 'models' | 'translation' | 'dictionary' | 'speech';
+const Live2DSettingsPanel = dynamic(() => import('../plugins/live2d/Live2DSettings'), { ssr: false });
+
+export type SettingsTabId = 'models' | 'translation' | 'dictionary' | 'speech' | 'live2d';
 
 interface SettingsPayload {
   translationSettings: TranslationServiceSettings;
@@ -33,6 +40,7 @@ interface SettingsPayload {
   activeModelId: string;
   geminiApiKey: string;
   speechSettings: SpeechSettings;
+  live2dSettings: Live2DSettings;
 }
 
 interface SettingsModalProps {
@@ -42,8 +50,11 @@ interface SettingsModalProps {
   activeModelId: string;
   geminiApiKey: string;
   speechSettings: SpeechSettings;
+  live2dSettings: Live2DSettings;
+  onLive2DModelDeleted: (id: string) => void;
   onSaveSettings: (settings: SettingsPayload) => void;
   isModalOpen: boolean;
+  initialTab?: SettingsTabId;
   onModalClose: () => void;
 }
 
@@ -57,24 +68,13 @@ function emptyService(): ProviderProfile {
   };
 }
 
-function fromPreset(presetId: string): ProviderProfile | null {
-  const preset = PRESETS.find((p) => p.id === presetId);
-  if (!preset) return null;
-  return {
-    id: createCustomProfileId(),
-    name: preset.name,
-    baseUrl: preset.baseUrl,
-    apiKey: '',
-    models: preset.models.map((m) => ({ ...m, id: createCustomModelId(), caps: m.caps ? { ...m.caps } : undefined })),
-  };
-}
-
 interface SettingsSignatureInput {
   translation: TranslationServiceSettings;
   services: ProviderProfile[];
   activeServiceId: string;
   activeModelId: string;
   speech: SpeechSettings;
+  live2d: Live2DSettings;
 }
 
 const getSettingsSignature = (input: SettingsSignatureInput) => {
@@ -84,6 +84,7 @@ const getSettingsSignature = (input: SettingsSignatureInput) => {
     activeModelId: input.activeModelId,
     translation: input.translation,
     speech: sanitizeSpeechSettings(input.speech),
+    live2d: sanitizeLive2DSettings(input.live2d),
   });
 };
 
@@ -94,11 +95,16 @@ export default function SettingsModal({
   activeModelId: initialActiveModelId,
   geminiApiKey,
   speechSettings: initialSpeechSettings,
+  live2dSettings: initialLive2DSettings,
+  onLive2DModelDeleted,
   onSaveSettings,
   isModalOpen,
+  initialTab = 'models',
   onModalClose
 }: SettingsModalProps) {
   const { t } = useLanguage();
+  const modalRef = useRef<HTMLDivElement>(null);
+  useModalFocus(modalRef, isModalOpen);
   const [activeTab, setActiveTab] = useState<SettingsTabId>('models');
   const [translationSettings, setTranslationSettings] = useState(initialTranslationSettings);
   const [services, setServices] = useState<ProviderProfile[]>(initialServices);
@@ -107,7 +113,9 @@ export default function SettingsModal({
   const [collapsedServiceIds, setCollapsedServiceIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [speechSettings, setSpeechSettings] = useState(initialSpeechSettings);
+  const [live2dSettings, setLive2DSettings] = useState(initialLive2DSettings);
   const [status, setStatus] = useState('');
+  const [live2dSummary, setLive2DSummary] = useState<{ name: string; idleCount: number } | null>(null);
   const [error, setError] = useState('');
   const [defaultMenuOpen, setDefaultMenuOpen] = useState(false);
   const [editingService, setEditingService] = useState<ProviderProfile | null>(null);
@@ -138,14 +146,18 @@ export default function SettingsModal({
       activeModelId,
       translation: translationSettings,
       speech: speechSettings,
+      live2d: live2dSettings,
     });
-  }, [services, activeServiceId, activeModelId, translationSettings, speechSettings]);
+  }, [services, activeServiceId, activeModelId, translationSettings, speechSettings, live2dSettings]);
 
+  const changeCount = savedSignature ? countSettingChanges(JSON.parse(savedSignature), JSON.parse(currentSignature)) : 0;
   const hasUnsavedChanges = Boolean(savedSignature && currentSignature !== savedSignature);
+  useEffect(() => { if (hasUnsavedChanges) setStatus(''); }, [hasUnsavedChanges, currentSignature]);
 
   // 打开弹窗时重置本地编辑态：默认展开当前服务商
   useEffect(() => {
     if (!isModalOpen) return;
+    setActiveTab(initialTab);
     setTranslationSettings(initialTranslationSettings);
     setServices(initialServices);
     setActiveServiceId(initialActiveServiceId);
@@ -154,6 +166,7 @@ export default function SettingsModal({
     setCollapsedServiceIds(initialServices.filter((s) => first && s.id !== first.id).map((s) => s.id));
     setSearchQuery('');
     setSpeechSettings(initialSpeechSettings);
+    setLive2DSettings(initialLive2DSettings);
     setStatus('');
     setError('');
     setDefaultMenuOpen(false);
@@ -168,6 +181,7 @@ export default function SettingsModal({
         activeModelId: initialActiveModelId,
         translation: initialTranslationSettings,
         speech: initialSpeechSettings,
+        live2d: initialLive2DSettings,
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -300,6 +314,7 @@ export default function SettingsModal({
       activeModelId: model?.id ?? '',
       geminiApiKey: speechSettings.services.find((item) => item.id === 'gemini')?.apiKey ?? geminiApiKey,
       speechSettings: sanitizeSpeechSettings(speechSettings)!,
+      live2dSettings: sanitizeLive2DSettings(live2dSettings),
     });
 
     const newSig = getSettingsSignature({
@@ -308,13 +323,12 @@ export default function SettingsModal({
       activeModelId: model?.id ?? '',
       translation: normalizedTranslation,
       speech: speechSettings,
+      live2d: live2dSettings,
     });
     setSavedSignature(newSig);
-    setStatus(t('设置已保存'));
+    setStatus(activeTab === 'live2d' && live2dSummary ? t('已应用到 {0}：平时播放 {1} 个动作', live2dSummary.name, live2dSummary.idleCount) : t('设置已保存'));
     if (closeImmediately) {
       onModalClose();
-    } else {
-      setTimeout(() => onModalClose(), 900);
     }
   };
 
@@ -340,7 +354,7 @@ export default function SettingsModal({
       setEditingServiceMode('edit');
       return;
     }
-    const service = fromPreset(presetId);
+    const service = createProfileFromPreset(presetId);
     if (service) addService(service, 'create');
   };
 
@@ -374,6 +388,12 @@ export default function SettingsModal({
       icon: Icon.speaker,
       desc: t('独立配置朗读使用的模型、密钥和音色。'),
     },
+    {
+      id: 'live2d',
+      label: t('虚拟角色服务'),
+      icon: Icon.companion,
+      desc: t('导入角色模型并设置朗读联动。'),
+    },
   ];
 
   const currentTab = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
@@ -385,7 +405,7 @@ export default function SettingsModal({
       style={{ display: isModalOpen ? 'flex' : 'none' }}
       onClick={handleOutsideClick}
     >
-      <div className="settings-modal-content settings-modular-layout">
+      <div ref={modalRef} className="settings-modal-content settings-modular-layout" role="dialog" aria-modal="true" aria-label={t('设置')} tabIndex={-1}>
         {/* 左侧功能模块边栏 */}
         <aside className="settings-sidebar">
           <div className="settings-sidebar-header">
@@ -415,6 +435,8 @@ export default function SettingsModal({
                   type="button"
                   role="tab"
                   aria-selected={isActive}
+                  tabIndex={isActive ? 0 : -1}
+                  onKeyDown={event => { const offset = event.key === 'ArrowDown' || event.key === 'ArrowRight' ? 1 : event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1 : 0; if (!offset && event.key !== 'Home' && event.key !== 'End') return; event.preventDefault(); const index = tabs.findIndex(item => item.id === tab.id); const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + offset + tabs.length) % tabs.length; setActiveTab(tabs[next].id as SettingsTabId); event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role=tab]')[next]?.focus(); }}
                   className={`settings-nav-item ${isActive ? 'active' : ''}`}
                   onClick={() => setActiveTab(tab.id)}
                 >
@@ -718,11 +740,20 @@ export default function SettingsModal({
             <div style={{ display: activeTab === 'speech' ? 'block' : 'none' }}>
               {isModalOpen && <SpeechServices settings={speechSettings} onChange={setSpeechSettings} />}
             </div>
+
+            <div style={{ display: activeTab === 'live2d' ? 'block' : 'none' }}>
+              {isModalOpen && activeTab === 'live2d' && (
+                <Live2DSettingsPanel onSummary={setLive2DSummary} value={live2dSettings} onChange={setLive2DSettings} onModelDeleted={id => {
+                  setLive2DSettings(current => removeLive2DModelConfig(current, id));
+                  onLive2DModelDeleted(id);
+                }} />
+              )}
+            </div>
           </div>
 
           {/* 底部吸底操作栏 */}
           <footer className="settings-content-footer">
-            <div className="settings-footer-left">
+            <div className="settings-footer-left" role="status" aria-atomic="true">
               {status ? (
                 <span className="settings-footer-status success">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -735,7 +766,7 @@ export default function SettingsModal({
               ) : hasUnsavedChanges ? (
                 <span className="settings-footer-status unsaved">
                   <span className="settings-unsaved-dot" />
-                  <span>{t('有未保存的修改')}</span>
+                  <span>{t('有 {0} 项未保存的修改', changeCount)}</span>
                 </span>
               ) : null}
             </div>

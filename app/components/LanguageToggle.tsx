@@ -6,7 +6,7 @@ import { LANGUAGE_LABELS, LOCALES } from '../i18n';
 import { Icon } from './Icons';
 
 export default function LanguageToggle() {
-  const { locale, setLocale, t } = useLanguage();
+  const { locale, preference, systemLocale, setLocale, t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -42,7 +42,7 @@ export default function LanguageToggle() {
         ref={triggerRef}
         type="button"
         aria-label={t('语言')}
-        title={`${t('语言')} · ${LANGUAGE_LABELS[locale]}`}
+        title={`${t('语言')} · ${preference === 'system' ? `${t('跟随系统')} · ` : ''}${LANGUAGE_LABELS[locale]}`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-controls={isOpen ? menuId : undefined}
@@ -81,18 +81,18 @@ export default function LanguageToggle() {
             items[next]?.focus();
           }}
         >
-          {LOCALES.map((value) => (
+          {(['system', ...LOCALES] as const).map((value) => (
             <button
               key={value}
               type="button"
               role="menuitemradio"
-              aria-checked={locale === value}
-              lang={value}
+              aria-checked={preference === value}
+              lang={value === 'system' ? undefined : value}
               tabIndex={-1}
               className="flex w-full items-center justify-between gap-3 rounded-[10px] px-3 py-2 text-left text-sm font-medium transition-colors"
               style={{
-                background: locale === value ? 'var(--primary-soft)' : 'transparent',
-                color: locale === value ? 'var(--primary)' : 'var(--ink-2)',
+                background: preference === value ? 'var(--primary-soft)' : 'transparent',
+                color: preference === value ? 'var(--primary)' : 'var(--ink-2)',
               }}
               onClick={() => {
                 setLocale(value);
@@ -100,8 +100,8 @@ export default function LanguageToggle() {
                 triggerRef.current?.focus();
               }}
             >
-              <span>{LANGUAGE_LABELS[value]}</span>
-              {locale === value && Icon.check}
+              <span>{value === 'system' ? <>{t('跟随系统')}<small className="mt-0.5 block text-xs" style={{ color: 'var(--ink-2)' }}>{LANGUAGE_LABELS[systemLocale]}</small></> : LANGUAGE_LABELS[value]}</span>
+              {preference === value && Icon.check}
             </button>
           ))}
         </div>

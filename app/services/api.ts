@@ -1,4 +1,5 @@
 import { getClientLocale } from '../i18n';
+import type { ChatRequestMessage } from '../lib/chatMessages';
 import type { SpeechProtocol } from '../lib/speechServices';
 // API与分析相关的服务函数
 import {
@@ -61,10 +62,7 @@ export type WordDetailKind = 'word' | 'phrase' | 'lookup';
 /** 短语类别（与短语提示词约定的日文标签一致） */
 export const PHRASE_CATEGORIES: readonly string[] = ['単語', '文法形式', '慣用表現', '連語'];
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
+export type ChatMessage = ChatRequestMessage;
 
 export type TTSProvider = SpeechProtocol;
 export interface SpeechRequestOptions { gender?: 'male' | 'female'; voice?: string; rate?: number; pitch?: number; model?: string; baseUrl?: string; speed?: number; signal?: AbortSignal }
@@ -1522,7 +1520,8 @@ export async function streamChat(
   onError: (error: Error) => void,
   userApiKey?: string,
   endpoint: EndpointPayload = { baseUrl: '', model: '' },
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  options?: { chatMode?: 'sentence' | 'free'; sentenceContext?: string }
 ): Promise<void> {
   try {
     const apiUrl = getApiEndpoint('/chat');
@@ -1534,6 +1533,8 @@ export async function streamChat(
       signal,
       body: JSON.stringify({
         messages,
+        chatMode: options?.chatMode,
+        sentenceContext: options?.chatMode === 'sentence' ? options.sentenceContext : undefined,
         ...getRequestProviderPayload(endpoint),
         useStream: true
       })
