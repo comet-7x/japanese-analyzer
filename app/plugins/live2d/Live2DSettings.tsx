@@ -19,6 +19,7 @@ import {
   type StoredLive2DModel,
 } from './modelLibrary';
 import { LIVE2D_SCALE, LIVE2D_SENSITIVITY, selectLive2DModel, updateLive2DModelConfig, removeLive2DModelConfig, type Live2DSettings } from './settings';
+import { LIVE2D_CORE_LICENSES } from './coreInfo';
 
 interface Props {
   value: Live2DSettings;
@@ -61,6 +62,40 @@ export default function Live2DSettingsPanel({ value, onChange, onModelDeleted, o
   const panelRef = useRef<HTMLDivElement>(null);
   const [scrollTarget, setScrollTarget] = useState<HTMLElement | null>(null);
   useEffect(() => { setScrollTarget(panelRef.current?.closest<HTMLElement>('.settings-tab-pane') ?? null); }, []);
+
+  const [core, setCore] = useState<{ installed: boolean; sdkVersion: string; sha256: string } | null>(null);
+  const [coreConsent, setCoreConsent] = useState(false);
+  const [coreBusy, setCoreBusy] = useState(false);
+  const [coreError, setCoreError] = useState('');
+  const refreshCore = useCallback(async () => {
+    try {
+      const response = await fetch('/api/live2d/core/status');
+      if (response.ok) setCore(await response.json());
+    } catch { /* Offline status stays unknown; the install button still works. */ }
+  }, []);
+  useEffect(() => {
+    void refreshCore();
+    const onChange = () => { void refreshCore(); };
+    window.addEventListener('live2d:models-changed', onChange);
+    return () => window.removeEventListener('live2d:models-changed', onChange);
+  }, [refreshCore]);
+
+  const installCore = async (payload: Record<string, unknown>) => {
+    if (!coreConsent) { setCoreError(t('Cubism Core 安装需要同意软件许可。')); return; }
+    setCoreBusy(true);
+    setCoreError('');
+    try {
+      const response = await fetch('/api/live2d/core', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error((body as { error?: { message?: string } }).error?.message ?? t('Cubism Core 安装失败。'));
+      await refreshCore();
+      window.dispatchEvent(new Event('live2d:models-changed'));
+    } catch (cause) {
+      setCoreError(cause instanceof Error ? cause.message : t('Cubism Core 安装失败。'));
+    } finally {
+      setCoreBusy(false);
+    }
+  };
 
   const reload = useCallback(async () => {
     try {
@@ -154,6 +189,48 @@ export default function Live2DSettingsPanel({ value, onChange, onModelDeleted, o
       {navigation}
       <Toggle label={t('启用看板娘')} description={t('直接拖动角色调整位置，脚下的胶囊可聊天、朗读和设置。')}
         checked={value.enabled} onChange={enabled => update({ enabled })} />
+
+      <section className="live2d-settings-section" aria-busy={coreBusy}>
+        <h4>{t('Cubism Core 运行库')}</h4>
+        <p>{t('看板娘必需的官方运行库，仅从 Live2D 官方源获取并校验。')}</p>
+        {core?.installed ? (
+          <p><strong>{t('已安装 · Cubism Core {0}', core.sdkVersion)}</strong><small>{t('SHA-256 {0}', core.sha256.slice(0, 12))}</small></p>
+        ) : (
+          <>
+            {core === null ? <p role="status">{t('运行库未安装，请先安装后再使用看板娘。')}</p> : null}
+            <label>
+              <input type="checkbox" checked={coreConsent} onChange={event => { setCoreConsent(event.target.checked); if (event.target.checked) setCoreError(''); }} />
+              <span>{t('我已阅读并同意 Live2D 软件许可')}
+                <a href={LIVE2D_CORE_LICENSES[0]} target="_blank" rel="noreferrer" className="tool-note">（{t('专有软件许可')}）</a>
+                <a href={LIVE2D_CORE_LICENSES[1]} target="_blank" rel="noreferrer" className="tool-note">（{t('开放软件许可')}）</a>
+              </span>
+            </label>
+            <div className="live2d-model-choice">
+              <button type="button" className="nd-ghost-btn" disabled={coreBusy} onClick={() => void installCore({ mode: 'download', acceptLicense: true })}>
+                {coreBusy ? t('正在安装运行库…') : t('在线安装 Core')}
+              </button>
+              <label className="live2d-import-button">
+                {Icon.plus}
+                {t('离线导入 Core 文件')}
+                <input
+                  type="file"
+                  accept=".js,.mjs,.txt,application/javascript,text/javascript,text/plain"
+                  disabled={coreBusy}
+                  onChange={async event => {
+                    const file = event.target.files?.[0];
+                    event.target.value = '';
+                    if (!file) return;
+                    const content = await file.text();
+                    await installCore({ mode: 'import', acceptLicense: true, content });
+                  }}
+                />
+              </label>
+            </div>
+            <p>{t('若无法访问官方源，可先手动下载 live2dcubismcore.min.js 再导入。')}</p>
+          </>
+        )}
+        {coreError && <p className="live2d-settings-error" role="alert">{localizeError(coreError, locale)}</p>}
+      </section>
 
       <section className="live2d-settings-section">
         <h4>{t('角色模型')}</h4>
