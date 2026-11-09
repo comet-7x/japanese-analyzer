@@ -40,12 +40,15 @@ const sha256 = (data: Uint8Array) => createHash('sha256').update(data).digest('h
 // copies the ENTIRE profile (AppData, Documents, …) into the install, and hard-
 // fails the build when the profile contains an unreadable reparse point (e.g.
 // the localized Start Menu folder on some machines). process.env.* values are
-// not folded, so this stays runtime-only. This also matches Tauri's
-// app_data_dir() exactly: %APPDATA% / ~/Library/Application Support /
-// $XDG_CONFIG_HOME (or ~/.config).
+// not folded, so this stays runtime-only.
+//
+// The base mirrors Tauri's app_data_dir() per platform: %APPDATA% (Windows),
+// ~/Library/Application Support (macOS), and $XDG_DATA_HOME or ~/.local/share
+// (Linux). The Linux branch is the XDG *data* dir, not the config dir, so a
+// Rust-side reader of app_data_dir() resolves the same location.
 const envValue = (name: string): string | undefined => process.env[name];
 
-/** Per-user, writable-at-runtime directory (matches Tauri's app_data_dir). */
+/** Per-user, writable-at-runtime directory (mirrors Tauri's app_data_dir). */
 export function coreDataDir(): string {
   const base =
     process.platform === 'win32'
@@ -54,7 +57,7 @@ export function coreDataDir(): string {
         ? envValue('HOME')
           ? join(envValue('HOME')!, 'Library', 'Application Support')
           : undefined
-        : envValue('XDG_CONFIG_HOME') ?? (envValue('HOME') ? join(envValue('HOME')!, '.config') : undefined);
+        : envValue('XDG_DATA_HOME') ?? (envValue('HOME') ? join(envValue('HOME')!, '.local', 'share') : undefined);
   if (!base) throw new Error('无法定位当前用户的配置目录。');
   return join(base, APP_IDENTIFIER, 'live2d-core');
 }

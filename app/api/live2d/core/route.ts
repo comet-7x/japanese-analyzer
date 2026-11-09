@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
     const { mode, acceptLicense } = body;
     const content: string | undefined = typeof body.content === 'string' ? body.content : undefined;
     if (mode !== 'download' && mode !== 'import') return NextResponse.json({ error: { message: 'Cubism Core 安装参数无效。' } }, { status: 400 });
+    // acceptLicense is a consent UX signal, not a security boundary: the client
+    // gates the install action behind a visible license checkbox, and this check
+    // only normalizes the flag to a boolean. Do not rely on it to enforce the
+    // license server-side.
     return NextResponse.json(await installCore({ mode, acceptLicense: acceptLicense === true, content, fetchImpl: fetch }), { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const body = requestBodyErrorResponse(error); if (body) return body;

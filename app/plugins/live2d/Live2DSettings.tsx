@@ -220,6 +220,11 @@ export default function Live2DSettingsPanel({ value, onChange, onModelDeleted, o
                     const file = event.target.files?.[0];
                     event.target.value = '';
                     if (!file) return;
+                    // The Core is ~207 KB. Reject oversized picks before reading
+                    // them into memory: `accept` is only a hint, so a user could
+                    // select a huge file that would otherwise be stringified and
+                    // posted long before the server's 1 MiB body limit refuses it.
+                    if (file.size > 1024 * 1024) { setCoreError(t('导入的 Core 文件超过 1 MiB，不是有效的运行库文件。')); return; }
                     const content = await file.text();
                     await installCore({ mode: 'import', acceptLicense: true, content });
                   }}

@@ -18,6 +18,7 @@ export const live2dMessages = {
   "Cubism Core 安装参数无效。": {"zh-TW": "Cubism Core 安裝參數無效。", "en": "Invalid Cubism Core installation request.", "ko": "Cubism Core 설치 요청이 유효하지 않습니다."},
   "导入的文件与官方 Cubism Core 不一致，请从官方源重新下载。": {"zh-TW": "匯入的檔案與官方 Cubism Core 不一致，請從官方來源重新下載。", "en": "The imported file does not match the official Cubism Core. Download it again from the official source.", "ko": "가져온 파일이 공식 Cubism Core와 일치하지 않습니다. 공식 출처에서 다시 다운로드하세요."},
   "Cubism Core 下载或校验失败，请重试或改用离线导入。": {"zh-TW": "Cubism Core 下載或校驗失敗，請重試或改用離線匯入。", "en": "Cubism Core download or verification failed. Retry or use offline import.", "ko": "Cubism Core 다운로드 또는 검증에 실패했습니다. 다시 시도하거나 오프라인 가져오기를 사용하세요."},
+  "导入的 Core 文件超过 1 MiB，不是有效的运行库文件。": {"zh-TW": "匯入的 Core 檔案超過 1 MiB，不是有效的運行庫檔案。", "en": "The imported Core file exceeds 1 MiB and is not a valid runtime file.", "ko": "가져온 Core 파일이 1 MiB를 초과하여 유효한 런타임 파일이 아닙니다."},
   "Cubism Core 安装失败。": {"zh-TW": "Cubism Core 安裝失敗。", "en": "Cubism Core installation failed.", "ko": "Cubism Core 설치에 실패했습니다."},
   "Cubism Core 状态读取失败。": {"zh-TW": "Cubism Core 狀態讀取失敗。", "en": "Could not read the Cubism Core status.", "ko": "Cubism Core 상태를 읽을 수 없습니다."},
   "上一个": {"zh-TW": "上一個", "en": "Previous", "ko": "이전"},

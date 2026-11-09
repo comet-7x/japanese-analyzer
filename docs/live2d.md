@@ -47,7 +47,7 @@ CI 可在维护者自行确认软件许可后设置 `LIVE2D_ACCEPT_LICENSE=1` �
 
 ### 终端用户安装（无需命令行）
 
-未用 `live2d:prepare` 烘焙 Core 的安装包也能直接使用看板娘：打开「设置 → 虚拟角色服务」，顶部「Cubism Core 运行库」区块提供一键安装。勾选并同意软件许可后，「在线安装 Core」由应用内的服务端从官方地址下载、校验字节长度与 SHA-256 后，安装到当前用户的 `%APPDATA%\ink.howen.japanese-analyzer\live2d-core\`（macOS 为 `~/Library/Application Support/`、Linux 为 `~/.config/` 下的同名目录），之后由同源的 `/api/live2d/core` 提供给页面加载，全程不写入只读的安装目录。无法访问官方源时，选择「离线导入 Core 文件」导入已按协议取得的 `live2dcubismcore.min.js`；导入同样先校验再使用，不一致会直接报错。已安装文件每次读取都会重新校验，被修改或损坏时区块会回到未安装状态。相关服务端逻辑与锁文件同步的测试为 `tsx tests/live2dCore.test.ts`，包含在 `npm run test:live2d` 与 `npm test` 中。
+未用 `live2d:prepare` 烘焙 Core 的安装包也能直接使用看板娘：打开「设置 → 虚拟角色服务」，顶部「Cubism Core 运行库」区块提供一键安装。勾选并同意软件许可后，「在线安装 Core」由应用内的服务端从官方地址下载、校验字节长度与 SHA-256 后，安装到当前用户的 `%APPDATA%\ink.howen.japanese-analyzer\live2d-core\`（macOS 为 `~/Library/Application Support/`、Linux 为 `$XDG_DATA_HOME` 或 `~/.local/share/` 下的同名目录，与 Tauri 的 `app_data_dir` 一致），之后由同源的 `/api/live2d/core` 提供给页面加载，全程不写入只读的安装目录。无法访问官方源时，选择「离线导入 Core 文件」导入已按协议取得的 `live2dcubismcore.min.js`；导入同样先校验再使用，不一致会直接报错。已安装文件每次读取都会重新校验，被修改或损坏时区块会回到未安装状态。相关服务端逻辑与锁文件同步的测试为 `tsx tests/live2dCore.test.ts`，包含在 `npm run test:live2d` 与 `npm test` 中。
 
 ## 导入与切换角色
 
