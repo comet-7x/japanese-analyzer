@@ -103,7 +103,7 @@ export const messages = {
   "所选角色模型已不存在，请重新导入。": {"zh-TW":"所選角色模型已不存在，請重新匯入。","en":"The selected model is missing. Import it again.","ko":"선택한 모델이 없습니다. 다시 가져오세요."},
   "正在加载角色…": {"zh-TW":"正在載入角色…","en":"Loading character…","ko":"캐릭터 로드 중…"},
   "请先在设置中导入角色模型。": {"zh-TW":"請先在設定中匯入角色模型。","en":"Import a character model in settings first.","ko":"먼저 설정에서 캐릭터 모델을 가져오세요."},
-  "缺少 Live2D 官方运行库。请按项目文档安装 Cubism Core。": {"zh-TW":"缺少 Live2D 官方執行庫。請依專案文件安裝 Cubism Core。","en":"The Live2D runtime is missing. Install Cubism Core as described in the project docs.","ko":"Live2D 공식 런타임이 없습니다. 프로젝트 문서에 따라 Cubism Core를 설치하세요."},
+  "缺少 Live2D 官方运行库。请在看板娘设置中点击「在线安装 Core」或「离线导入」安装 Cubism Core。": {"zh-TW":"缺少 Live2D 官方執行庫。請在看板娘設定中點選「線上安裝 Core」或「離線匯入」安裝 Cubism Core。","en":"The Live2D runtime is missing. In companion settings, choose “Install Core online” or “Import Core file offline”.","ko":"Live2D 공식 런타임이 없습니다. 캐릭터 설정에서 “Core 온라인 설치” 또는 “Core 파일 오프라인 가져오기”를 선택하세요."},
   "打开看板娘设置": {"zh-TW":"開啟看板娘設定","en":"Open companion settings","ko":"캐릭터 설정 열기"},
   "拖动看板娘": {"zh-TW":"拖動看板娘","en":"Drag companion (arrow keys also work)","ko":"캐릭터 드래그 (방향키 사용 가능)"},
   "角色操作": {"zh-TW":"角色操作","en":"Character actions","ko":"캐릭터 작업"},

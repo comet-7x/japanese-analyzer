@@ -460,7 +460,7 @@ export default function Live2DWidget({ settings, analysisEvent = null, onSetting
                 sensitivity={settings.sensitivity}
                 trackPointer={settings.trackPointer}
                 onError={(cause) => setLoadError(cause.message.includes('Cubism Core')
-                  ? t('缺少 Live2D 官方运行库。请按项目文档安装 Cubism Core。')
+                  ? t('缺少 Live2D 官方运行库。请在看板娘设置中点击「在线安装 Core」或「离线导入」安装 Cubism Core。')
                   : cause.message)}
               />
             ) : (

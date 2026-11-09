@@ -27,6 +27,10 @@ export type ActionPlaybackState = { actionId: string | null; status: 'loading' |
 export type ModelProjection = { a: number; b: number; c: number; d: number; tx: number; ty: number };
 
 const CORE_URL = "/live2d/core/live2dcubismcore.min.js";
+// Runtime fallback: the server downloads/verifies the Core on demand from the
+// official source (see app/api/live2d/core), so a normal install needs no
+// build-time preparation. Same-origin, allowed by script-src 'self'.
+const CORE_API_URL = "/api/live2d/core";
 const DEFAULT_MOUTH_PARAMETER = "ParamMouthOpenY";
 
 let coreLoadPromise: Promise<void> | null = null;
@@ -34,13 +38,13 @@ let renderPipeRegistered = false;
 
 type CoreWindow = Window & { Live2DCubismCore?: unknown };
 
-function loadCubismCore(): Promise<void> {
+function loadCubismCore(url: string): Promise<void> {
   if ((window as CoreWindow).Live2DCubismCore) return Promise.resolve();
   if (coreLoadPromise) return coreLoadPromise;
 
   coreLoadPromise = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = CORE_URL;
+    script.src = url;
     script.async = true;
     script.dataset.live2dCore = "true";
     script.onload = () => {
@@ -55,7 +59,7 @@ function loadCubismCore(): Promise<void> {
       script.remove();
       reject(
         new Error(
-          `Live2D Cubism Core is unavailable at ${CORE_URL}. Obtain it from the official Cubism SDK for Web.`,
+          `Live2D Cubism Core is unavailable at ${url}. Install it from the Live2D settings.`,
         ),
       );
     };
@@ -66,6 +70,22 @@ function loadCubismCore(): Promise<void> {
   });
 
   return coreLoadPromise;
+}
+
+// Try the build-time baked copy first, then the server-provided Core. The
+// module-level cache resets on rejection, so exactly one retry is safe.
+async function ensureCubismCore(): Promise<void> {
+  if ((window as CoreWindow).Live2DCubismCore) return;
+  try {
+    await loadCubismCore(CORE_URL);
+  } catch (error) {
+    if ((window as CoreWindow).Live2DCubismCore) return;
+    try {
+      await loadCubismCore(CORE_API_URL);
+    } catch {
+      throw error;
+    }
+  }
 }
 
 function toError(value: unknown): Error {
@@ -189,7 +209,7 @@ const Live2DCanvas = forwardRef<Live2DCanvasHandle, Live2DCanvasProps>(function 
     };
 
     const initialize = async () => {
-      await loadCubismCore();
+      await ensureCubismCore();
       if (disposed) return;
       // Official Pixi CSP implementation: replace generated functions before renderer init.
       // Despite the module name, this removes the need for script-src 'unsafe-eval'.
