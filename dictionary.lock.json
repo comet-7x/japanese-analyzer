@@ -1,7 +1,7 @@
 {
-  "version": "3.6.2+20261005200550",
-  "date": "2026-10-05",
+  "version": "3.6.2+20261123231529",
+  "date": "2026-11-23",
   "formatVersion": 1,
-  "url": "https://github.com/scriptin/jmdict-simplified/releases/download/3.6.2%2B20261005200550/jmdict-eng-3.6.2%2B20261005200550.json.tgz",
-  "sha256": "081f5059d02d28e2d4e31f2afe9b9c0a56bb8c7003c33dc9420fea6329cb2550"
+  "url": "https://github.com/scriptin/jmdict-simplified/releases/download/3.6.2%2B20261123231529/jmdict-eng-3.6.2%2B20261123231529.json.tgz",
+  "sha256": "fbeabd2f9dce8d5b2c831e1ee6f859f8f200dd6c96d7a16f0f0004dd5bc9c786"
 }
